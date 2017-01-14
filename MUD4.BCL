@@ -1,0 +1,245 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let occupied(room,obj)=valof
+$(	let who.copy=who!room
+	unless who.copy resultis false
+	broadcast(K.STTE,who.copy,PNAME of obj)
+	resultis true
+$)
+and start.leading() = valof test not leading then
+$(	transmit(leading,0,K.ISFY)
+	leading_true
+	resultis true
+$) or test animal then
+$(	CHASERS of MOTN of animal bitand_\player.bit
+	animal_false
+	resultis true
+$) or resultis false
+and lose.followers() be if followers then
+$(	broadcast(K.SFM,followers)
+	followers_0
+$)
+and doownthing() = valof test not frontman
+$(	transmit(frontman, 0, K.ISJY)
+	frontman_true
+	resultis true
+$) or resultis false
+and lose.joiners() be if joined then
+$(	broadcast(K.SJM,joined)
+	joined_0
+$)
+and break.off() be
+$(	lose.followers()
+	start.leading()
+	lose.joiners()
+	doownthing()
+$)
+and new.stamina(pno) =valof
+$(	let prof, val, smax=?, ?, ?
+	unless numbargs() pno_player.no
+	prof_LH from player.names!pno
+	unless ASLEEP of prof resultis STAMINA of prof
+	val_can.wake(pno)
+	val+_STAMINA of prof
+	smax_STAMINAMAX of prof
+	if val gr smax val_smax
+	resultis val
+$)
+and can.wake(pno)=(ud.time()-kips!(numbargs()->pno,player.no))/SDIV
+and wake.up() be
+$(	unless ASLEEP of profile return
+	out("You wake up.*C*L")
+	broadcast(K.IHWU, who.copy)
+	STAMINA of profile_new.stamina()
+	kips!player.no_false
+	ASLEEP of profile_false
+	out("Your stamina is now :N.*C*L", STAMINA of profile)
+$)
+and fightmess(what, snd, deadname) be
+$(	let str, who=vec 26, valof
+	test snd=player.no then
+	$(	let name=numbargs()=3->deadname,PNAME of fight!player.no
+		!str_!"*0the"
+		1!str_!name
+		2!str_1!name
+		LENGTH of str+_((LENGTH bitor 1) of str)+1
+		(LENGTH bitor 1) of str_'*S'
+		resultis str
+	$) or resultis numbargs()=3->deadname, player.names!snd
+	switchon what into
+	$(
+	case B.START:
+		out("You :r that :p is :r at you :r...*C*L", 16, who, 1, 2)
+		endcase
+	case B.IHIT:
+		out("You :r :p with a :r :r!*C*L", 3, who, 4, 5)
+		endcase
+	case B.THEYMISS:
+		out("You :r :r a :r :r :r :p.*C*L", 22, 6, 7, 5, 9, who)
+		endcase
+	case B.IMISS:
+		out("Your :r :r is :r :p.*C*L", 7, 5, 10, who)
+		endcase
+	case B.THEYHIT:
+		test random(3) then out("The :r of a :r :r :p sends you :r.*C*L", 12, 5, 9, who, 21)
+		or out("You are :r by the :r of a :r :r :p!*C*L", 11, 12, 5, 9, who)
+		endcase
+	case B.IMDEAD:
+		out("You can :r your :r :r...*C*L", 13, 14, 15)
+		endcase
+	case B.IMOK:
+		out(":r you :r, and :r into the :r.*C*L", 17, 18, 19, 8)
+		endcase
+	case B.IHITBACK:
+		out("Your :r :r sends :p :r!*C*L", 20, 5, who, 21)		
+		endcase
+	case B.IMISSAGAIN:
+		out("Your :r :r :r at :p is :r :r.*C*L", 7, 20, 5, who, 22, 23)
+		endcase
+	case B.VICTORY:
+		out("Your last :r :r :U!*C*L", 5, 24, who)
+		endcase
+	$)
+	unless snd=player.no hibernate()
+$)
+and ch.sendlevel(hmm) be
+$(	let l=(DREC of hmm)
+	if l=max.level unless WIZARD of profile
+		error("Only immortals may speak to immortals in this way.")
+	sendlevel(l-1)
+$)
+and sendlevel(l) be
+$(	let cn,sc1,sc2=?,(1<<l)*EXP.STEP,(1<<(l+1))*EXP.STEP
+	test chcnt>0 then
+	$(	read.message(mbuffer)
+		cn_(LENGTH of mbuffer)/5
+		cn_cn>13->13,cn
+	$) or return
+	for i=0 to 35 if i ne player.no /\ player.names!i
+	$(	let pr=LH from player.names!i
+		if (l=max.level-1/\(WIZARD of pr ne 0\/SCORE of pr ge sc1))\/(sc1 le SCORE of pr ls sc2)
+		$(	let mb=getmblock()
+			unless mb return
+			transmit(i, 0, K.ISCY, verbname)
+			copy(mbuffer, mb+2, cn)
+			send(i, mb, K.TEXT, mb!2)
+		$)
+	$)
+$)
+and sendall(bits,fn,always,wizonly,val1,val2,val3,val4,val5,val6,val7,val8,val9,val10,val11,val12,val13,val14) be
+if bits for i=0 to 35 if player.no \= i if bits bitand (1<<i)
+$(	let p, vals=player.names!i, numbargs()-5
+	unless p loop
+	p_LH from p
+	if ~wizonly \/ WIZARD of p ne 0
+//	if SNOOPBIT of p=0\/((1<<i) bitand snoopedon) ne 0
+	if always \/ (A.SILENT bitand ATTRIB of CROOM of p) =0
+	$(	let b,ptr,inf=getmblock(vals le 0),@val1,b+2
+		if vals ge 0 copy(ptr,inf, vals)
+		send(i,b,fn,!inf)
+	$)
+$)
+and unsnoop(silent) be
+$(	if snobj
+	$(	SNOOPERS of MOTN of snobj bitand_\player.bit
+		unless numbargs() Out("You have stopped snooping on the :P.*C*L",PNAME of snobj)
+		snobj_false
+	$)
+	if \snooping
+	$(	unless numbargs() out("You have stopped snooping on :p.*C*L",player.names!snooping)
+		them_0
+		(SEX of LH from player.names!snooping->her,him)_0
+		transmit(snooping, 0, K.IWSS)
+		snooping_true			//that is to say, false...
+		SNOOPBIT of profile_false
+	$)
+$)
+and announcechange() be sendall(true,K.WM,true,false)
+and stop.fighting(fleeing) be
+$(	let fighting=false
+	for i=0 to 35 do if fight!i
+	$(	fighting_true
+		test i=player.no then if MOTN of fight!i FIGHTS of MOTN of fight!i bitand_\player.bit
+		or transmit(i,0,K.IFFY, verb\/((SCORE of profile gr FLEELOSS->((player.level()+1)*FLEELOSS*numbargs()),SCORE of profile)<<18))
+		fight!i_false
+	$)
+	if fighting/\numbargs()
+	$(	out("You drop everything as you make your tactical withdrawal...*C*L")
+		drop.everything()
+		setscore((player.level()+1)*2*-FLEELOSS)
+	$)
+	quitflg_true
+$)
+and unfollow() be	//the same as unsnoop...
+$(	if animal
+	$(	CHASERS of MOTN of animal bitand_\player.bit
+		out("You have stopped following the :P.*C*L", PNAME of animal)
+		animal_false
+	$)
+	if \leading
+	$(	transmit(leading,0,K.ISFY)
+		out("You have stopped following :P.*C*L", player.names!leading)
+		leading_true
+	$)
+$)
+and inform(nd,token) be if MOTN of nd broadcast(token, SNOOPERS of MOTN of nd, nd,true)
+and stopmoving(nd) be
+$(	let mobile=MOTN of nd
+	unless mobile return
+	!mobile_0
+	broadcast(K.SFM,CHASERS of mobile, nd,true)
+	CHASERS of mobile_false
+$)
+and broadcast(token,bits,info,to.me) be
+$(	unless numbargs()=4 bits bitand_\player.bit
+	unless bits return
+	for i=0 to 35 if (1<<i) bitand bits
+	transmit(i, 0, token, info)
+$)
+and infrm(nd,bag,token) be
+	sendall(SNOOPERS of MOTN of bag,token,true,false,nd,PNAME of bag)
+and bashfull() be
+$(	if snoopedon broadcast(K.SSNO, snoopedon,SEX of profile)
+	snoopedon_false
+$)
+and send(dst,blk,fn,val) be
+$(	let nd,oldnd=?,?
+	unless blk blk_getmblock()
+	if numbargs()<4 val_0
+	unless player.names!dst/\(JBNUM of LH from player.names!dst) do	//If he's dead we can't send him a
+	$(	fight!dst_0		//packet. So zero the fight entry
+		freemblock(blk)		//and give back the block we would
+		return			//have used to the freelist
+	$)
+	LH of blk_player.no
+	FUNC of blk,LINK of blk_fn,0
+	INFO of blk_val
+	jar(queue.doors+dst)
+	nd,oldnd_queue!dst,queue+dst
+	while nd do oldnd_nd<>nd of_LINK
+	LINK of oldnd_blk
+	unjar(queue.doors+dst)
+	unless dst=player.no
+	$[	$move	ac,	dst
+		$add	ac,	jobnos
+		$move	ac,	0(ac)	//I should've used block instead of vec
+		$wake	ac,	0
+		$trn
+	$]
+$)
+and transmit(dst,blk,fn,val) be
+	send(dst,blk->blk,getmblock(true),fn,numbargs()<4->0,val)

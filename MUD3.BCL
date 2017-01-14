@@ -1,0 +1,344 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let error(message,f1,f2,f3) be
+$(	outs("*C*L")
+	checksnoop(SNOOPROMPT)
+	test numbargs() then echo()<>out(message,f1,f2,f3)<>outs("*C*L") or
+	outstr(strtab,5)
+	flush()
+	jump(mainloop)
+$)
+and private() be
+$(	olog, osnop_logstr, snoopedon
+	logstr, snoopedon_0,false
+$)
+and public() be
+$(	logstr, snoopedon_olog, osnop
+$)
+and reinstate(ov, oo, oi) be
+$(	verb, objct, instrmnt_ov, oo, oi
+	instate()
+$)
+and instate() be verbname,objname,insname_
+	verb->PNAME of verb, "", PNAME of objct, instrmnt->PNAME of instrmnt, ""
+and playing(sm) = valof
+$(	sm_(1<<(sm-2))*EXP.STEP
+	for i=0 to 35 if player.names!i
+	$(	let prof=LH from player.names!i
+		if SCORE of prof ge sm\/WIZARD of prof=1 resultis true
+	$)
+	resultis false
+$)
+and normalise(attrib, max) be
+$(	if attrib of profile > max attrib of profile_max
+	unless attrib=STAMINA if attrib of profile <10 attrib of profile_10
+$)
+and setexp(o1,nolose,asking) =valof
+$(	let ans=?
+	unless numbargs()=3 asking_false
+	unless asking if (WIZARD of profile)=1 return
+	ans_(P4 of o1=SCOREPROP of o1 \/P1 of o1=1 \/ RANDM of o1 ne 0)-> valof
+	$(	let res=VALUE of o1
+		$[	$hrre	1,	res
+			$movem	1,	res
+		$]
+		if res le 0 /\ numbargs()=2 resultis 0
+		if P1 of o1=1 \/ RANDM of o1 then res*_(P4 of o1)+1
+		resultis extra(res)
+	$),0
+	if asking resultis ans
+	setscore(ans)
+$)
+and setscore(pts, okberserk) be if pts
+$(	let oldlev,newlev=player.level(),?
+	unless numbargs()=2 okberserk_1
+	test BZK/\BERSERK of profile then unless numbargs()=2 return
+		or okberserk_1
+	unless pts ls 0 if INVIS of profile return
+	SCORE of profile+_pts*okberserk
+	if SCORE of profile ls 0 SCORE of profile_0
+	newlev_player.level()
+	if newlev ne oldlev
+	$(	let alter=newlev gr oldlev->boost, unboost
+		Out("Your level of experience is now :P.*C*L",(SEX of profile->female,male)!newlev)
+		unless us(me) sendall(true,K.IHCL,false,true,(newlev<<18)+oldlev)
+		alter(STRENGTH)
+		alter(DEXTERITY)
+		alter(STAMINA)
+		alter(STAMINAMAX)
+		if newlev=MAX.LEVEL unless BZK/\BERSERK of profile
+			out("You can now enter :s mode, but I suggest you save your persona first...*C*L",
+				(SEX of profile->female, male)!MAX.LEVEL)
+	$)
+$)
+and read.message(addr) be
+$(	if chcnt>0 while scanch='*S'\/scanch='*T' do scanch_getch()
+	unless chcnt>0/\scanch ne '*C' then
+	$(	outz($az"OK, tell me the message:*C*L")
+		if scanch='*C' scanch_getch()
+		check.stuff()
+		scanch_getch()
+	$)
+	nextch,chcnt-:1,-1
+	chcnt_chcnt-(linebuffer!(!linebuffer-1)='*C'->2,1)
+	!nextch_chcnt>69->69,chcnt
+	while !nextch /\ nextch!!nextch ls ' ' then !nextch-_1
+	packstring(nextch,addr)
+	reset()
+$)
+and check.gone() be
+$(	unless active!player.no=-1 return
+	unjar(@deldr)
+	out("*C*LTime out! :6 has lost contact with you!*C*L", mud6)
+	out("You have been exorcised from the game.*C*L")
+	if detch() run($6"sys", $6"logout", $6"exe", 0)
+	finish
+$)
+and dormant() be
+$(	jar(@deldr)
+	check.gone()
+	active!player.no_-2
+	unjar(@deldr)
+$)
+and alive() be
+$(	jar(@deldr)
+	active!player.no_valof
+	$[	$mstime	1,	0	$]
+	unjar(@deldr)
+$)
+and flush() be
+$(	objct_fake.node("that")
+	him_0
+	her_0
+	them_0
+	it_0
+	there_0
+	instrmnt_0
+	verb_0
+	chcnt_0
+	scanch_-1
+$)
+and nextnum(def)=valof
+$(	let ans=?
+	check.stuff()
+	scanch_getch()
+	ans_getnum()
+	resultis ans->ans,def
+$)
+and swap(lvone,lvtwo) be
+$(	let three=!lvone
+	!lvone_!lvtwo
+	!lvtwo_three
+$)
+and swapobjins() be
+$(	swap(@objct, @instrmnt)
+	swap(@objname, @insname)
+	if objct=0 objct_fake.node("that")<>objname_"that"
+$)
+and gettrue()=valof
+$(	swap(@getnum, @gettrue)
+	resultis true
+$)
+and getnum()=valof
+$(	let res=0
+	if chcnt>0 then
+	$(	while scanch='*S' \/ scanch='*T' do scanch_getch()
+		while '0' le scanch le '9' do res_res*10+scanch-'0'<>scanch_getch()
+	$)
+	reset()
+	resultis res
+$)
+and place(room) = valof
+$(	let rm=0
+	if WIZARD of profile=1/\instrmnt
+	$(	rm_find.room(insname)
+		if rm rm_LH of rm
+	$)
+	resultis rm->rm,room
+$)
+and killmonster(it) be if MOTN of it
+$(	let moit,watchers,chsrs,insides,ins,rm=
+	MOTN of it,SNOOPERS of moit,CHASERS of moit,CONTENTS of it,insides->CONTS of insides,0,CURROOM of moit
+	for i=0 to 35 do
+	$(	let bit=1<<i
+		if bit bitand watchers transmit(i,0,K.OHD,it)
+		if bit bitand chsrs transmit(i,0,K.SFM)
+	$)
+	CHASERS of moit_0
+	SNOOPERS of moit_0
+	if rm/\ins
+	$(	jar(DOOR+rm)
+		ins_unlink(insides)
+		while ins do
+		$(	WTUSED of insides-_WEIGHT of ins
+			WEIGHT of it-_WEIGHT of ins
+			pushlist(rm+4,ins)
+			infrm(ins,it,K.MDROPT)
+			broadcast(K.SHBD,who!rm,ins,true)
+			ins_unlink(insides)
+		$)
+		unjar(DOOR+rm)
+	$)
+$)
+and invisible(prf)=valof
+$(	if fodsville resultis false
+	if 0 le prf le 35 prf_LH from player.names!prf
+	if prf=profile resultis false
+	unless INVIS of prf resultis false
+	if us(PNAME of prf) unless us(me) resultis true
+	unless WIZARD of profile resultis true
+	resultis false
+$)
+and visible(rm)=valof
+$(	let nd=?
+	if WIZARD of profile resultis true
+	if blind resultis false
+	unless numbargs() rm_room
+	if A.LIGHT bitand ATTRIB of rm resultis true
+	lock(rm+door)
+	nd_ROBJT of rm
+	while nd do
+	$(	if luminous(nd, BRIGHT) unlock()<>resultis true
+		nd of_LINK
+	$)
+	unlock()
+	for i=0 to 35 do if (1<<i) bitand who!rm do unless invisible(i)
+	$(	let nd=LH from player.names!i
+		if WIZARD of nd resultis true
+		nd_ROBJT of nd
+		while nd do
+		test luminous(nd, BRIGHT) then resultis true
+		or nd of_LINK
+	$)
+	resultis false
+$)
+and luminous(obj, sel)=valof
+$(	if (sel of obj)/\(P4 of obj=0) resultis true
+	if CONTENTS of obj ne 0/\ TRANSPARENT of CONTENTS of obj ne 0/\ P4 of obj=0
+	$(	let nd=CONTS of CONTENTS of obj
+		while nd do
+		$(	if luminous(nd, sel) resultis true
+			nd of_LINK
+		$)
+	$)
+	resultis false
+$)
+and setprop(obj,val,sm) be
+$(	let oldprop,objmotn=P4 of obj,MOTN of obj
+	P4 of obj_val
+	if objmotn/\val ne oldprop
+	$(	let watchers,chsrs,v=SNOOPERS of objmotn, CHASERS of objmotn,WEIGHT of obj-WTHRESHOLD
+		for i=0 to 35
+		$(	let bit=1<<i
+			if bit bitand watchers transmit(i,0,K.OHD,obj)
+			if (bit bitand chsrs)/\oldprop=0 transmit(i,0,K.SFM)
+		$)
+		SNOOPERS of objmotn, CHASERS of objmotn_0,0
+		if v>0/\holding(obj)
+		test val then unless oldprop
+		$(	OBJ.EXTRA of profile-_(v/WTHRESHOLD)+1
+			WT.EXTRA of profile-_v
+		$) or
+		$(	OBJ.EXTRA of profile+_(v/WTHRESHOLD)+1
+			WT.EXTRA of profile+_v
+		$)
+	$)
+	unless numbargs()=3 return
+	longdescribe(sm)
+$)
+and hidden(pnum) = valof
+$(	let prf=LH from player.names!pnum
+	if invisible(prf) resultis true
+	pnum_CROOM of prf
+	resultis pnum=0\/
+	(WIZARD of profile=1\/flipping -> false, A.HIDE bitand (ATTRIB of pnum))
+$)
+and dud(one,two) be return
+and person(objct) be
+$(	if PTYPE of objct = S.PLAYER /\ hidden(P1 of objct)=0 return
+	error(":U is not a player.",objname)
+$)
+and reset() be
+$[	$setom		scanch
+	$setzm		chcnt
+	$move	1,	objname
+	$move	1,	0(ac)
+	$came	1,	bufull
+	$(	return	$)
+	$move	1,	rep1
+	$add	1,	rep2
+	$hlrz	1,	0(ac)
+	$movem	13,	3(ac)
+$]
+ 
+and sb(num) = valof
+$(	res6_0
+	until num=0 do
+	$(	res6_(res6>>6) bitor ((num rem 10 +#20)<<30)
+		num /_10
+	$)
+	resultis @res6
+$)
+and player.level(prof)=valof
+$(	let scr=SCORE of (numbargs()->prof, profile)
+	for i=0 to MAX.LEVEL do if (1<<i)*EXP.STEP gr scr resultis i
+	resultis MAX.LEVEL
+$)
+and checkout(block) be
+if STAMINA of profile<=0 then
+test us(me)\/(WIZARD of profile ne 0/\realwiz(me)) then STAMINA of profile_STAMINAMAX of profile or
+$(	let nam=PNAME of profile and pts=SCORE of profile
+	and mpts=EXP.STEP*(1<<(MAX.LEVEL-1)) and them=player.no
+	if pts gr mpts pts_mpts
+	pts_DEADPTS+pts/((2-(BZK->(BERSERK of profile), 1))*12)
+	if numbargs()
+	$(	fightmess(B.IMDEAD,0)		//player 0 will do some extra work...
+		freemblock(block)
+	$)
+	for i=0 to 35 do if fight!i
+	$(	test i=player.no then if MOTN of fight!i FIGHTS of MOTN of fight!i bitand_\player.bit or
+		$(	block_getmblock()
+			if block
+			$(	block!3_!nam
+				block!4_1!nam
+				send(i, block, K.IMDD,pts)
+				them_i
+			$)
+		$)
+		fight!i_0
+	$)
+	if them ne player.no
+	$(	let tmp=?
+		private()
+		tmp_Createtmp($6"where", Label(tish))
+		Writeno(tmp,valof
+		$[	$move	ac,	them
+			$add	ac,	jobnos
+			$move	ac,	0(ac)
+			$trmno.	ac,	0
+			$seto	ac,	0
+			$gtntn.	ac,	0
+			$seto	ac,	0
+		$])
+		Close(tmp)
+		if false
+tish:		Writes(tty, "*C*LCan't create the .TMP file for WHERE.*C*L")
+		public()
+	$)
+	quit()
+$)
+and extra(pts)=3*pts-((4*pts)/(player+2))

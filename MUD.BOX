@@ -1,0 +1,321 @@
+H=HARD
+T=TEDIOUS
+E=EASY
+L=LONG-TERM
+S=SUGGESTION
+*=ASAP
+!=TO BE TESTED
+?=VERIFY
+
+!	need %'s for maps
+!	make it chuck you out properly when it crashes - switch off ctrap
+!	make DBASE chuck out "our" names put in the database - stick in symbol table
+
+*	make POWER non-runnable from [*,2653].
+*	"Here stands the tomb of Maria the witch, shaped like a large button with
+	F1 written on the top"
+*	pss #121...#137, janet #22...#40
+*	if you snoop on someone who's forced to do something illegal, you lose
+	the force snoop forever
+*	people in ROCK can run into MUD via SGO - stop 'em. Drop the MUD6 name?
+*	ensure "Everything has been reser to..." starts with an E
+*	cabn go BACK from ktreas and dwarfs don't stop you
+*	I killed dan the wiz as an (unfrigged) novice
+*	There is a bug with zaping the grate to get back to the land
+	if someone is in the wardrobe then you don't teleport - ok
+*	still told p/w to wiz mode revealed when you quit
+*	wiz's are told when arch-wiz's follow them
+*	stroked a dead rabbit and was bitten..!
+*	In the cupboard (to go to the attic), I am told that you can FLEE out of
+	it, even when it is latched shut. I have not actually tried this myself.
+*	More major bug: dwarfen realm. In the King's Treasure chamber, it is possible
+	to get out without killing the dwarf guards by typing BACK
+*	At the end of a BUG or TYPO report, Thankyou is printed as one word!
+*	Misspelling: Overgrown grounds of mausoleum... ...sweeping down into a steep >>
+	>escaprment<<
+*	WHHY CAN'T I DECK THE HALL WITH HOLLY?!!
+*	catch CATCH WATER IN POT and FILL POT F STREAM etc
+*	put a WIZVWIZ test in CHECKOUT (mud3) before add stuff. Also, make
+	wiz's not be checked if they're v an arch-wiz? ie de-wiz 'em?
+*	stop wiz's from being killed by novices!
+*	zapping grate triesto take you to wardrobe - but if it's full?
+*	try to feed rabbit to wolf - won't let you as it's a carnivore. make it
+	wolf it down?
+*	a WHO HERE command, savesyou looking
+*	stop wiz's being told when arch's follow 'em
+*	end of BUG gives word "thankyou" not "thank you"
+*	Howbout a way for mortals to get rid of the rain? Say gamble with
+	a god against some stamina or a sacrifice of a goat.. ( or human!)
+*	put back TALK
+*	Oh and how much is a MUD sweatshirt please.
+*	a REPLY (R) command, which replies to the last message you were TELLed
+*	put wiz's in a file to check
+*	can't use START in power - wants a p/w
+*	don't let people steal things you're keeping
+*	WHO <level>
+*	only arch-wiz locks should lock out wiz's
+*	inventory <player>
+*	forbid <command> to stop it being used by non-wiz's
+*	drop <item> in <room> - should say the room for wiz's
+*	don't let you get points from stream (or poker?) above level 6.
+*	make screenwidth work properly
+*	G IVY F DIAL fails, G IVY F BBATH says concentrate on sundial
+*	stop people from being summoned if they're in fights
+*	i just cast a spell   -   it didn't work but i was in a room that would
+	'nt let me go to sleep  and i came back with more than my maximum endurance
+*	put random auto-logs for wiz's on my area
+*	can you set user name from inside the game?
+*	lightning mobile which strikes people at random as it moves about
+*	if play violin and drop it, still get message it's broken
+*	short messages for fights if you fbrief. Same as 3rd party messages to
+	othrs
+*	put TALK in access.usr
+*	have a MONITOR command (uses the WIZD word) which is for
+	whether you want trash messages to come up if you're a wiz
+*	have it so you can KISS/HUG with an adverb, too
+*	often says you7re not alone when you are
+*	knocking down with feathers
+*	when people die, say HOW they died, ie if in a fight or not (to wiz's)
+*	Can open brolly lots of times without closing it
+*	If the p command is removed....then why not the 'recite' and the 'chant' ??
+*	trying to FELL TREE W WAND produces u need an axe (or wand) to fell a tree
+*	are mobiles carrying things immbole?
+*	if snoop on mobiles, hear what7s said in the room? see their commands?
+*	stop it giving double |'s for You cannot go that way messages
+*	smile might be nice
+*	WHO LEVEL tells you who is playing at that level only
+*	move panel says "i see no panel" in sliding panel room
+*	have a SPIT command like kiss
+*	TELL ALL EXCEPT bbb
+*	make logboo and almana writeable but not as obj's, ie you have to
+	type READ ALMANANAC and it then types out what's written in it
+*	witches become wiz's if you att to them (petal does anyway!)
+*	put up CLIVE's VALLEY 
+*	make it so can't go into wiz mode if more than half the number of
+	mortals in wizards already
+*	all EXITS in the steps to cellar were CELLAR - even UP!
+*	having taken a bag - any LOOK i do looks in the bag! whoops
+*	should you hurtle down th chute with the umbrella?
+*	time-stamp yhe time when peopl egot big scores. Make it work
+	right for ATTATCHED personas too.
+*	switch echo off via SEM first thing so p/w7s not caught
+*	if you try manipulate something that isn't there, then type LOOK, you
+	get screwedup messages. MAKE IT SO LOOK ONLY WORKS ON DEFAULT OBJECT IF
+	YOU TYPED ONE< IE DON'T INHERIT - or is it something else that screws it?
+*	have 2 bits of uranium, and if you put them in a bag together...
+*	when begger is zapped, get the object RAGS from store
+*	a tiara
+*	OPEN BOOKCASE doesn't work even with help!
+*	does it let you snoop on someone who7s already snooping?
+*	You should be able to cross swolen rivers if you have a boat !
+*	WIND to make you go BACK sometimes - screws up programs!
+*	put in 3rd person fights pretty soon - colourful but short descr's.
+*	STUN
+*	if someone goes into wiz mode and they're the only player, next player
+	gets the "changed to wiz mode" message too when they start up
+*	lose stamina for moving - 1 every 100 moves or so?	
+*	PUSH X NORTH or PUSH X:NORTH - compare strengths
+*	gorier fight descriptions
+*	if in bunker it says the tunnel is collapsed etc even when door shut
+*	make it so have to cook the wafers for them to work?!
+	in for 10 mins to cook them ... then get points for eating
+	them if you leave them > 20 mins say they burn + are useless
+*	allow people to go down the well possibly to a watery grave?
+*	if you ^C out when there's a noecho() it keeps noecho'ed. Make it use
+	SEM?
+*	butterfly->destroyed->caterpillar->chrysalis->bf again. T when bf
+	butterfly net for ^?
+*	when people are asleep for long periods, let them dream (demons) and
+	get some clues
+
+E	more interesting monsters
+E	there is no way of finding out stamina of ALL dwarves in 1 room
+E	Change laugh to I am so I am eating,proofs Polly the witch is eating !
+E	make fight templates change each level
+E	How about a Mirror for Valley ??
+E	have a destroydead, so can get rid of some more dead rooms
+E	put in a static for when you're fighting, rather than the for loop
+	- use a differnet name though! Also make player.names!snd a variable
+	in mud8
+E	a GAG/NOGAG command?
+E	a POLICE command
+E	have a MACRO command
+E	have a SEN TTY facility
+E	have a message sending/leaving facility using remote files
+E	let wiz's attach adjectives to people's names? FRED the NICE WARRIOR?
+	could it be made permanent?
+E	Can u make it so that lines about to get truncated 
+	are split up first. eg using " or speech.
+E	make it so wizards only appear with a crash of thunder when they GO
+	somewhere, and for walking just normal stuff
+E	send messages to other people in the room when you're fighting
+E	if you add Bardsley's RUN check stuff, make sure it only checks on a
+	valid NEXTGAME, not LOGOUT.
+E	HOW ABOUT MAKING 'SWAMP' DEFAULT TO 'OUT', THUS MEANING YOU COULD TYPE SWAMP
+	FROM NEARLY ANYWHERE!
+E	when people start to play, add their names to a file, MUD.PLY on
+	the MUD area, which looks for the persona file name.MUD. In this file
+	put your name and game. WHen you do a WHO, look in the file after normal
+	WHO, and read out players from other games and which one they're in. Make
+	it a LONGWHO command?
+E	allow WHO WIZARDS etc to let you know who of that rank is playing.
+	whethr just want that rank or all above I don't know...
+E	Why not have in wiz mode Inventory <playername>
+E	island: some seagul pecks you when asleep. for this and current,
+	need a 'silent' mobile
+E	a cage with something horrible behind it, hard luck if you open it.
+E	a pit leading to a cave with something ghastly in it. need to kill it
+	to get out
+E	some sort of book in valley
+E	assume <animal>
+E	let the database writer at the WIZARD word of the persona, ie let 'em
+	give props to people. Objects with binary props too?
+E	garbage collect
+E	auto- as a prefix to anything, eg auto-save. use demons.
+E	a few // rooms, eg 2 upstairs in house
+E	more toytown treasures for beginners, esp. north sectn. less pts for
+	easy-to-find ones.
+E	bale of hay in paddock, contains a silver needle feed it to goat/horse/ox
+	to get the needle
+E	make tombs toggle on keyword. put in some new problems... split up
+	in the.txt file
+E	if someone already in under your name and pswd, attach
+E	switch ini eg MUD/log/name:richard/brief etc
+E	make dbase handle @ properly in maps - might be an escape code!
+E	power's LEAGUE ok in MUD
+E	mobiles which follow you - use .provoke mechanism? Porters
+E	sliding the panel warn people in bluerm and diagps and spanel
+E	WIZARDS prints out know wizards by walking persona file
+E	if flee with no paramter, pick a random direction
+E	some command which speeds up time, ie add some number not 1
+E	USE command which forces default instrument
+E	violin case
+E	current at sea - use CURRENT mobile which moves you when it arrives
+E	a way you can attach at start
+E	make keg eg blow up rost? Make cannon portable?
+E	if 1st whack kills something, say so & not your last one LH OF FIGHT!SND
+E	dwarf coin - see both sides at moment. change to tossing it and it
+	coming up whatever's appropriate.
+
+H	summon mobiles
+H	possible for a RECLAIM which gets an object back no matter where it was?
+	Similarily a DISPOSE
+H	allow initialising of A in B in C - at present only works properly
+	weight-wise if do A in B.
+H	make time-ou detach you rather than exorcise, and when you wake up you
+	re-attach. assumes you have auto-attach at the beginning of the game for
+	people who start up with the name of someone who7s detached
+H	let travel table print out messages as well as letting you move.
+	Don't need more than 1 death room if you do this - moving prints out the
+	message. TRANS to deadrooms can use a weaker ZONK.
+H	adapt E constraint in TT to have rickety steps collapsing under too much
+	wt. have eg  E250 to say you can do it if <250g carried
+H	put pattern-matcher on SAY option in mud - .response?
+H	when something has been destroyed, check it's not been dropped, inside
+	something
+H	MUD.DBA random access, 2 blcokc for each object etc
+H	messages from snooped objects which DO something using demons
+H	if someone you detached from gets a message, tell you?
+H	instead of having RAIN as a multiplaced object, have an A.OUTSIDE
+	property on rooms. Outside rooms always get the RAIN description, which
+	is turned on and off by the same demons. Opens the way for NIGHT and
+	DAY. SOFTWIRED ROOM PROPS NEEDED IN THE LONG RUN? ROOMS AS OBJECTS...
+
+T	have a brightindark prop for objects - will-o-wisps?
+T	get shut of dead rooms and have a zonk-like thing
+T	more rooms near cavein
+T	use ADJECT field of objects as ATTRIBUTE. get rid of much of the
+	+ve/-ve props etc and use words like fixed, random, invisible. allow the words
+	anyway! Only need 1 bit for things like RANDOM so get more space
+T	keys that don7t fit all the locks
+T	alpine cottage and swiss alpine horn - blow in wromg place and avalanche,
+	right place and get a bridge (unless blow again...).
+T	hot air balloon to air castle
+T	can have echos in database
+T	someehwre where help is a disadvantage
+T	chicken hut near house
+T	animals beyond the leprm
+T	tide going in/out (also day/night?). Room under jetty can only get to
+	when it's out. Undersea village? Writing in sand?
+
+L	privs
+L	put travel-table on disc, and vocab too
+
+S	message in a bottle
+S	a ciborium
+S	a paten
+S	a reliquery
+S	a staurotheca
+S	orichalcum - mixture of copper and zinc, used in roman coins
+S	vestibule
+S	owl
+S	flagpole
+S	LOOK <item> to give the standard desciption of the item (useful for the
+        statue, for example);
+S	INVENTORY <class> to list the items of that class (useful for I T to
+        discover which of your items are treasure);
+S	VALUE <class> to give a list of the items of that class and their values -
+        this is so that VALUE T can be used to get an idea of the total value.
+S	How about a pack of cards......??
+	So that it has props......face up.....face down....
+	Also.......players can look at a hand.....
+	+a method of putting the cards in an object called deck......
+S	A handerchief (germ laden) which, if picked up will cause you to
+	have some embarrasing disease which can be transmitted to other players
+	and of which you will eventually die, unless you get the medicine (or
+	tablets..etc),
+S	a room with 4 masters. prev room has 4 globes. masters are bald. If you
+	smash a globe, it docks the master's stamina to really low. Otherwise
+	they're nigh on invincible
+S	fog - do by a mobile
+S	how about having varying degrees of severity of storm, eg bolts
+	of lightning, and high winds
+S	How about a hollow tree with something exciting inside,
+S	truffle
+S	beehive containing a swarm of bees and some treasure - honey? Can't
+	pick it up, but usable as a treasure-conatiner, non-transparent
+S	hermit in valley
+S	some sort of event where you have a limited time to do it
+S	hook
+S	mandrake root (?) in STUNS
+S	butterfly fluttering by, and net
+S	any possibility of having day and night in MUD/VALLEY. E.g. you
+	could have day for an hour, night for 20 minutes, something like the rain.
+S	effigy
+S	gilt/tinsel
+S	pearls
+S	heliodor, chrysoberyl, chrysoprase, chrysocolla, chrysolite, moonstone,
+	beryl, tortoiseshell, malachite, coral, carbuncle, tourmaline,
+	turquoise, odontolite, obsidian, jasper, sardius, sardonyx, agate,
+	lapis lazuli, carnelian (cornelian), peridot, chalcedony, jacinth,
+	aquamarine, quartz, citrine, malacon, zircon, goshenite, verobyerite,
+	(morganite), rubicelle, pleonaste (ceylonite), spinel, grossularite,
+	demantoid, melanite, topazolite, hessonite, almandine, kunzite,
+	hiddenite, spodumene, rubellite, indicolite, siberite, schorl, achroite,
+	prase, cacholong, hydrophane, jadeite, sard, staurolite, chiastolite
+S	grove
+S	ghost wandering around can't kill it normally - use wand? Makes you flee?
+S	bar - open/closing times (keys etc), gifts on tables, cloakroom with magic
+	cloaks, free info from elves if buy 'em a drink, need to visit WC,
+	drunkenness, pts for buying warm milk instead of alcahol. Club bar with
+	level restrictions on who's allowed in
+
+?	if you are attacked by the ram,and win,why do you still loose some points??
+?	the dryad got out again
+?	can Z's get to FALLIN on their own?
+?	when snooping on someone and attach, kill who you were snooping on doesn't
+	work
+?	if you jump off the cliff and you've got something with you, where's it
+	end up if you didn't have a brolly?
+?	close doors in mausolm gives funny stuff
+?	put FS in pot - says it(s too full but still puts it in
+?	If you empty a sack of treasure in the
+	swamp in valley it doesn't sink and score points put remains on the 
+	surface & can be picked up
+?	VAMPIRE GOT TO START IN VALLEY...
+?	go to room CELLAR and type UP a few times.. It doesn't get you out..
+	only OUT worx.. but isn't displayed in EXITS! Jez.
+?	Nsnoop didn't work.....!!
+	It said I had stopped snooping......
+	And then commenced to give us the prompt ...aswell...!!
+	But Unsnoop works.......even tho it thinks you're not snooping....!!

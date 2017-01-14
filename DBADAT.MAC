@@ -1,0 +1,103 @@
+;Copyright (C) 1980 by
+;Roy Trubshaw, Richard Bartle & Ronan Flood,
+;Essex University, Colchester. CO4 3SQ.
+;
+;	This software is furnished on the understanding that
+;it may be used and or copied only with the inclusion of this
+;notice.  No title or ownership of this software is hereby
+;transferred. The information in this software is subject to
+;change without notice. No responsibility is assumed for the
+;use or reliability of this software.
+ 
+	TITLE	Database for MUD version 3
+	TWOSEG	400K
+	SALL
+	.DIRECTIVE	SFCOND
+	NOSYM
+ 
+	MAXPLY==^D36
+ 
+	IF2	<PRINTX Assembling Database for MUD version 3>
+ 
+	DEFINE	FLIST(SIZE,NUM)<
+	EXP	.+1
+	REPEAT	NUM-1,<
+	EXP	.+SIZE
+	BLOCK	SIZE-1>
+	BLOCK	SIZE>
+ 
+	DEFINE	VEC(SIZE,VALUE<0>)<
+	EXP	.+1
+	IFE	VALUE,	<BLOCK	SIZE>
+	IFN	VALUE,	<REPEAT SIZE,	    <EXP       VALUE>>>
+ 
+STARTL::EXP	.				;Address of start of database.
+INDEX:: EXP	0				;Room index.
+DICTIO::BLOCK	1				;Dictionary hash table.
+STLIST::BLOCK	1				;Pointer to start location list.
+MAX.RO::BLOCK	1				;Max number of rooms.
+MAX.DE::BLOCK	1				;Max number of demons.
+DEMONS::BLOCK	1				;Table of demons
+GDEMON::EXP	0				;List of global demons
+DATE::	BLOCK	1				;DECsystem 10 date of creation.
+RDATE::	EXP	0				;DECsystem 10 date of last reset
+RHOURS::EXP	0				;Accumulated time since last Reset
+RNDMS::	EXP	0				;List of room lists for randomisation
+FTIME::	EXP	0				;First time played this version?
+TIME::	BLOCK	1				;DECsystem 10 time of creation.
+BACKWD::BLOCK	1				;Says if a direction has an opposite
+TVERB::	BLOCK	1				;movement check word
+NAPCT::	0					;number of naps before assume crash
+SUPERS::0					;whether this is superseded by us or not
+DEMO::	0					;is there a demo on?
+RANDIR::0					;random directions in travel table
+CODES::	BLOCK	1				;vdu manipulation codes.
+LOW1::	EXP	0				;overload measure
+LOW2::	EXP	0				;near-overload measure
+TIMES::	EXP .+1					;vector of lists of playing times
+	BLOCK 7
+MOTVEC::	BLOCK	1			;Inverse movement no. to names
+MOVERS::	BLOCK	1			;Objects which are mobile
+MVLOCK::	EXP	-1			;So don't try to move above twice at once
+DELOCK::	EXP	-1			;Global demon lock
+MELTED::	EXP	-1			;Whether objects can move
+PEACE::	EXP	0				;whether can fight or not
+SPECT::	EXP	0				;whether there's a spectacular on
+MALE::	VEC	^D10				;names for males
+						;I bet I forget to alter with MAX.LEVEL...
+FEMALE::	VEC	^D10			;names for females
+MUDNAM::	BLOCK	^D27			;Name of dungeon as BCPL string
+MUD6::	EXP	0				;first 6 letters of above in 6bit
+ESXWD::	BLOCK	1				;memory location for manifest ESSEX constant
+PS6::	BLOCK	1				;first 6 letters of persona file
+MAX.ME::BLOCK	1				;Max number of text messages.
+TEXT::	BLOCK	1				;Table of text messages.
+TXTVEC::	BLOCK	1			;Word count for disc file
+INIDR:: EXP	-1				;Initialisation door.
+DELDR::	EXP	-1				;Delay door for timing out.
+ACTIVE::VEC	MAXPLY,	-1			;To ensure you're still playing
+PLAYER::EXP	-1				;Stack pointer.
+	COUNT==MAXPLY+2 			;2 is the frig factor!
+PLYNUM::VEC	MAXPLY,   <<COUNT=COUNT-1>>
+	PURGE	COUNT
+MQUEUE::VEC	MAXPLY				;Message queue.
+PNAMES::VEC	MAXPLY				;Player names.
+JOBNOS::VEC	MAXPLY				;Player job numbers. Forget locking it...
+KIPS::	VEC	MAXPLY				;Times at which people went to sleep.
+QDOORS::VEC	MAXPLY, -1			;Doors to message queues.
+PDOOR::	EXP	-1				;persona file door
+MDOOR:: EXP	-1				;Door to message freelist.
+NDOOR::	EXP	-1				;Door to name selection
+TABS::	VEC	^D24				;Combat tables
+SHELF::	EXP	0				;Shelf for arch-wiz items
+SHORTM::FLIST	3,	200			;Short message freelist.
+LONGME::FLIST	20,	100			;Long message freelist.
+%RANSE::XWD	1,	-1			;Random number seed.
+MAGIC:: EXP	0				;If non zero u get thrown out.
+NOWIZ::	EXP	0				;true if no wiz's allowed
+LOCKED::EXP	0				;Whether the game is wizard-locked or not
+ENDLOC::EXP	HERE/^D512			;Current page
+FREE.S::EXP	.+1				;Freestore pointer
+	BLOCK	1
+HERE==.
+END

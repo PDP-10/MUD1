@@ -1,0 +1,157 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+$ldtext "/runame:mud"
+ 
+STATIC
+$(	//Various odds and sods.
+	cmndbuf		=	vec DRSIZE	//Next command buffer
+	scanch		=	0		//The last character read.
+	scan.info	=	0		//The last word read.
+	name.string	=	vec 26		//A string.
+	fake.string	=	vec 26		//Space for another string.
+	mbuffer		=	vec 26		//Buffer for quote mode.
+	mainloop	=	0		//Contains the mainloop.
+	prompted	=	false		//Whether you've prompted.
+	firstsnoop	=	false		//Set when first snooped on
+	somethingarrived	=	false	//Whether some creature just arrived
+	lineflg		=	false		//True if typed a line.
+	fake		=	vec 6		//Fake node.
+	bcplrm		=	vec 1		//bcpl version of a 6bit room
+	lastdr		=	0		//The last door you locked.
+	lastdir		=	1		//last direction you went in.
+	autowho		=	-1		//auto-who seconds count (spectacularing)
+	autoint		=	INTERVAL	//how long to wait txixt autowho's
+	bstr		=	0		//Stream for BUG command.
+	kept		=	0		//kept object
+	events		=	0		//events due to demons
+	who.copy	=	0		//Who was last in a room.
+	pwcnt		=	0		//how many times tried "password" command
+	fight		=	vec 35		//Who you are fighting.
+	laststream	=	-1		//Stream of item in buffer
+	lastblock	=	-1		//Block of item in buffer
+	cccnt		=	CCTRIP		//number of ^C's before ejects you
+	savedp		=	0		//number of times done a SAVE
+	pain		=	0		//unnecessary ^C count
+	leading		=	true		//true if not following
+	followers	=	0		//People following
+	frontman	=	true		//true if not assisted
+	joined		=	0		//people joined to you
+	animal		=	0		//animal you're following
+	snooping	=	true		//True if you're not snooping...
+	snoopedon	=	false		//players snooping on you
+	snobj		=	false		//object you're snooping on
+	brief		=	false		//whether in brief mode or not...
+	lastmoments	=	false		//whether closing soon or not
+	verbname	=	""		//To make printing errors easier
+	objname		=	""		//ditto
+	insname		=	""		//ditto
+	fodsville	=	false		//was I fodded just now?
+	osnop		=	0		//old value of snoopedon
+	olog		=	0		//old value of logstr
+	savescr		=	-1		//last score typed SAVE with
+	retaliated	=	0		//wherther used a weapon this fight
+	pretend		=	false		//Pretending not playing?
+	holdfirst	=	false		//A hack into the actions...
+	me		=	0		//My name
+	it		=	0		//name of last thing mentioned
+	him		=	0		//name of last male mentioned
+	her		=	0		//name of last female mentioned
+	them		=	0		//name of last player mentioned
+	there		=	0		//name of last 6bit room mentioned
+	flipping	=	0		//flipping between characters
+	fodded		=	false		//Whether you've fodded anyone yet
+	lvmdoor		=	0		//Address of message.door.
+	lvqdoor		=	0		//Address of our queue door.
+	lvrdoor		=	0		//Address of current rm. door
+	lvqueue		=	0		//Address of queue entry.
+	lvcarry		=	0		//Address of object list.
+	at		=	?		//whether reversed objct & instrmnt or not
+	ps.word		=	0		//persona password
+	conversing	=	0		//just there to talk?
+	deaf		=	0		//am I deaf?
+	dumb		=	0		//am I dumb?
+	blind		=	0		//am I blind?
+	paralysed	=	0		//am I paralysed?
+	justforced	=	?		//was I just forced?
+	strtab	=	(table			//Strings for random output.
+				"I'm not sure I understand you fully.",
+				"What?",
+				"I don't understand that.",
+				"I don't see what you mean.",
+				"It's all double dutch to me mate!",
+				$az"Out from behind a pseudo-teletype leaps a grey-haired*
+				* old man.*C*L*"You shall not pass*", he says.",
+				$az"Don't run this program with a CCL entry!",
+				$az"You find yourself in a grey formless void, the universe*
+				* has not*C*Lyet been created. Try again later.",
+				$az"There is something magic happening! You feel yourself leaving the land..*
+				*.*C*LYou can restart in a minute or so.",
+				$az"Some powerful magic prevents your entering The Land. Try again*C*Llater, please."
+			)
+	mins	=	(table
+			0,
+			"Five past",
+			"Ten past",
+			"Quarter past",
+			"Twenty past",
+			"Twenty-five past",
+			"Half past",
+			"Twenty-five to",
+			"Twenty to",
+			"Quarter to",
+			"Ten to",
+			"Five to"
+			)
+	hrs	=	(table
+			"twelve",
+			"one",
+			"two",
+			"three",
+			"four",
+			"five",
+			"six",
+			"seven",
+			"eight",
+			"nine",
+			"ten",
+			"eleven"
+			)
+
+	days	=	(table
+			"Sunday",
+			"Monday",
+			"Tuesday",
+			"Wednesday",
+			"Thursday",
+			"Friday",
+			"Saturday"
+			)
+ 
+//Player profile information.
+	profile		=	0		//Points to hi-seg profile.
+	name		=	0		//Points to hi-seg name.
+	player.no	=	0		//Player number (convenience).
+	player.bit	=	0		//Bit corresponding to us.
+	room		=	0		//Current room.
+	oldroom		=	0		//Last room we were alive in.
+	carry		=	0		//What we are carrying.
+	verb		=	0		//Last valid "verb".
+	objct		=	0		//Last valid "object".
+	instrmnt	=	0		//Last valid "instrument".
+	res6		=	?		//for no.-to-6bit result
+$)
+ 

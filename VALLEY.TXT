@@ -1,0 +1,1715 @@
+;Copyright (C) 1983 by
+;Richard Bartle & Roy Trubshaw,
+;Essex University, Colchester. CO4 3SQ.
+;
+;	This software is furnished on the understanding that
+;it may be used and or copied only with the inclusion of this
+;notice.  No title or ownership of this software is hereby
+;transferred. The information in this software is subject to
+;change without notice. No responsibility is assumed for the
+;use or reliability of this software.
+*name valley
+*persona	mud
+@txtcbt
+@txtlev
+@txthrs
+*rooms	96
+;Apart from rooms in the .GET file, this and the travel table are in
+;alphabetical order. Keep it that way or you'll be sorry...
+@txtrms
+bank1	light
+	Bank of river.
+	You are stood on the grassy, west bank of a fast-flowing river. The
+	river flows from the north to the south, where can be seen a ford
+	across it. To the west you can see a tumble-down stable, and in the
+	distance north of that, mountains. On the opposite bank of the river
+	is dense forest.
+bank2	light
+	%bank1
+	This is the west bank of a river, which flows north to south very
+	quickly. The opposite bank is forested, but here the ground is clear.
+	To the northwest rise the steep slopes of a tall mountain, its peak
+	towering high above the clouds.
+bank3	light
+	%bank1
+	This is a narrow strip of land wedged between a fast-flowing river to
+	the east, and a (climbable) mountain to the west. The river cuts its
+	way north-south, and makes quite some noise. You can't see much of what
+	the landscape on the opposite bank is like for the trees there.
+bank4	light
+	%bank1
+	You find yourself on the bank of a fast-flowing river, where the
+	heath to the west is parted from the forest on the opposite bank. The
+	river flows from the north, and continues to the south, cutting off a
+	narrow strip of land trapped between it and the steep mountain you spy
+	to the southwest.
+bank5	light
+	%bank1
+	Flowing from the northeast and curving viciously to the south is a
+	fast-flowing river, upon the banks of which you now find yourself
+	situated. On the opposite bank are trees, although the river is too
+	quick to enable your swimming across. To the north is a curious, ornate
+	wall, decorated in exotic, colourful designs of seemingly eastern
+	origin. The wall is too tall to climb, as is the enormous hedge you find
+	to the west, over the top of which you can just see what looks to be a
+	belfry. The hedge stops on the edge of some trees, which are clumped
+	together to the southwest.
+belfry	small
+	Inside belfry.
+	You find yourself at the bottom of a belfry stood in a forest clearing.
+	Outside, to the east the way is blocked by a huge hedge, and to the
+	north is an ornate wall, decorated in colourful, oriental friezes.
+	Elsewhere is more forest. The tower of the belfry rises high above
+	you, but you can't climb the walls.
+briar	light
+	Briar patch.
+	You are gingerly pushing your way through a prickly briar patch,
+	skillfully avoiding being scratched from the many thorns about. To
+	the north runs an east-west road, and to the east is a yard outside
+	an old inn. South lies pasture, beyond which is a river, and west are
+	the foothills of a majestic mountain, spearing its way through the
+	fluffy clouds.
+bridge	light
+	Bridge over river.
+	You are crossing a narrow, wooden bridge over a fast-flowing river.
+	To the west lie the dark oaks of an evil wood, with the noise made by
+	the river only adding to the eerie effect of their hideous shadows. At
+	the eastern end of the bridge is a small island, bereft of trees, yet
+	looking quite lush compared to the fearsome dark of the forest.
+dead1	light	death
+	Did you think you could fly? Sorry if I gave that impression...
+dead2	light	death
+	You jump up and down, but the extra force is too much for the part
+	of the swamp where you stand, and to your horror you find yourself
+	being sucked under! Well that's something not to try again, eh?
+dead3	light	death
+	The volatile marsh gases catch light from your naked flame, and before
+	you know it, #WHOOMSH#...
+efrst1	light
+	Dense forest.
+	You are wandering around in some dense forest on the west bank of a
+	fast-flowing river. To the north, the river is crossed by a ford, and
+	to the south it runs beside a meadow, beyond which you can see what
+	looks like a belvedere of some kind. At that point the river splits,
+	and curves round to the southwest of where you stand. West, the forest
+	seems to be primarily of fruit trees, and northwest through the greenery
+	you can see what looks like a well.
+epstre	light
+	East pasture.
+	You are standing in lush pasture, irrigated by a river which curves from
+	being to the east round to the north and continuing west of there to the
+	northwest of where you stand. The pasture carries on to the west and
+	southwest, but south is some rougher pasture which isn't so good.
+ewd1	light
+	Evil wood.
+	You are wandering around in among the hideously deformed oaks of an evil
+	wood. To the north and east runs a river, and west is a rough pasture.
+	The wood gets thicker to the south, where it continues in an almost
+	impenetrable darkness...
+ewd2	light
+	%ewd1
+	You are forcing your way through the ancient, misshapen oaks which make
+	up an evil wood. The only ways out which do not involve continuing
+	into the denseness of the trees are to the north and west. Otherwise,
+	the darkness envelops...
+ewd3	light
+	%ewd1
+	You are thrusting your way through a mangled assortment of aged oak
+	trees which are part of an evil wood. Northwards, the trees give way to
+	a rough pasture, and to the easterly directions they continue in the
+	same density as here. Other directions, however, the forest becomes too
+	thick for you to force your way through...
+ewd4	light
+	%ewd1
+	You are in the midst of an evil wood, surrounded by gnarled oaks of
+	ancient origin. The forest continues all around you, in a darkness
+	which seems unnatural, although to the south and southwest it appears
+	too thick to move through...
+ewd5	light
+	%ewd1
+	You are in the depths of a murky, evil wood, its gloomy oaks seeming to
+	stare down at you as though watching your every movement. All around,
+	the forest continues, although in the southerly directions it appears
+	too thick to enable passage...
+ewd6	light
+	%ewd1
+	You are in an evil wood, on the west bank of a fast-flowing river. The
+	malformed oaks which enclose the area loom over you, throwing the whole
+	place into deep shadow. The wood continues in all directions except the
+	east, where the river runs, although to the south it is too dense for
+	you to venture that way...
+ewd7	light
+	%ewd1
+	You are in the middle of an evil wood, built up over many centuries from
+	a ghastly assortment of wizened oaks, twisted into a tangled
+	conglomeration. The forest continues in all directions...
+ewd8	light
+	%ewd1
+	This is part of an evil wood, on the west bank of a fast-flowing river.
+	The knotted, wicked-looking oaks continue in the south and westerly
+	directions, but other ways is the river. Through the trees, to the east,
+	can be seen a small bridge which spans the river to an island in mid-
+	stream...
+ewd9	light
+	%ewd1
+	You are pushing your way through the forlorn branches of some ancient
+	oaks in the middle of an evil wood. All around, the wood continues, its
+	oppressive gloom enveloping the entire scene...
+ewd10	light
+	%ewd1
+	You are stood in the very heart of an evil wood, its intense blackness
+	and eerie silence casting fear into your soul. The dense, warped oaks
+	carry on in all directions, and their thick branches obscure the sky
+	from view...
+gazebo	light	small	silent
+	Inside gazebo.
+	This is an ornate and elegant gazebo, built on a small eminence to
+	afford a better prospect of the surrounding countryside. North can
+	be seen a lush meadow, beyond which is a forest, and further still
+	a mountain. East is a fast-flowing river, which splits in two and
+	curves from the north round to the west, as well as continuing to the
+	south. Over the river can be seen forest, although south the trees are
+	of a hideous, misshapen form.
+heath1	light
+	Rough heath.
+	You are striding across a rough heath, between a forest in the north
+	and a mountain to the south. East is the bank of a river, and west the
+	heath continues. Through the trees to the north can be glimpsed a
+	small tower of some kind.
+heath2	light
+	%heath1
+	You are walking across a rough heath, which continues to the east, west
+	and southwest. South is the base of a large mountain, the peak of which
+	is partly obscured by the clouds which flank it some way up. North from
+	here is mainly forest, although in the distance to the northwest is an
+	enormous mountain, more majestic than the other.
+heath3	light
+	%heath1
+	This is a band of rough heathland, which curves from the south to
+	continue to the east. Southeast lies the base of a large mountain, but
+	northwest are the foothills of one even larger, and far more majestic.
+	North is forest, through which can be espied an ornate wall.
+heath4	light
+	%heath1
+	You are scrambling over a rough heath, which rises out of a deep valley
+	to the south and carries on to the north and northeast. East is the
+	bottom of a large mountain, and west lie the foothills of an even
+	greater peak. The ground here is very awkward to walk on, but you can
+	keep your footing without too much trouble.
+inn	light
+	Inside the "Admiral Bombow" inn.
+	You stand inside what used to be a cheery, hospitable tavern, which has
+	now unfortunately fallen into a state of gross disrepair. All the
+	windows have long since been smashed, and now only a howling wind
+	whistles through where once there was warmth and light.
+island	light
+	Small island.
+	You are stood on a small island in the middle of a fast-flowing river.
+	The only exit is via a bridge to the west, which crosses the river into
+	a dark, evil wood. The island itself, mysteriously enough, has no trees,
+	but apart from that there is plenty of vegetation.
+meadow	light
+	Riverside meadow.
+	You are strolling through a pleasant meadow on the west bank of a fast-
+	flowing river. The river splits further to the south, and one branch
+	meanders northwards to end up to the west of where you stand. North
+	is a forest, and northwest a more cultivated section which seems to be
+	an orchard. South, by the fork in the river, stands a gazebo.
+mmtn1	light
+	Middle mountain.
+	You are on the north face of a steep, yet climbable, mountain. Above
+	you to the south the slopes rise into the clouds, and poking out
+	through the top you espy the peak. The mountain continues at this level
+	to the southeast and southwest, whereas northwards is heathland.
+mmtn2	light
+	%mmtn1
+	This is the west face of a steep mountain. The summit lies beyond a
+	mantle of cloud which encircles the mountain just above you. Southwards
+	and to the northeast the mountain continues at this level, but to the
+	southwest it descends into a deep valley. North and west lie heaths,
+	and beyond them the mighty slopes of another mountain.
+mmtn3	light
+	%mmtn1
+	You are clambering about the southwest face of the Middle mountain.
+	Just above you, to the northeast, lie clouds hugging the slopes and
+	obscuring the summit. The mountain continues at roughly your present
+	altitude to the north and east, but to the west the gradient increases
+	dramatically and plunges into a deep valley. Southwards is a badly-paved
+	road running east to west, and beyond that to the southeast is another
+	mountain thrusting above the clouds.
+mmtn4	light
+	%mmtn1
+	This is a steep, yet thankfully climbable, mountain. The present height
+	above sea level is maintained to the west and northeast, but to the
+	north the mountain rises into the clouds and beyond. To the east you can
+	see a stable, and further still, a deep river. To the south is a badly-
+	paved road running east-west, on the opposite side of which there is an
+	inn.
+mmtn5	light
+	%mmtn1
+	You are now scaling the rugged east face of the middle mountain.
+	Although steep, it is still possible to ascend (into the mists which
+	drape the mountain beneath the peak) and descend (onto the banks of a
+	river to the east). At the same altitude, the mountain continues to the
+	northwest and southwest, and ceases to the south where is nestled a
+	ramshackle old stable.
+mmtn6	light
+	Misty part of middle mountain.
+mmtn7	light
+	%mmtn6
+mmtn8	light
+	%mmtn6
+mmtn9	light
+	%mmtn6
+mmtn10	light
+	Top of middle mountain.
+	The marvellous panoramic view this spot affords is breath-taking in its
+	splendour. Lower down the mountain, beyond the wreaths of cloud which
+	circle this peak, are heaths to the north, beyond which is forest. To
+	the east at the bottom can be seen a fast-flowing river, running from
+	the north to diverge some way south, by a meadow. South, there is an
+	old inn close by an east-west road, and southwest is another mountain.
+	The scene is dominated, however, by a third mountain to the northwest,
+	so immense that it dwarfs either of the other two. Its ancient slopes
+	are shrouded in mist, with rugged cliffs running for hundreds of feet
+	just below.
+nfrst1	light
+	%efrst1
+	You are wandering around in some dense forest. East, the forest
+	continues, and to the south lie heathlands. West are the foothills of a
+	majestic mountain, which towers high up above the clouds. Your progress
+	north is blocked by an ornate wall, decorated in exotic, eastern
+	patterns, which stops at the base of an enormous cliff at roughly the
+	same spot the forest ends to the west.
+nfrst2	light
+	%efrst1
+	You find yourself stood in a section of dense forest, which continues to
+	the west and southeast. Through the trees to the east can be seen the
+	tower of what looks to be a belfry, and south is heath. Northwards is
+	a strange, ornate wall, curiously enlivened by all manner of stylised
+	eastern symbols.
+nfrst3	light
+	%efrst1
+	You are wandering around in some dense forest to the north of some
+	sprawling heathlands. Eastwards is the bank of a fast-flowing river,
+	and northwest the forest continues. To the north, however, through the
+	trees, can be seen a clearing containing some sort of edifice.
+nhill1	light
+	Foothills.
+	These are the rolling foothills of a majestic mountain which towers
+	high above you some way to the north, beyond some higher foothills.
+	South is an east-west road, across which can be seen yet more foothills
+	of a slightly smaller mountain. East lies a deep valley, which rises up
+	into a heath to the northeast of where you stand. West is a sturdy wall,
+	too large to scale.
+nhill2	light
+	%nhill1
+	You are stood amongst the foothills of a majestic mountain, which rises
+	to the north. South and northeast are more foothills, and east lies a
+	heath. Your movement west is prevented by a large wall, built to repel
+	intruders such as yourself.
+nhill3	light
+	%nhill1
+	You are clambering about the foothills of a majestic mountain which
+	climbs above the clouds to the north. Unfortunately, there is a towering
+	cliff there, too large to ascend, but part of the mountain, to the west,
+	is accessible. Southwest lie further foothills, and southeast is all
+	heath. Northeast is a forest.
+nmtn1	light
+	Forested part of north mountain.
+	You are stood in amongst some trees which cloak the lower slopes of a
+	majestic mountain, rising to the north above the timber-line. West, the
+	forest becomes too dense for you to proceed, and south is a wall, also
+	blocking your way. All other directions, the mountain continues,
+	although southeast is only foothills.
+nmtn2	light
+	North mountain.
+	You are scaling the lower slopes of a majestic mountain. Its peak lies
+	high above the clouds far to the north, although progress that way is
+	only limited due to an interposing cliff which stands out boldly after
+	some more climbable slopes. South are foothills.
+nmtn3	light
+	%nmtn2
+	You are standing in the lower slopes of a majestic mountain, which
+	rises to the north and descends to the east and south into foothills.
+nmtn4	light
+	%nmtn2
+	You are scrambling up the slopes of a majestic mountain which spears
+	through the clouds far to the north, above a steep cliff. East lie
+	foothills, and there are lower slopes to the south. The sheer
+	immensity of the mountain takes your breath away.
+nmtn5	light
+	%nmtn2
+	You are stood in the lower slopes of a majestic mountain beside a
+	huge cliff to the north, which towers high above you. So rugged is the
+	cliff that you cannot climb it, only gasp at the geological wonder of
+	it all. The mountain slopes downwards to the south, and continues at the
+	same level to the west.
+nmtn6	light
+	%nmtn2
+	You are in the corner of a horseshoe-shaped cliff, which curves round
+	from the north to the west, blocking your way. All around you in other
+	directions lie the slopes leading up to the cliff, which towers high
+	above you, ending just below the clouds.
+nmtn7	light
+	%nmtn2
+	You are ascending the lower slopes of a majestic mountain, which
+	forces its way through the clouds further to the north, above a rugged
+	cliff beyond where the slopes end. The cliff curves round, and blocks
+	your immediate passage to the west, although in other directions the
+	comparatively gentle slopes lead down to the foothills.
+nmtn8	light
+	%nmtn2
+	You are climbing the slopes of a majestic mountain, which continue to
+	rise awesomely in the northern and western directions, and descend less
+	spectacularly to the south and east.
+npstre	light
+	North pasture.
+	You are treading over the soft grass of a gorgeous pasture. To the north
+	is a river, which continues to the northeast and flows beneath a
+	mountain to the northwest. East, west and south, the pasture continues,
+	yet to the southeast it becomes much rougher and more desolate. To the
+	southwest lies forest.
+orchrd	light
+	Ancient orchard.
+	You stand among the aged trees of an orchard. Most of them are apple
+	trees, but there is the occasional pear tree to add character. None
+	bear fruit or leaves, however, which makes the scene unnaturally
+	desolate. East and west from here are normal forests, and southeast is a
+	sweet meadow. South and southwest is a river, and north is a yard,
+	beyond which is an inn.
+pines1	light
+	Pine forest.
+	You are pushing your way through the pine needles in a dense forest.
+	Eastwards, the make-up of the forest changes to normal, deciduous trees.
+	Northeast is a pasture, and north can be smelled a fuming swamp. In all
+	other directions the pines get thicker, and you probably won't be able
+	to get through.
+river1	light	death	hideaway
+	You have left The Land.
+river2	light
+	Fast-flowing river.
+	You are wading through a fast-flowing, yet shallow, river, which
+	originates from a fork in a much faster river to the southeast, and
+	continues to the northwest. North is an orchard, which by the northeast
+	has become a normal forest. East is a meadow, south of which is a
+	gazebo. To the west lies a lush pasture, but southwest it is rough and
+	desolate.
+river3	light
+	%river2
+	This is a river flowing from the southeast to the west. On the south
+	bank lie exclusively pastures, and on the north, forest. The forest
+	directly to the north seems to be an orchard of some kind, and through
+	the trees there can be seen a building.
+river4	light
+	%river2
+	You are stood by a river, flowing from the east to the west, where it
+	disappears under a mountain. Foothills of the mountain are to the
+	northwest, covered in forest which extends to the north of your current
+	position, and become an orchard to the northeast. In all southerly
+	directions are pastures of soft, deep-green grass.
+road1	light
+	Badly-paved road.
+	You are stood on a badly-paved road between a mountain, to the north,
+	and a wayside inn, to the south. East, the road fords a fast-flowing
+	river, and west it continues. To the northeast is a ramshackle old
+	building, and southeast there seems to be a well of some kind.
+road2	light
+	%road1
+	You find yourself on a badly-paved road, which continues to the east and
+	west. North and northeast are the lower regions of a mountain, which
+	rises up beyond the clouds. Southeast is a yard, belonging to an inn
+	which can be seen just beyond it. South is a briar patch, and southwest
+	the foothills of a more impressive mountain. Northwest is a deep valley,
+	whose western slopes rise up to the foothills of a mountain more
+	majestic still. The view is quite breathtaking.
+road3	light
+	%road1
+	You are walking along a badly-paved east-west road. From here can be
+	seen three mountains: one to the northeast; one to the south and south-
+	west; and one to the northwest, which is the largest. To the north,
+	between two of the mountains, lies a deep valley. The only other nearby
+	feature is a briar patch to the southeast.
+road4	light
+	%road1
+	You are stood on a badly-paved road, which runs from the east to stop
+	at a large wall constructed to the west. There is a narrow gap in this
+	blockage, but it is so tight that if you wanted to go that way you'd
+	have to drop everything to get through. North and south are the foot-
+	hills of a pair of majestic mountains, and northeast is a deep valley.
+rough	light
+	Rough pasture.
+	You are stood in a bleak, rough pasture. This seems to be due to the
+	presence of an evil wood to the east and south, for north and west are
+	more pastures which seem to be far greener and lusher than here. South-
+	west is a forest, and northeast there seems to be a fast-flowing river.
+sfrst1	light
+	%efrst1
+	You are standing in a dense forest. It continues to the southeast at
+	a passable level, but south it is too thick to allow movement through.
+	Westwards it becomes a pine forest. North, northeast and east are
+	pastures, and northwest lies a festering, fuming swamp.
+sfrst2	light
+	%efrst1
+	This is a forest, to the south of a pasture. The trees continue in most
+	directions, but only to the northwest are they thinly spread enough to
+	enable your walking through. Northwest is another pasture, but rougher
+	than the first.
+shill1	light
+	%nhill1
+	You are stood in among the foothills of a majestic mountain to the
+	south. North is a narrow road which runs east-west, and everywhere else
+	is more mountain. Your progress to the west is impeded by a strong wall,
+	built to keep out trespassers.
+shill2	light
+	%nhill1
+	You are standing in the foothills of a tall mountain, which rises away
+	to the southwest. North is a badly-paved road, which runs east-west, and
+	east is a briar patch. There are more foothills to the west, and to the
+	south are forested slopes of the mountain.
+smtn1	light
+	South mountain.
+	You are clambering around the slopes of a tall mountain, which rises up
+	to the northeast into the clouds. North and east the mountain is at the
+	same level as here, and to the southeast it slops down into a gentle
+	pasture. Southwest is a swamp, fuming with marsh-gases, and west is the
+	top of a tall cliff, which looks very dangerous...
+smtn2	light
+	%smtn1
+	This is a steep climb at the base of a tall mountain. Further heights
+	are to the west and northeast at this level (the latter area covered in
+	forest), and north and northwest where the clouds hug the slopes. The
+	mountain lowers slowly in the southerly directions to become pastures.
+	East, a river flows and disappears under the mountain beneath where you
+	now stand.
+smtn3	light
+	Forested part of south mountain.
+	Your are stood amongst the trees in the forested slopes of the south
+	mountain. There is more forest to the east, and the mountain ascends to
+	the west, its peak hidden from view by the clouds near the top. North
+	are foothills, and northeast a briar patch. Southeast flows a river.
+smtn4	light
+	Misty part of south mountain.
+smtn5	light
+	%smtn4
+smtn6	light
+	%smtn4
+smtn7	light
+	%smtn1
+	You are on a steep slope to the west of a tall mountain. The mountain
+	continues in all directions, although to the east you can see nothing
+	for the clouds, and to the west there is a large wall in the way.
+smtn8	light
+	%smtn4
+smtn9	light
+	Top of south mountain
+	You are standing at the very peak of the south mountain. A glorious
+	view is to be beheld all around. To the northeast is a mountain, on
+	the opposite side of a road from some building. To the north is a third
+	mountain much larger than either of the other two, and far more
+	majestic. South lie pastures, and southeast is an evil-looking wood,
+	hard up against the side of a river, in which can be seen a small
+	island. West, over a wall just visible through the clouds, is a stange,
+	anachronistic world, centred around a house.
+spstre	light
+	South pasture.
+	This is a pleasant pasture, which spreads far away in all the northerly
+	directions; eastwards, it becomes rougher. There is forest everywhere
+	else.
+swamp1	light	hideaway	sanctuary	nolook	dmove	uswamp
+	You are waylaid in a fuming swamp.
+stable
+	Stable.
+	This ramshackle old stone building is what is left of a once proud
+	stable. It has sadly fallen into disrepair, due to the constant
+	battering of the elements, nestled as it is to the southeast of a
+	towering mountain. To the east is a river bank, the river running
+	north-south and forded to the southeast of where you now stand. To
+	the southwest, running west from the ford, is a badly-paved road,
+	beside which is an inn, the patrons of which stabled their horses here
+	before The Land became what it is today.
+start	light	startrm
+	Ford across river.
+	You are stood on a ford across a fast-flowing river. To the west is a
+	badly-paved road, which carries on into the distance. Northwest is a
+	ramshackle old building, and southwest is some sort of well. South lies
+	a forest, and north is the west bank of the river you now cross. The
+	east bank leads away, out of The Land.
+uswamp	light	death	sanctuary
+	Bottom of swamp.
+	If you can read this, you used magic!
+valley	light
+	Valley between mountains.
+	This is a beautiful and awesome sight. You are stood in a deep valley,
+	carved between two tall mountains, to the west and east, eons ago. The
+	steep slopes are barely climbable, and abound in curious fauna and
+	strange, half-shadowed creatures. South, outside the valley, is an
+	east-west road, and north is heathland. This place is very eerie.
+wayout	light	nolook	chain	mud	start
+	You force yourself through the narrow gap...
+wellrm	light
+	Well near inn.
+	You stand beside what used to be a well, but which on closer inspection
+	seems to be blocked off now. West is an inn, for which the well was
+	probably originally constructed, although some way to the east can be
+	heard running water. North is an east-west road, and southwest an
+	orchard of mainly apple trees. Southeast is dense forest.
+wfrst1	light
+	%efrst1
+	This is dense forest, at the bottom of a majestic mountain to the west.
+	The trees continue up the mountain, and there is an orchard to the east.
+	North is a briar patch, and south is an east-west flowing river. To the
+	Northeast is a yard adjacent to an old inn.
+wpstre	light
+	West pasture.
+	This is a pasture which sprawls at the feet of a majestic mountain to
+	the north. The pasture continues to the east and southeast, but south
+	and southwest are forests. West, the pasture ends beside a fuming swamp.
+yard1	light
+	Side yard of inn.
+	This is a narrow yard at the western side of an inn. North is a badly-
+	paved raod, and west a briar patch. Southeast, the yard becomes the back
+	yard of the inn.
+yard2	light
+	Back yard of inn.
+	This is a wide yard to the south of an old tavern, and continues to the
+	side of it to the northwest. South is an orchard, and southwest is a
+	forest. To the east there seems to be a well, near the inn.
+@txtmap
+@txtvoc
+	bats
+	beacon
+	bolt
+	bow
+	clove
+	coat
+	crucifix
+	denizen
+	edge
+	hawthorn
+	insect
+	lucifer
+	mb
+	mist
+	pit
+	quiver
+	sheep
+	undead
+@txtcsy
+@txtobj
+	flock	bats	50000	17
+	beacon1	beacon	0	0
+	beacon2	beacon	0	0
+	beacon3	beacon	0	0
+	box	mb	5	7
+	butterfly	insect	2	30
+	case	quiver	1000	0
+	cliff	edge	0	0
+	cross	crucifix	100	10
+	crossbow	bow	6000	0
+	fleece	coat	2000	18
+	fog	mist	0	0
+	garlic	clove	20	3
+	hedge	hawthorn	0	0
+	match	lucifer	1	3
+	quarrel	bolt	100	0
+	ram	sheep	70000	50
+	troll	denizen	80000	75
+	vampire	undead	120000	200
+	well	pit	0	0
+	wraith	undead	100000	200
+@txtosy
+	bf	butterfly
+	cb	crossbow
+	matchbox	box
+	cloud	mist
+	silver	cross
+	tree	trees
+	qu	quarrel
+@txtmtn
+action	drop	none	none	holdfirst	null	0	0
+	drop	none	none	flipat	null	0	0
+	drop	something	stream	move	null	store	1022
+	drop	something	lavatory	move	null	store	1023
+	drop	lucifer	container	ifprop	null	0	1051
+@txttop
+	blow	lucifer	none	unlessprop	null	0	1041
+	blow	lucifer	none	set	null	2	0
+	climb	space	none	null	null	1013	0
+	climb	forest	none	null	null	1067	0
+	climb	hawthorn	none	null	null	1070	0
+	close	mb	none	inc	null	1033	1034
+	douse	lucifer	none	unlessprop	null	0	1041
+	douse	lucifer	none	set	null	2	1042	;as $burning
+	douse	beacon	none	ifzero	null	1056	1057
+	drop	anything	mb	ifprop	box	1	1053
+	drop	.insert	lucifer	mb	unlessprop	null	0	0
+	drop	.insert	lucifer	mb	destroydestroy	second	1052	0
+	drop	.insert	anything	mb	null	null	0	0
+	drop	.insert	anything	quiver	null	null	0	0	;let them put lit brands in etc
+	drop	.drop	familiar	pit	expdestroy	null	1060	0
+	drop	coat	sheep	inc	null	1064	1063
+	eat	clove	none	expdestroy	null	1029	0
+	enter	none	none	null	null	1014	0
+	fell	none	none	null	null	1021	0
+	fix	something	stream	move	null	store	1022
+	fix	something	lavatory	move	null	store	1023
+	fix	anything	mb	ifprop	box	1	1053
+	fix	.insert	lucifer	mb	unlessprop	null	0	0
+	fix	.insert	lucifer	mb	destroydestroy	second	1052	0
+	fix	.insert	anything	mb	null	null	0	0
+	fix	.insert	anything	quiver	null	null	0	0
+	fix	coat	sheep	inc	null	1064	1063
+	fly	none	none	null	null	1018	0
+	get	anything	mb	unlessprop	null	0	1059
+	get	.remove	anything	mb	null	null	0	0
+	get	.remove	anything	quiver	null	null	0	0
+	get	.get	crucifix	none	null	null	1030	0
+	get	anything	denizen	null	null	1068	0
+	get	familiar	none	unlessprop	null	9	1069
+	hints	none	none	null	null	1012	0
+	kill	.kill	undead	none	unlessobjis	vampire	0	0
+	kill	undead	crucifix	null	null	1027	0
+	kill	undead	clove	null	null	1027	0
+	kill	.kill	undead	none	ifgot	cross	0	0
+	kill	.kill	undead	none	ifgot	garlic	0	0
+	kill	.kill	undead	none	loseexp	null	200	1028
+	kill	lucifer	none	unlessgot	box	1043	0
+	kill	lucifer	none	ifprop	null	0	1035
+	kill	lucifer	none	ifprop	null	2	1036
+	kill	lucifer	none	dec	null	1037	0	-44
+	kill	mb	none	unlessprop	null	0	1058
+	kill	.empty	mb	none	null	null	0	0
+	kill	.empty	quiver	none	null	null	0	0
+	kill	.kill	denizen	torch	ifprop	second	1	0	-4
+	kill	denizen	torch	hurt	null	40	1061	-4
+	kill	insect	none	destroy	null	1065	0	-4
+	leave	none	none	null	null	1015	0
+	light	beacon	torch	ifprop	null	0	1047
+	light	beacon	torch	dec	null	1046	1047	-45
+	light	lucifer	torch	null	null	1045	0
+	light	lucifer	none	unlessgot	box	1043	0
+	light	lucifer	none	ifprop	null	0	1035
+	light	lucifer	none	ifprop	null	2	1036
+	light	lucifer	none	dec	null	1037	0	-44
+	light	something	lucifer	ifprop	second	1	1038
+	light	something	lucifer	ifprop	second	2	1039
+	light	torch	lucifer	dec	null	109	1040
+	light	something	lucifer	null	null	1044	0
+	light	mb	torch	destroy	null	771	0
+	light	mb	flame	destroy	null	771	0
+	light	something	beacon	unlessprop	second	0	1054
+	light	torch	beacon	dec	null	109	4
+	light	something	beacon	null	null	1055	0
+	load	bow	none	ifprop	null	0	1072
+	load	bow	bolt	decdestroy	second	1073	0
+	load	bow	none	null	null	1074	0
+	make	none	none	null	null	1050	0
+	open	mb	none	dec	null	1031	1032
+	shear	sheep	none	null	null	1062	0
+	shoot	bow	none	unlessprop	crossbow	0	1079
+	shoot	something	bow	unlessprop	crossbow	0	1079
+	shoot	person	bow	unlessprop	crossbow	0	1079
+	shoot	person	bow	sendemon	null	47	1077	-51
+	shoot	person	bow	null	null	1083	0
+	shoot	sheep	bow	injure	null	10	1077	-51
+	shoot	denizen	bow	injure	null	10	1077	-51
+	shoot	bats	bow	injure	null	10	1077	-51
+	shoot	serpent	bow	injure	null	10	1077	-51
+	shoot	feline	bow	null	null	1080	0
+	shoot	undead	bow	null	null	1081	0	-51
+	shoot	insect	bow	null	null	1082	0	-51
+	shoot	bow	none	inc	crossbow	1078	1079
+	shoot	something	bow	inc	crossbow	1078	1079
+	summon	none	none	null	null	1050	0
+	swim	none	river	null	null	1016	0
+	swim	none	h2o	null	null	1025	0
+	swim	none	none	null	null	1017	0
+	tap	none	none	null	null	1020	0
+	unload	bow	none	ifzero	null	1075	1076
+	where	none	none	null	null	1050	0
+	worship	none	none	null	null	1019	0
+@txtbtm
+	pray	worship
+	hint	hints
+	lo	load
+;;vocabulary demon actions
+action	$alllit	none	none	ifprop	beacon1	1	0
+	$alllit	none	none	ifprop	beacon2	1	0
+	$alllit	none	none	ifprop	beacon3	1	0
+	$alllit	none	none	exp	null	45	1049
+	$burning	none	none	set	match	2	0
+	$deaded	none	none	destroy	butterfly	0	0
+	$ouch	none	none	losestamina	null	7	1071
+	$shoot	none	none	set	crossbow	1	0
+	$smash	.vis	none	none	null	null	0	0
+	$vampire	none	none	ifwiz	null	0	0	
+	$vampire	none	none	ifgot	garlic	1027	0
+	$vampire	none	none	ifgot	cross	1027	0
+	$vampire	.provoke	something	none	ifgot	cross	0	0
+	$vampire	.provoke	something	none	ifgot	garlic	0	0
+	$vampire	.provoke	something	none	loseexp	null	200	0
+@txtdac
+*demons	59
+@txtdmn
+43	$vampire	whichever	none	-1
+44	$burning	none	none	12	always
+45	$alllit	none	none	-1
+46	$deaded	none	none	120-300	global	enabled
+47	$ouch	none	none	-1
+51	$shoot	none	none	-1	always
+*objects
+case	island	0	0	1	contains	1000	transparent	opened
+0	A quarrel case lies here.
+bouquet	store	0	0	0
+0	A beautiful bouquet of fragrant flowers lines by your feet.
+pin	store	0	0	0
+0	A shiny new pin lies at your feet!
+crossbow	smtn3	1	1	2
+0	A loaded crossbow has been dropped here.
+1	An unloaded crossbow lies on the ground.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+quarrel	case	0	0	1
+0	A crossbow bolt has fallen here.
+almanac	store	0	0	1	noget	bright
+0	?
+bag	stable	0	1	2	contains	7000	opened
+0	A musty old bag is here, opened.
+1	A musty old bag is here, closed.
+sack	bag	0	0	1	contains	5000
+0	There is an old sack here.
+coin	inn	0	0	0
+0	A golden coin lies here, bearing on one side the image of a head, on
+	the reverse a picture of a tail.
+beads	belfry	0	0	0
+0	Some smoked-glass beads are strewn at your feet.
+coinval	store	0	-1	2	noget
+0	Someone tossed a heads.
+1	Someone tossed a tails.
+jewels	store	0	0	0
+0	Some fabulous jewels here make you catch your breath in amazement!
+starstone	store	0	0	0
+0	A loose starstone has tumbled here.
+jet	store	0	0	0
+0	A piece of jet has been left here.
+topaz	store	0	0	0
+0	At your feet lies a large topaz.
+troll	15	0	6	mmtn9	0	0	0	80	noget	contains	20000	disguised
+0	A slimy troll is lurking here...
+bloodstone	troll	0	0	0
+0	To one side, a deep-red bloodstone attracts your attention.
+amethyst	store	0	0	0
+0	Glinting in the light you espy a polished amethyst.
+clasp	store	0	0	0
+0	A silver clasp has been dropped on the ground here.
+garnet	store	0	0	0
+0	You notice a strangely-carven piece of garnet by your feet.
+;banger	nfrst1	0	0	0
+;0	A firework marked "banger" lies at your feet.
+;rocket	nfrst1	0	0	0
+;0	A rocket (firework variety) has been discarded here.
+;sparkler	nfrst1	1	1	1	bright
+;0	There is a sparkling sparkler here, its pretty, glittering flecks of
+;	light cascading around it!
+;1	There is an unlit sparkler here.
+holly	xmasbx	0	0	0
+0	A bough of holly is not decking the hall here.
+xmastree	xmasbx	0	0	0
+0	A beautiful Christmas tree is here, bedecked with baubles.
+mousse	xmasbx	0	0	0
+0	The heady aroma of a shockingly pink-flavoured mousse here tempts your
+	palate!
+mouse	xmasbx	0	0	0
+0	A sugar mouse is not-quite-enchanted here.
+candle	xmasbx	0	0	0	bright
+0	A candle shines brightly here, and the darkness has never quenched it.
+snowman	xmasbx	0	0	0
+0	A snowman nearby gives you a frosty stare.
+cracker	xmasbx	0	0	0
+0	A Christmas cracker lies here.
+carolbook	xmasbx	0	0	0
+0	There is a Christmas carol book here, full of Christmas carols too
+	numerous to recount and too twee to sing.
+reindeer	20	0	6	xmasbx	0	0	0	bright	noget
+0	A sturdy reindeer lumbers past you nearby.
+sleigh	xmasbx	0	0	0
+0	Nearby is a sleigh.
+santaclaus	0	0	6	xmasbx	0	0	0	noget
+0	Ho ho ho, Father Christmas here again, with your Christmas gifts!
+mincepies	xmasbx	0	0	0
+0	Some prettily-mouldy mince pies sit sumptiously on the floor, beautiful
+	to behold.
+plumpudding	xmasbx	0	0	0
+0	There is some plum pudding here, recently doused.
+turkey	5	0	6	xmasbx	0	0	0	50	noget
+0	A turkey here tries frantically to put its feathers back in.
+buckle	gazebo	0	0	0
+0	A shiny buckle has somehow found its way here.
+potion	island	0	1	1
+0	A vial of clear purple potion has been placed here.
+1	A vial of cloudy purple potion has been placed here.
+sapphire	store	0	0	0
+0	A deep blue sapphire draws your attention nearby.
+doubloons	store	0	0	0
+0	A pile of doubloons glisters here!
+pieces	inn	0	0	0
+0	Some pieces of eight lie scattered around here.
+groats	inn	0	0	0
+0	Some golden groats lie here!
+firestone	store	0	0	0	bright	nosummon
+0	A beautiful, irridescent firestone glows nearby.
+cat	300	0	6	ewd6	0	9	9
+9	A dead cat has been left here.
+8	A panther the size of a house, with sabre-teeth, billowing forth roars
+	of flame, stares at you in a maddened rage with its fiery eyes!
+7	A massive, enraged, sabre-toothed panther roars uncontrollably
+	before you!
+6	An enormous, fire-breathing panther roars terrifyingly at you!
+5	A large, fiery-eyed panther growls loudly at you!
+4	A lithe panther stands here, growling darkly.
+3	A gigantic, jet-black cat arches its back here, menacingly.
+2	An enormous, coal-black cat is here, hissing and spitting angrily.
+1	A large, velvet-black cat is here, purring discontentedly.
+0	A small, sleek, black cat sits here, purring happily to itself.
+snake	15	0	40	ewd2	0	0	0	90
+0	A viper slithers past your feet.
+wall	nfrst1	0	0	1	noget	noit
+wall	nfrst2	0	0	1	noget	noit
+wall	belfry	0	0	1	noget	noit
+wall	bank5	0	0	1	noget	noit
+wall	nmtn1	0	0	1	noget	noit
+wall	nhill2	0	0	1	noget	noit
+wall	nhill1	0	0	1	noget	noit
+wall	road4	0	0	1	noget	noit
+wall	shill1	0	0	1	noget	noit
+wall	smtn6	0	0	1	noget	noit
+wall	smtn7	0	0	1	noget	noit
+hedge	belfry	0	0	1	noget	noit
+hedge	bank5	0	0	1	noget	noit
+cliff	smtn1	0	0	1	noget	noit
+trees	nfrst1	0	0	1	noget	noit
+trees	nfrst2	0	0	1	noget	noit
+trees	nfrst3	0	0	1	noget	noit
+trees	nmtn1	0	0	1	noget	noit
+trees	smtn3	0	0	1	noget	noit
+trees	orchrd	0	0	1	noget	noit
+trees	efrst1	0	0	1	noget	noit
+trees	wfrst1	0	0	1	noget	noit
+trees	sfrst1	0	0	1	noget	noit
+trees	sfrst2	0	0	1	noget	noit
+trees	pines1	0	0	1	noget	noit
+trees	ewd1	0	0	1	noget	noit
+trees	ewd2	0	0	1	noget	noit
+trees	ewd3	0	0	1	noget	noit
+trees	ewd4	0	0	1	noget	noit
+trees	ewd5	0	0	1	noget	noit
+trees	ewd6	0	0	1	noget	noit
+trees	ewd7	0	0	1	noget	noit
+trees	ewd8	0	0	1	noget	noit
+trees	ewd9	0	0	1	noget	noit
+trees	ewd10	0	0	1	noget	noit
+painting	store	0	0	0
+0	Catching your attention is a beautiful painting, which has not
+	yet been finished.
+candlestick	store	0	0	0
+0	A richly decorated brass candlestick lies on the ground.
+toilet	store	0	0	1	noget	noit
+river	bank1	0	0	1	noget	noit
+river	bank2	0	0	1	noget	noit
+river	bank3	0	0	1	noget	noit
+river	bank4	0	0	1	noget	noit
+river	bank5	0	0	1	noget	noit
+river	start	0	0	1	noget	noit
+river	river1	0	0	1	noget	noit
+river	river2	0	0	1	noget	noit
+river	river3	0	0	1	noget	noit
+river	river4	0	0	1	noget	noit
+river	efrst1	0	0	1	noget	noit
+river	meadow	0	0	1	noget	noit
+river	gazebo	0	0	1	noget	noit
+river	ewd1	0	0	1	noget	noit
+river	ewd8	0	0	1	noget	noit
+river	bridge	0	0	1	noget	noit
+river	island	0	0	1	noget	noit
+river	ewd6	0	0	1	noget	noit
+water	bank1	0	0	1	noget	noit
+water	bank2	0	0	1	noget	noit
+water	bank3	0	0	1	noget	noit
+water	bank4	0	0	1	noget	noit
+water	bank5	0	0	1	noget	noit
+water	start	0	0	1	noget	noit
+water	river2	0	0	1	noget	noit
+water	river3	0	0	1	noget	noit
+water	river4	0	0	1	noget	noit
+water	efrst1	0	0	1	noget	noit
+water	meadow	0	0	1	noget	noit
+water	gazebo	0	0	1	noget	noit
+water	ewd1	0	0	1	noget	noit
+water	ewd8	0	0	1	noget	noit
+water	bridge	0	0	1	noget	noit
+water	island	0	0	1	noget	noit
+water	ewd6	0	0	1	noget	noit
+water	wellrm	0	0	1	noget	noit
+basin	store	0	0	1	noget	noit
+well	wellrm	0	0	1	noget	noit
+diamond	store	0	0	0
+0	A diamond weighing about an ounce catches your gaze here!
+medicine	inn	0	1	0
+0	There is some medicine here.
+1	There is some partially-drunk medicine here.
+key	store	0	0	1
+0	A set of rusty keys can be seen on the ground.
+key	store	0	0	0
+0	A set of shiny keys can be seen on the ground.
+door	store	2	2	3
+0	The door is open.
+1	The door is closed.
+2	The door is locked shut.
+crown	store	0	0	0
+0	Gleaming in front of you is a magnificent crown!
+rain	bank1	bank2	bank3	bank4	bank5	briar	bridge	epstre	heath1	heath2	heath3	heath4	island	meadow	mmtn1	mmtn2	mmtn3	mmtn4	mmtn5	nhill1	nhill2	nhill3	nmtn2	nmtn3	nmtn4	nmtn5	nmtn6	nmtn7	nmtn8	npstre	river2	river3	river4	road1	road2	road3	road4	rough	shill1	shill2	smtn1	smtn2	smtn7	spstre	start	valley	wellrm	wpstre	xmasbx	yard1	yard2	0	2	3	noit	noget
+1	It is raining.
+2	It is snowing.
+fog	mmtn6	 mmtn7	mmtn8	mmtn9	smtn4	smtn5	smtn6	smtn8	0	0	1	noit	noget
+axe	<nfrst2	sfrst2>	0	-1	0
+0	A mighty axe lies on the ground here.
+1	A mighty axe shines on the ground here.
+beacon1	mmtn10	1	1	2	bright	noget
+0	A warning beacon shines here, brightly.
+1	There is a long-disused warning beacon here.
+beacon2	nmtn6	1	1	2	bright	noget
+0	%beacon1
+1	%beacon1
+beacon3	smtn9	1	1	2	bright	noget
+0	%beacon1
+1	%beacon1
+brand	<ewd1	pines1	sfrst1	wfrst1	efrst1	nfrst1>	1	1	2	bright
+0	There is a burning fire brand here.
+1	There is a large stick on the ground.
+brand	nhill1	1	1	2	bright
+0	%brand
+1	%brand
+brand	efrst1	1	1	2	bright
+0	%brand
+1	%brand
+brand	smtn3	1	1	2	bright
+0	%brand
+1	%brand
+brand	nmtn1	1	1	2	bright
+0	%brand
+1	%brand
+brand	orchrd	1	1	2	bright
+0	%brand
+1	%brand
+brand	ewd6	1	1	2	bright
+0	%brand
+1	%brand
+fire	store	0	0	1	bright	contains	256000	noget	disguised
+0	A roaring fire is burning in the grate, spreading a cosy feeling around
+	the room.
+off	store	0	0	1	noget
+curiosity	store	0	0	1	noget
+sesame	store	0	0	1	noget
+box	<road3	rough	heath1>	1	2	1	contains	40	opened
+0	There is an open matchbox here.
+1	There is a closed matchbox here.
+match	box	1	3	3	bright
+0	You can see a lit match.
+1	You can see an unused safety match.
+2	You can see a spent match.
+flock	20	0	6	belfry	0	0	0	60	noget
+0	A flock of bats swoops around your head.
+flock	3	0	6	ewd3	0	0	0	80	noget
+0	A flock of vampire bats swoops around your head.
+vampire	7	0	43	ewd4	0	0	0	200	noget
+0	A powerful vampire materialises before you!
+wraith	9	0	6	ewd5	0	0	0	100	noget
+0	A wraith of death glides silently towards you...
+garlic	yard1	0	0	0
+0	A clove of garlic lies by your feet.
+cross	belfry	0	0	0
+0	You see a silver cross here!
+butterfly	1	0	6	valley	0	0	0	1
+0	A butterfly flutters by.
+fleece	ewd5	0	1	1
+0	The fleece of a sheep is here.
+1	A silver fleece glisters before you!
+ram	2	0	6	smtn6	0	0	0	70	noget
+0	A recently-sheared ram grazes here.
+*travel	go
+home	n	store	in
+	n	start	[o	n	ne	e]
+	n	swamp1	swamp
+store	n	road4	n	ne	e	se	s	sw	w	nw	in	o	swamp	jump	u	d
+limbo	door	limbo	o
+xmasbx	n	xmasbx	n
+bank1	n	bank2	nw	n	ne	u
+	1002	e
+	n	start	se	s	sw	swamp	o	d
+	n	stable	w	in
+bank2	n	bank3	n	ne	u
+	1002	e
+	n	bank1	se	s	swamp	o	d
+	n	stable	sw	in
+	n	mmtn5	w	nw
+bank3	n	bank4	n	ne	u
+	1002	e
+	n	bank2	se	s	swamp	o	d
+	n	mmtn5	sw	w	nw
+bank4	n	bank5	n	ne	u
+	1002	e
+	n	bank3	se	s	o	d
+	n	mmtn5	sw	swamp
+	n	heath1	w
+	n	nfrst3	nw
+bank5	1003	nw	n
+	1002	ne	e	u
+	n	bank4	se	s	swamp	o	d
+	n	nfrst3	sw
+	1004	w
+belfry	1003	n	ne
+	1004	e	se
+	n	nfrst3	s	sw	swamp	o	d
+	n	nfrst2	w	nw
+briar	n	road2	n
+	n	road1	ne	o
+	n	yard1	e
+	n	yard2	se
+	n	wfrst1	s
+	n	smtn3	sw	swamp	u
+	n	shill2	w
+	n	road3	nw
+bridge	1002	n	ne	se	s	sw	nw	u	d
+	n	island	e
+	n	ewd8	w	swamp	o
+dead1	n	dead2	n
+dead2	n	dead3	n
+dead3	n	dead1	n
+efrst1	n	start	n	ne	o	u
+	1002	e
+	n	meadow	se	s	d
+	n	river2	sw	swamp
+	n	orchrd	w	in
+	n	wellrm	nw
+epstre	n	river3	n	ne
+	n	river2	e	o
+	n	rough	se	s
+	n	spstre	sw
+	n	npstre	w	swamp
+	n	river4	nw
+ewd1	serpent	0	n	ne	o	u	w	nw	swamp
+	bats	0	n	ne	o	u	w	nw	swamp
+	undead	0	n	ne	o	u	w	nw	swamp
+	n	river2	n	ne	o	u
+	1002	e	d
+	n	<ewd8	ewd9	ewd2>	se
+	n	ewd9	s
+	n	ewd2	sw
+	n	rough	w	nw	swamp
+ewd2	serpent	0	w	nw	n	swamp
+	bats	0	w	nw	n	swamp
+	undead	0	w	nw	n	swamp
+	n	rough	w	nw	n	swamp
+	n	<ewd1	ewd9	ewd10>	ne	o
+	n	ewd9	e
+	n	ewd10	se
+	n	ewd4	s
+	n	ewd3	sw
+ewd3	serpent	0	nw	n	swamp	o
+	bats	0	nw	n	swamp	o
+	undead	0	nw	n	swamp	o
+	n	rough	nw	n	swamp	o
+	n	ewd2	ne	e
+	n	ewd4	se
+	1005	s	sw	w
+ewd4	n	ewd2	n
+	n	ewd9	ne	o
+	n	ewd10	e
+	n	ewd7	se
+	1005	s	sw
+	n	ewd3	w	nw	swamp
+ewd5	n	ewd7	n	o
+	n	ewd6	ne	e	se
+	1005	s	sw	w
+	n	ewd4	nw	swamp
+ewd6	n	ewd8	n	o	u
+	1002	ne	e	se	d
+	1005	s
+	n	ewd5	sw
+	n	ewd7	w
+	n	ewd10	nw	swamp
+ewd7	n	ewd10	n
+	n	ewd8	ne	o
+	n	ewd6	e	se
+	n	ewd5	s
+	1005	sw
+	n	ewd4	w	nw	swamp
+ewd8	serpent	0	e
+	bats	0	e
+	undead	0	e
+	1002	ne	se	u
+	n	bridge	e
+	n	ewd6	s	d
+	n	ewd10	sw
+	n	ewd9	w
+	n	ewd1	nw	swamp	o
+ewd9	n	<ewd1	ewd4>	n	ne	o
+	n	ewd8	e	se
+	n	ewd10	s
+	n	ewd4	sw
+	n	ewd2	w	nw	swamp
+ewd10	n	ewd9	n	o
+	n	<ewd8	ewd6	ewd7	ewd4>	ne	e
+	n	ewd6	se
+	n	ewd7	s
+	n	ewd4	sw	w
+	n	ewd2	nw	swamp
+gazebo	n	meadow	n	ne	o	u
+	1002	e	se	s	sw	d
+	n	river2	w	nw	swamp
+heath1	n	nfrst3	n
+	n	bank4	ne	e
+	n	mmtn5	se	swamp	o
+	n	mmtn1	s	sw	u
+	n	heath2	w	nw
+heath2	n	nfrst2	n
+	n	nfrst3	ne
+	n	heath1	e
+	n	mmtn1	se
+	n	mmtn2	s	o
+	n	heath4	sw	swamp	u
+	n	heath3	w
+	n	nfrst1	nw
+heath3	n	nfrst1	n
+	n	nfrst2	ne
+	n	heath2	e
+	n	mmtn2	se	u
+	n	heath4	s	swamp	o
+	n	nhill2	sw
+	n	nhill3	w	nw
+heath4	n	heath3	n
+	n	heath2	ne
+	n	mmtn2	e	u
+	n	mmtn3	se	o
+	n	valley	s	swamp	d
+	n	nhill1	sw
+	n	nhill2	w	nw
+inn	n	road1	nw	n
+	n	start	ne	o
+	n	wellrm	e	se
+	n	yard2	s	sw	swamp
+	n	yard1	w
+island	1002	nw	n	ne	e	se	s	sw	u	d
+	n	bridge	w	swamp	o
+meadow	n	efrst1	n	ne	o	u
+	1002	e
+	n	gazebo	se	s	in	d
+	n	river2	sw	w	swamp
+	n	orchrd	nw
+mmtn1	n	heath1	n	ne	d
+	n	mmtn5	e	se	o
+	n	mmtn7	s	u
+	n	mmtn2	sw	swamp
+	n	heath2	w	nw
+mmtn2	n	heath2	n
+	n	mmtn1	ne
+	n	mmtn7	e
+	n	mmtn8	se	u
+	n	mmtn3	s	o
+	n	valley	sw	swamp	in	d
+	n	heath4	w
+	n	heath3	nw
+mmtn3	n	mmtn2	n
+	n	mmtn9	ne	u
+	n	mmtn4	e
+	n	road1	se	o
+	n	road2	s
+	n	road3	sw	swamp
+	n	valley	w	in	d
+	n	heath4	nw
+mmtn4	n	mmtn9	n	u
+	n	mmtn5	ne
+	n	stable	e	se	in
+	n	road1	s	o	d
+	n	road2	sw	swamp
+	n	mmtn3	w
+	n	mmtn8	nw
+mmtn5	n	heath1	n
+	n	bank4	ne
+	n	bank3	e	d
+	n	bank2	se
+	n	stable	s	o	in
+	n	mmtn4	sw	swamp
+	n	mmtn6	w	u
+	n	mmtn1	nw
+mmtn6	n	mmtn1	nw	n
+	n	mmtn5	ne	e	se	o	d
+	n	mmtn9	s	sw	swamp
+	n	mmtn7	w	u
+mmtn7	n	mmtn1	nw	n	ne	d
+	n	mmtn6	e
+	n	mmtn10	se	s	u
+	n	mmtn8	sw	swamp	o
+	n	mmtn2	w
+mmtn8	n	mmtn7	n	ne
+	n	mmtn10	e	u
+	n	mmtn4	se	o
+	n	mmtn3	s	sw	swamp
+	n	mmtn2	w	nw	d
+mmtn9	n	mmtn10	n	u
+	n	mmtn6	ne
+	n	mmtn5	e
+	n	stable	se	o	in	d
+	n	mmtn4	s
+	n	mmtn3	sw	swamp
+	n	mmtn8	w	nw
+mmtn10	n	mmtn7	nw	n	d
+	n	mmtn6	ne	e
+	n	mmtn9	se	s	swamp	o
+	n	mmtn8	sw	w
+nfrst1	1003	n
+	n	nfrst2	ne	e
+	n	heath2	se	o
+	n	heath3	s	swamp
+	n	nhill3	sw	w	nw	u
+nfrst2	bats	0	s	o	sw	swamp	w	nw
+	1003	n
+	n	belfry	ne	e	in
+	n	nfrst3	se
+	n	heath2	s	o
+	n	heath3	sw	swamp
+	n	nfrst1	w	nw
+nfrst3	bats	0	ne	e	se	o	s	sw	w	swamp
+	n	belfry	n	in
+	n	bank5	ne	e
+	n	bank4	se	o
+	n	heath1	s
+	n	heath2	sw	w	swamp
+	n	nfrst2	nw
+nhill1	n	nhill2	nw	n	u
+	n	heath4	ne
+	n	valley	e	in	d
+	n	road3	se	o
+	n	road4	s	sw	swamp
+	1006	w
+nhill2	n	nmtn2	n	u
+	n	nhill3	ne
+	n	heath4	e
+	n	valley	se	o	in	d
+	n	nhill1	s	sw	swamp
+	1006	w
+	n	nmtn1	nw
+nhill3	1007	n	u
+	n	nfrst1	ne
+	n	heath3	e	se	d
+	n	nhill2	s	sw	swamp	o
+	n	nmtn4	w
+	n	nmtn5	nw
+nmtn1	n	nmtn7	nw	n
+	n	nmtn8	ne	u
+	n	nmtn2	e
+	n	nhill2	se	swamp	o	d
+	1006	s	sw
+	1005	w
+nmtn2	n	nmtn8	n	u
+	n	nmtn3	ne	e
+	n	nhill2	se	s	sw	swamp	o	d
+	n	nmtn1	w
+	n	nmtn7	nw
+nmtn3	n	nmtn4	n
+	n	nhill3	ne	e	d
+	n	nhill2	se	s	swamp	o
+	n	nmtn2	sw	w
+	n	nmtn8	nw	u
+nmtn4	n	nmtn5	nw	n	u
+	n	nhill3	ne	e	se	o	d
+	n	nmtn2	s	sw	swamp
+	n	nmtn8	w
+nmtn5	1007	n	ne	u
+	n	nhill3	e	o	d
+	n	nmtn4	se
+	n	nmtn8	s	swamp
+	n	nmtn7	sw
+	n	nmtn6	w	nw
+nmtn6	1007	w	nw	n	u
+	n	nmtn5	ne	e
+	n	nmtn8	se	o	d
+	n	nmtn7	s	sw	swamp
+nmtn7	n	nmtn6	nw	n	u
+	n	nmtn5	ne
+	n	nmtn8	e
+	n	nmtn2	se	o	d
+	n	nmtn1	s	sw	swamp
+nmtn8	n	nmtn5	n	ne
+	n	nmtn4	e
+	n	nmtn3	se	o
+	n	nmtn2	s	swamp	d
+	n	nmtn1	sw
+	n	nmtn7	w
+	n	nmtn6	nw	u
+npstre	n	river4	n
+	n	river3	ne	o
+	n	epstre	e
+	n	rough	se
+	n	spstre	s
+	n	sfrst1	sw
+	n	wpstre	w	swamp
+	n	smtn2	nw	u
+orchrd	n	yard2	nw	n
+	n	wellrm	ne	o
+	n	efrst1	e
+	n	meadow	se
+	n	river3	s	swamp
+	n	river4	sw
+	n	wfrst1	w
+pines1	torch	dead3	nw	n	swamp	in
+	lucifer	dead3	nw	n	swamp	in
+	spark	dead3	nw	n	swamp	in
+	n	swamp1	nw	n	swamp	in
+	n	wpstre	ne	o
+	n	sfrst1	e	se
+	1008	s	sw	w
+river1	e	start	w	swamp
+river2	n	orchrd	nw	n	in
+	n	efrst1	ne	o
+	n	meadow	e
+	n	gazebo	se	in	u
+	n	ewd1	s
+	n	rough	sw
+	n	epstre	w	swamp
+	n	river3	nw	d
+river3	n	orchrd	n	ne	o
+	n	meadow	e
+	n	river2	se	u
+	n	epstre	s
+	n	npstre	sw	swamp
+	n	river4	w	d
+	n	wfrst1	nw
+river4	n	wfrst1	n
+	n	orchrd	ne	o	in
+	n	river3	e	u
+	n	epstre	se
+	n	npstre	s	sw	swamp
+	n	smtn2	w
+	n	smtn3	nw
+road1	n	mmtn4	n	u
+	n	stable	ne
+	n	start	e	o
+	n	wellrm	se
+	n	inn	s	in
+	n	yard1	sw	swamp
+	n	road2	w
+	n	mmtn3	nw
+road2	n	mmtn3	n	u
+	n	mmtn4	ne
+	n	road1	e	o
+	n	yard1	se
+	n	briar	s
+	n	shill2	sw	swamp
+	n	road3	w
+	n	valley	nw	in
+road3	n	valley	n	in	d
+	n	mmtn3	ne	u
+	n	road2	e	o
+	n	briar	se
+	n	shill2	s	swamp
+	n	shill1	sw
+	n	road4	w
+	n	nhill1	nw
+road4	n	nhill1	nw	n
+	n	valley	ne	in	d
+	n	road3	e	o
+	n	shill2	se
+	n	shill1	s	sw	u	swamp
+	e	wayout	west
+	1026	west
+rough	n	epstre	n
+	n	river2	ne	o
+	n	ewd1	e
+	n	ewd2	se
+	n	ewd3	s
+	n	sfrst2	sw
+	n	spstre	w	swamp
+	n	spstre	nw
+sfrst1	n	wpstre	n
+	n	npstre	ne	o
+	n	spstre	e
+	n	sfrst2	se
+	1005	s
+	n	pines1	sw	w
+	torch	dead3	nw	swamp	in
+	lucifer	dead3	nw	swamp	in
+	spark	dead3	nw	swamp	in
+	n	swamp1	nw	swamp	in
+sfrst2	n	spstre	n
+	n	rough	ne	o
+	1005	e	se	s	sw	w
+	n	sfrst1	nw	swamp
+shill1	sheep	0	n	ne	nw	o	d
+	n	road4	nw	n	d
+	n	road3	ne	o
+	n	shill2	e
+	n	smtn5	se	u
+	n	smtn6	s	sw	swamp
+	1006	w
+shill2	sheep	0	n	ne	e	se	nw	o	d
+	n	road3	n	d
+	n	road2	ne	o
+	n	briar	e
+	n	wfrst1	se
+	n	smtn3	s	swamp
+	n	smtn4	sw	u
+	n	shill1	w
+	n	road4	nw
+smtn1	sheep	0	se	s	sw	swamp	in	d	jump
+	n	smtn7	nw	n
+	n	smtn8	ne	u
+	n	smtn2	e	o
+	n	wpstre	se	s
+	torch	dead3	sw	swamp	in	d
+	lucifer	dead3	sw	swamp	in	d
+	spark	dead3	sw	swamp	in	d
+	n	swamp1	sw	swamp	in	d
+	1009	w
+	n	dead1	jump
+smtn2	sheep	0	e	se	s	sw	swamp	d
+	n	smtn4	n
+	n	smtn3	ne	o
+	n	river4	e
+	n	npstre	se	s	d
+	n	wpstre	sw	swamp
+	n	smtn1	w
+	n	smtn8	nw	u
+smtn3	sheep	0	ne	e	se	s	swamp	o	d
+	n	shill2	n
+	n	briar	ne	o
+	n	wfrst1	e	d
+	n	river4	se
+	n	npstre	s	swamp
+	n	smtn2	sw
+	n	smtn4	w	nw	u
+smtn4	n	shill2	n	ne	o	d
+	n	smtn3	e	se
+	n	smtn2	s	swamp
+	n	smtn8	sw
+	n	smtn9	w	u
+	n	smtn5	nw
+smtn5	n	shill1	w	nw	n	d
+	n	shill2	ne	e	o
+	n	smtn4	se
+	n	smtn9	s	d
+	n	smtn6	sw	swamp
+smtn6	n	shill1	nw	n	d
+	n	smtn5	ne	o
+	n	smtn9	e	u
+	n	smtn8	se
+	n	smtn7	s	swamp
+	1006	sw	w
+smtn7	n	smtn6	n	ne
+	n	smtn8	e	o	u
+	n	smtn1	se	s	sw	swamp	d
+	1006	w	nw
+smtn8	n	smtn9	n	ne	u
+	n	smtn4	ne	e	o
+	n	smtn2	se	s	d
+	n	smtn1	sw	swamp
+	n	smtn7	w
+	n	smtn6	nw
+smtn9	n	smtn5	n
+	n	smtn4	ne	e	se	o	d
+	n	smtn8	s	sw	swamp
+	n	smtn6	w	nw
+spstre	n	npstre	n
+	n	epstre	ne	o
+	n	rough	e
+	n	sfrst2	s	se	sw
+	n	sfrst1	w	swamp
+	n	wpstre	nw
+swamp1	1010	w	nw	n
+	n	smtn1	ne	u
+	n	wpstre	e	o
+	n	sfrst1	se
+	n	pines1	s	sw
+	1011	swamp
+	n	dead2	jump
+stable	n	mmtn5	n
+	n	bank2	ne
+	n	bank1	e
+	n	start	se	s	o
+	n	road1	sw	swamp
+	n	mmtn4	w
+	n	mmtn9	nw	u
+start	n	bank1	n	ne	u
+	e	river1	e	o
+	n	efrst1	se	s	swamp	d
+	n	wellrm	sw
+	n	road1	w
+	n	stable	nw	in
+uswamp	n	swamp1	o	u	swamp	in
+valley	n	heath4	n
+	n	mmtn2	ne
+	n	mmtn3	e	u
+	n	road2	se	o
+	n	road3	s	swamp
+	n	road4	sw
+	n	nhill1	w
+	n	nhill2	nw
+wayout	e	road4	e	o
+wellrm	n	start	n	ne	o
+	n	efrst1	e	se
+	n	orchrd	s	sw	swamp
+	n	inn	w	in
+	n	road1	nw
+wfrst1	n	briar	n
+	n	yard2	ne
+	n	orchrd	e	o	in
+	n	river3	se
+	n	river4	s	sw	swamp
+	n	smtn3	w	u
+	n	shill2	nw
+wpstre	n	smtn1	nw	n	u
+	n	smtn2	ne
+	n	npstre	e	o
+	n	spstre	se
+	n	sfrst1	s
+	n	pines1	sw
+	torch	dead3	w	swamp	in
+	lucifer	dead3	w	swamp	in
+	spark	dead3	w	swamp	in
+	n	swamp1	w	swamp	in
+yard1	n	road1	n	ne	o
+	n	inn	e	in
+	n	yard2	se	s
+	n	wfrst1	sw	swamp
+	n	briar	w
+	n	road2	nw
+yard2	n	inn	n	in
+	n	wellrm	ne	e	o
+	n	orchrd	se	s
+	n	wfrst1	sw	swamp
+	n	briar	w
+	n	yard1	nw
+*text	1600
+@txttxt
+1001	Testing, testing, one two?
+	?Illegal memory reference at user PC 100160
+1002	The river is flowing too fast for you to be able to cross.
+1003	Your way is blocked by the ornate wall.
+1004	You cannot move that way for the tall hedge.
+1005	The forest becomes too dense to move in that direction.
+1006	The wall is too high to climb.
+1007	The mountain is too steep to ascend in that direction.
+1008	The pines are too thick for you to go that way.
+1009	You can't go that way! It's an enormous cliff!
+1010	The swamp is too treacherous to travel in that direction.
+1011	You're already here! Have a look around if you don't believe me!
+1012	There's only one hint at the moment: it's useless asking for hints!
+1013	The surface of the wall is too smooth to climb.
+1014	Use "in" if you want to enter something, as "enter" is reserved for
+	entering objects within a room. At the moment, there aren't any such
+	objects, but the term is preserved for compatibility with MUD.
+1015	Use "out" if you want to leave somewhere, as "leave" is reserved for
+	leaving objects within a room. At the moment, there aren't any such
+	objects, but the term is preserved for compatibility with MUD.
+1016	The river's too fast to swim in, I'm afraid.
+1017	There's no water here!
+1018	You flap your wings and...nothing happens.
+1019	Why worship? There aren't any gods around.
+1020	Tap...tap...tappity-tap...
+1021	There aren't any trees here, and nothing else is fell-able.
+1022	That's the last time you'll see that! It floats off down the river
+	at a great speed, and fast disappears from view...
+1023	The object flushes away. Now where do you suppose THAT went?
+1024	>>>>>SPARE<<<<<
+1025	The water isn't deep enough to swim in.
+1026	The gap is too narrow, you'll have to drop everything to get through.
+1027	The vampire shies away from you.
+1028	The vampire's chilling touch makes you feel cold all over.
+1029	Your breath smells a bit, but it was quite tasty!
+1030	With a touch of annoyance, you pick it up.
+1031	The matchbox is now open.
+1032	It's already open, look at it!
+1033	The matchbox is now closed.
+1034	You can't close closed matchboxes, or is that too hard a concept for
+	you to grasp?
+1035	The match is already alight! Do something, before it goes out!
+1036	The match is spent, they only light the once...
+1037	The match bursts into flame!
+1038	The match isn't lit.
+1039	The match has gone out.
+1040	The stick is already alight.
+1041	The match isn't lit anyway.
+1042	The match goes out.
+1043	It's a safety match, you need the box.
+1044	The match's flame doesn't give off enough heat to do it.
+1045	The match is unaffected.
+1046	The beacon quickly catches fire, and is soon burning well.
+1047	It's already lit...sigh.
+1048	The match won't light anything as large as a beacon.
+1049	When you light the last unlit beacon, a great thrill runs through
+	your body at the magnificence of it all.
+1050	It doesn't work me old mate.
+1051	You'd set fire to the container!
+1052	The match and matchbox burn away.
+1053	The matchbox is closed, how do you expect to put anything in it? Let
+	me guess - you're thick.
+1054	The beacon isn't alight, chum.
+1055	The beacon is too hot to get close enough to light anything, although
+	you could perhaps be able to stand a stick held at arm's length.
+1056	You can't get close enough to the beacon to douse it, it's too hot.
+1057	It's not alight anyway.
+1058	The matchbox is closed, open it to empty it.
+1059	The matchbox is closed, open it if you want to remove something.
+1060	OK, so you know all the nursery rhymes...
+1061	The troll reels back in terror as you brandish your brand, but it's
+	too late and your strike scorches deep into its flesh.
+1062	It's just BEEN sheared, it's got no wool on!
+1063	The ram wants nothing to do with the silver fleece.
+1064	The fleece glows a white light for an instant, then transmutes to
+	silver! Naturally you remove it from the ram as soon as this happens,
+	about which the ram seems relieved.
+1065	You swat the butterfly stone dead, but it disintigrates in the process.
+	Don't be TOO upset, they don't live that long anyway!
+1066	>>>>>SPARE<<<<<
+1067	The trees are unclimbable, even the ones that aren't too tall are still
+	too branchy.
+1068	The troll won't let you near it, it's prepared to kill rather than
+	give up its treasure!
+1069	The cat doesn't want to be picked up, and successfully avoids your
+	attempts to do so.
+1070	Nope, it's too prickly.
+1071	A crossbow bolt thuds into your chest!
+1072	It's already loaded! They only take one bolt at a time, you know...
+1073	The crossbow is now loaded.
+1074	The crossbow can only be loaded with quarrels. If you've got one, why
+	not try loading it with that?
+1075	The bolt is in too tight to unload the crossbow, you'll have to shoot
+	it at something or someone to get it out.
+1076	It already is unloaded, don't you believe the descriptions you're given?
+1077	You score a direct hit!
+1078	The crossbow misfires and embeds the bolt deep in the ground where you
+	can't recover it.
+1079	It's not loaded...
+1080	Your crossbow jams when you aim at your target. Who says black cats
+	aren't lucky?
+1081	You score a direct hit, but it has no effect on the undead!
+1082	It's too small, you miss...
+1083	You can only shoot targets in the same room as you, the crossbow is only
+	effective over short ranges.

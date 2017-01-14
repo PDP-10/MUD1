@@ -1,0 +1,463 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let handledemons(oldptr) be test bstr then return or
+jar(@delock)<>	//Locking not needed for locals, but cheaper not to check
+$(	let ptr=!oldptr
+	while ptr
+	$(	unless E.SUSPENDED of ptr E.TIME of ptr -_1
+		test E.TIME of ptr ge #777770 then	//give 'em up to -8 in the database
+		$(	let oldvb,oldobj,oldins=verb,objct,instrmnt
+			and demon=ptr+DOF
+			verb, objct, instrmnt_D.VERB of demon, D.OBJECT of demon, D.INSTRUMENT of demon
+			instate()
+			LINK of oldptr_LINK of ptr
+			if D.PLONK of demon plonk(demon)
+			(ptr ge #400000->freemblock,free)(ptr)	//Hack! But isn't it all?
+			ptr_LINK of oldptr
+			unjar(@delock)
+			action(true)
+			jar(@delock)
+			reinstate(oldvb, oldobj, oldins)
+		$) or
+		$(	oldptr_ptr
+			ptr of_LINK
+		$)
+	$)
+	unjar(@delock)
+$)
+and move(mnum) be
+$(	let trvtab,t,looking=TRAVEL of room,?,numbargs()
+	unless looking mnum_DREC of verb
+	start.leading()
+	until LH of trvtab=RHMASK do test LH of trvtab bitand 1<<mnum then
+		test 1!trvtab then
+		$(	let v=CONDVAL of trvtab
+			switchon CONDTYPE of trvtab into
+			$(	case 0:						//mustn't be carrying anything
+					lose.followers()
+					unless CARRY.COUNT of profile do
+					$(	unless looking lastdir_mnum
+						move.sub(RH of trvtab,looking)
+						return
+					$)
+					endcase
+				case 1:						//Must be carrying some v in prop 0
+					t_carrying.class(v,false,carry)
+					while t
+					$(	unless P4 of t then
+						$(	lose.followers()
+							unless looking lastdir_mnum
+							move.sub(RH of trvtab,looking)
+							return
+						$)
+						t_carrying.class(v,false,LINK of t)
+					$)
+					endcase
+				case 2:						//must be carrying some v or some be here in prop 0
+				$(	let s,o=false,?
+					t_carrying(v,false,carry)
+					jar(lvrdoor)
+					unless t s_is.or.was.here(v,ROBJT of room)
+					o_t bitor s
+					while o
+					$(	if (P4 of o=0 \/ DESTROYED of o ls 0) then
+						$(	unjar(lvrdoor)
+							if t lose.followers()
+							unless looking lastdir_mnum
+							move.sub(RH of trvtab,looking)
+							return
+						$)
+						if t t_carrying(v,false,LINK of t)
+						unless t s_is.or.was.here(v,s->LINK of s,ROBJT of room)
+						o_t bitor s
+					$)
+					unjar(lvrdoor)
+					endcase
+				$)
+				case 3:	looksee(looking)	//straight text message
+					longdescribe(v)
+					return
+				case 4:	if RH of trvtab ne oldroom then		//can't go way you came
+					$(	unless looking lastdir_mnum
+						move.sub(RH of trvtab,looking)
+						return
+					$)
+					endcase
+				case 5:					//text message if carrying some v
+					if carrying.class(v,false,carry) do
+					$(	if looksee(looking)
+						longdescribe(RH of trvtab)
+						return
+					$)
+					endcase
+				case 6:					//text message if carrying some v or some here in prop 0
+				$(	let s,o=false,?
+					t_carrying(v,false,carry)
+					jar(lvrdoor)
+					unless t s_is.or.was.here(v,ROBJT of room)
+					o_t bitor s
+					while o
+					$(	if (P4 of o\=0\/ DESTROYED of o ls 0) then	//ne 0? Wonder why?!
+						$(	unjar(lvrdoor)
+							looksee(looking)
+							longdescribe(RH of trvtab)
+							return
+						$)
+						if t t_carrying(v,false,LINK of t)
+						unless t s_is.or.was.here(v,s->LINK of s,ROBJT of room)
+						o_t bitor s
+					$)
+					unjar(lvrdoor)
+					endcase
+				$)
+				case 7:						//mustn't be carrying any v in prop 0
+					t_carrying.class(v,false,carry)
+					while t
+					$(	unless P4 of t endcase
+						t_carrying.class(v,false,LINK of t)
+					$)
+					lose.followers()
+					unless looking lastdir_mnum
+					move.sub(RH of trvtab,looking)
+					return
+				case 8:						//mustn't be carrying any v or there be some in prop 0
+				$(	let s,o=false,?
+					t_carrying(v,false,carry)
+					jar(lvrdoor)
+					unless t s_is.or.was.here(v,ROBJT of room)
+					o_t bitor s
+					while o
+					$(	if (P4 of o = 0) /\ (DESTROYED of o ge 0)
+						$(	unjar(lvrdoor)
+							endcase
+						$)
+						if t t_carrying(v,false,LINK of t)
+						unless t s_is.or.was.here(v,s->LINK of s,ROBJT of room)
+						o_t bitor s
+					$)
+					unjar(lvrdoor)
+					unless looking lastdir_mnum
+					move.sub(RH of trvtab,looking)
+					return
+				$)
+				case 9:						//set off demon
+					if looking error("You can't tell.")
+					enable(v)
+					return
+				case 10:
+					if looking error("You can't tell.")
+					oktogo()
+					longdescribe(v)
+					if WIZARD of profile ne 0 return
+					test spectacular then		//should be a procedure...
+					$(	drop.everything()
+						STAMINA of profile_STAMINA of profile<20 -> 10, (STAMINA of profile)-10
+						special(SF.SLEEP)
+					$) or
+					$(	oldroom_room
+						quit()
+					$)
+					endcase
+			$)
+			trvtab+:2
+		$)
+		or
+		$(	unless looking lastdir_mnum
+			move.sub(RH of trvtab, looking)
+			return
+		$) or trvtab+:2
+	if looking error("You can't tell.")
+	Error("You cannot go that way!")
+$)
+and move.sub(newrm, justlooking) be test numbargs()=2/\justlooking then
+$(	if FORCED of newrm newrm of_FORCED
+	test WIZARD of profile Describe(newrm,true) or
+	$(	if \(visible(newrm))\/
+			((A.DEATH  bitor A.NOLOOK) bitand ATTRIB of newrm) error("You can't tell.")
+		desc.short(newrm)
+		if A.HIDE bitand ATTRIB of newrm return
+		unless A.HIDEAWAY bitand ATTRIB of newrm
+		$(	let nd,nm,l,something=?,?,?,false
+			Outz($az"Therein can be seen")
+			lock(newrm+door)
+			nd_ROBJT of newrm
+			while nd do test DESTROYED of nd ls 0\/valof
+			$(	let cprop=P4 of nd		//use WHERE instead?
+				resultis (selector 18:18*(cprop rem 2):cprop/2+OBJECTSIZE+1) of nd=0
+			$) then nd of_LINK or
+			$(	nm_PNAME of nd
+				l_LENGTH of nm
+				test ccnt+l+1>72 then out("*C*L:S",nm) or out("*S:S",nm)
+				something_true
+				nd of_LINK
+			$)
+			unlock()
+			unless something outz($az" nothing")
+			outz($az".*C*L")
+		$)
+		for i=0 to 35 do if 1<<i bitand who!newrm unless invisible(i)
+		$(	let tt,tz=player.names!i,?
+			tz_LH from tt
+			Out(":P is there,:s carrying :i*C*L",tt, ASLEEP of tz->" asleep","",ROBJT of tz)
+		$)
+	$)
+$) or move.ser(newrm)
+and move.ser(newrm, no.option) be
+$(	oktogo()
+	unless (RELAXED\/us(me)) if A.CHAIN bitand ATTRIB of newrm
+		error("You can't leave that way, for magical reasons...sorry!")
+	if numbargs()\=2/\((max.obj()<OBJ.CARRIED of profile)\/(max.wt()<CARRY.COUNT of profile))/\(WIZARD of profile)=0
+		Error("You're too encumbered with objects to be able to move.")
+	if (A.SMALL bitand ATTRIB of newrm)/\(wizard of profile)=0 then unless newrm=room
+	$(	let bit, who.cpy = ?, who!newrm
+		test who.cpy then for I = 0 to 35 do
+		$(	bit_1<<i
+			if (bit bitand who.cpy) /\(WIZARD of LH from player.names!I)=0 then
+			$(	transmit(i,0,K.ITTE)
+				error(":p is in the room already and it is too small for you both!", player.names!i)
+			$)
+		$) or lose.followers()
+	$)
+	doownthing()
+	lose.joiners()
+	oldroom_room
+	unsetbit()
+	room_newrm
+	unless numbargs()=2 if FORCED of room oldroom_room<>room of_FORCED
+	if followers test A.DEATH bitand ATTRIB of room then lose.followers()
+		or broadcast(K.YFIM,followers,newrm)
+	CROOM of profile_room
+	lvrdoor_DOOR+room
+	setbit()
+	describe(room)
+	if (A.CHAIN bitand ATTRIB of room) then quit(INVADE of LEAVE of room,BCHEAD of LEAVE of room)
+	been.in(RNUMB of room)_true
+$)
+and oktogo() be
+for i=0 to 35 do if fight!i then
+test start.leading() then error("You are too involved in combat to follow anyone further") or
+	error("You can't leave in the middle of a fight unless you flee in some direction!")
+and moveobject(obj) be
+$(	let rm,trvtab,tracer,newrm,mnum,insides,ins,t,v,it.moves=
+		?,?,?,?,?,CONTENTS of obj,insides->CONTS of insides,0,?,?,MOTN of obj
+	jar(@mvlock)
+	rm,trvtab,tracer_CURROOM of it.moves, TRAVEL of rm, trvtab
+	if LH of tracer=RHMASK unjar(@mvlock)<>return
+	until LH of tracer=RHMASK do tracer+_2
+	trvtab+_random((tracer-trvtab)/2)*2
+	mnum_LH of trvtab
+	for i=TRAVEL of rm to tracer-2 by 2 do if mnum bitand LH of i then
+	$(	v_CONDVAL of i
+		switchon CONDTYPE of i into
+		$(
+		case 0:	if ins
+			$(	unjar(@mvlock)
+				instinctify(it.moves,rm,obj,ins)
+				return
+			$)
+		case 10:
+			endcase
+		case 1:
+			if classmatch(v,obj)/\P4 of obj=0 endcase
+			t_carrying.class(v,false,ins)
+			while t
+			$(	unless P4 of t endcase
+				t_carrying.class(v,false,LINK of t)
+			$)
+			unjar(@mvlock)
+			instinctify(it.moves,rm,obj,ins)
+			return
+		case 2:
+			if LH of obj=v/\P4 of obj=0 endcase
+			$(	let nd=ROBJT of rm
+				while nd do
+				$(	let t=LH of nd
+					if ((A.HIDEAWAY bitand attrib of rm) ne 0)/\(FIXED of nd=0)  nd_LINK of nd<>loop
+					test v=t/\((P4 of nd=0)\/(DESTROYED of nd ls 0)) then  endcase
+					or nd of_LINK
+				$)
+			$)
+			t_carrying(v,false,ins)
+			while t
+			$(	unless P4 of t endcase
+				t_carrying(v,false,LINK of t)
+			$)
+		case 3:	case 9:
+			unjar(@mvlock)
+			instinctify(it.moves,rm,obj,ins)
+			return
+		case 4: if RH of i ne PREVROOM of it.moves endcase
+		case 5: case 6:				//isn't this a bit unfair to the mobiles?
+			unjar(@mvlock)
+			instinctify(it.moves,rm,obj,ins)
+			return
+		case 8:	if LH of obj=v/\P4 of obj=0 endcase	//monsters can't block themselves...
+			$(	let nd=ROBJT of rm
+				while nd do
+				$(	let t=LH of nd
+					if ((A.HIDEAWAY bitand attrib of rm) ne 0)/\(FIXED of nd=0) endcase
+					test v=t /\(P4 of nd=0)/\(DESTROYED of nd ge 0) then
+					$(	unjar(@mvlock)
+						instinctify(it.moves,rm,obj,ins)
+						return
+					$) or nd of_LINK
+				$)
+			$)
+			t_carrying(v,false,ins)
+			while t
+			$(	unless P4 of t
+				$(	unjar(@mvlock)
+					instinctify(it.moves,rm,obj,ins)
+					return
+				$)
+				t_carrying(v,false,LINK of t)
+			$)
+			endcase
+		case 7:
+			t_carrying.class(v,false,ins)
+			while t
+			$(	unless P4 of t
+				$(	unjar(@mvlock)
+					instinctify(it.moves,rm,obj,ins)
+					return
+				$)
+				t_carrying.class(v,false,LINK of t)
+			$)
+			endcase
+		$)
+		newrm_RH of i
+		if (A.HIDEAWAY bitand ATTRIB of newrm)
+		$(	unjar(@mvlock)
+			instinctify(it.moves,rm,obj,ins)
+			return
+		$)
+		if FORCED of newrm newrm of_FORCED
+		if (A.DEATH bitand ATTRIB of newrm) \/	newrm=rm \/
+			(A.CHAIN bitand ATTRIB of newrm) \/ ((A.SMALL bitand ATTRIB of newrm)/\occupied(newrm,obj))
+		$(	unjar(@mvlock)
+			instinctify(it.moves,rm,obj,ins)
+			return
+		$)
+		lock(door+rm)
+		$(	let nd, oldnd=ROBJT of rm,rm+4
+			until nd=obj do
+			$(	oldnd_nd
+				nd of_LINK
+				unless nd
+				$(	unlock()
+					unjar(@mvlock)
+					instinctify(it.moves,rm,obj,ins)
+					return
+				$)
+			$)
+			LINK of oldnd_LINK of nd
+		$)
+		unlock()
+		lock(door+newrm)
+		pushlist(newrm+4,obj)
+		unlock()
+		CURROOM of it.moves_newrm
+		PREVROOM of it.moves_rm
+		unjar(@mvlock)
+		instinctify(it.moves,newrm, obj, ins)
+		$(	let who.from, who.to, snprs, chsrs = who!rm, who!newrm, SNOOPERS of MOTN of obj,CHASERS of MOTN of obj
+			for j=0 to 35 do
+			$(	let bit=1<<j
+				test bit bitand who.from then transmit(j,0,K.SJL,obj) or
+				if bit bitand who.to transmit(j,0,K.SJA,obj)	//maybe 1<<i should be assigned to summat...
+				if bit bitand snprs transmit(j,0,K.OHM,obj)
+				if bit bitand chsrs transmit(j,0,K.YFIM,RH of i)
+			$)
+		$)
+		return
+	$)
+$)
+and looksee(looking) be test looking then Error("You can't tell.") or
+	unless visible() Error("You cannot go that way!")
+and instinctify(it.moves,newrm, obj, ins) be
+$(	let oldvb, oldobj, oldins, oldrm=verb, objct, instrmnt, room
+	and demon=INSTINCTS of it.moves
+	verb, objct, instrmnt, room_D.VERB of demon,
+		D.OBJECT of demon=#777777->find.word(PNAME of obj), D.OBJECT of demon,
+		D.INSTRUMENT of demon=#777777->find.word(PNAME of obj), D.INSTRUMENT of demon,
+		newrm
+	instate()
+	action(false)
+	reinstate(oldvb, oldobj, oldins)
+	room_oldrm
+$)
+and enabled(demonum) = valof
+$(	let ptr=events
+	while ptr test E.DEMONUM of ptr=demonum/\E.SUSPENDED of ptr=false then resultis true or ptr of_LINK
+	jar(@delock)
+	ptr_gdemons
+	while ptr test E.DEMONUM of ptr=demonum/\E.SUSPENDED of ptr=false then unjar(@delock)<>resultis true or ptr of_LINK
+	unjar(@delock)
+	resultis false
+$)
+and enable(demonum, old) be
+$(	let indx,demon,globald=demons+(DEMONSIZE+DOF)*demonum,?,D.GLOBAL of indx
+	unless 0 le demonum le max.demon.no return
+	if numbargs()=2
+	$(	let ptr,gotone=globald->gdemons, events,false
+		while ptr
+		$(	if E.DEMONUM of ptr=demonum/\E.SUSPENDED of ptr
+			$(	E.SUSPENDED of ptr_false
+				gotone_true
+			$)
+			ptr of_LINK
+		$)
+		if gotone return
+	$)
+	demon_globald->getmblock(),newvec(DEMONSIZE+DOF)
+	copy(indx, demon+DOF, DEMONSIZE)
+	E.TIME of demon+_random(D.OFFSET of indx)
+	jar(@delock)
+	!demon_(demonum<<18) bitor (globald->gdemons, events)
+	(globald->gdemons,events)_demon
+	unjar(@delock)
+$)
+and suspend(ptr, demonum) be while ptr
+$(	if E.DEMONUM of ptr=demonum E.SUSPENDED of ptr_true
+	ptr of_LINK
+$)
+and disenable(demonum) =valof
+$(	let ptr, oldptr=events,@events
+	while ptr
+	$(	if E.DEMONUM of ptr=demonum
+		$(	LINK of oldptr_LINK of ptr
+			free(ptr)
+			resultis true
+		$)
+		oldptr_ptr
+		ptr of_LINK
+	$)
+	jar(@delock)
+	ptr, oldptr_gdemons, @gdemons
+	while ptr
+	$(	if E.DEMONUM of ptr=demonum
+		$(	LINK of oldptr_LINK of ptr
+			freemblock(ptr)
+			unjar(@delock)
+			resultis true
+		$)
+		oldptr_ptr
+		ptr of_LINK
+	$)
+	unjar(@delock)
+	resultis false
+$)

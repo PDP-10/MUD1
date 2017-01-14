@@ -1,0 +1,2172 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.  No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+$nolist
+get "mudlib"
+get "dungen"
+$list
+ 
+manifest
+$(	REGIONSIZE	:	6
+	INTEGRITY	:	#525252
+	DEBUGGING	:	FALSE
+	SIZE		:	LH
+	ISTTY		:	B14
+	BUFLENGTH	:	150
+	TMP.BLOCKSIZE	:	128
+	TTY6		:	$6"tty"
+$)
+ 
+static
+$(	region		:	VEC REGIONSIZE
+	//   **** Order must be same as order of FREESPACE parameters ****
+	origin		:	#377
+	extent		:	0
+	quantum 	:	-2
+	routine 	:	NIL
+	nname		:	"the low-seg' freelist"
+	//   ****						      ****
+	page		:	#377
+	freelist	:	0
+	scbsize 	=	SC.DEFAULT.SIZE
+	hibflg		=	(1<<22)\/1000	//Hibernate flags.
+	trmpar		=	(3<<18)\/1	//TRMOP. parameter flags
+	hwmain		=	#2776
+	months		=	(table		//Month names for writedate.
+				"January",	"February",	"March",
+				"April",	"May",		"June",
+				"July", 	"August",	"September",
+				"October",	"November",	"December")
+	snoopbuffer	=	vec 69
+ 
+//Four word interrupt block
+	intblk		=	#4000000	//XWD 4,0
+	inttyp		=	2		//EXP ER.ICC
+	retadr		=	0		//EXP 0
+	ctcflg		=	0		//EXP 0
+	stack		=	vec 100 	//100 words of PDL stack
+//Statics for testing access to mud (leave as NIL!!).
+	ppn		=	?		//User's PPn.
+	peen		=	?		//User's Pn.
+	guest		=	?		//User is a guest (from outside)
+	ttyno		=	?		//TTY udx.
+	jobno		=	?		//Jobnumber.
+	ctlno		=	?		//Controlling job number.
+	micstatus	=	?		//MIC status bits.
+	hsattrib	=	?		//Hi-seg attributes.
+	hsname		=	?		//Name of hi-seg.
+	hsppn		=	?		//PPn of hi-seg.
+	privved 	=	?		//True if privileged.
+ 
+	logstr		=	false		//Non zero means logging enabled.
+	linebuffer	=	vec BUFLENGTH	//Line buffer.
+	chcnt		=	0		//Character count.
+	nextch		=	0		//next character
+	roomput		=	0		//SCB for the .RM file
+	textput		=	0		//ditto .TM file
+	objput		=	0		//ditto .OM file
+	comput		=	0		//ditto .CM file
+	perput		=	0		//ditto .PM file
+	mapput		=	0		//ditto .MM file
+	cmndput		=	0		//ditto .GM file
+	oldscore	=	0
+	rec		=	?		//pointer to record in dmpbuf
+	bufull		=	3690556618	//buffer full name.string termination flag
+	first		=	true		//for opening .PM file automatically
+	quitflg 	=	true		//Set to true if ^C gets u out.
+	maint		=	false		//true if maintainer
+	room.been	=	?		//whether been in this room or not
+	dmpbuf		=	vec BUFFERS	//input buffer for textput/roomput/objput/comput/perput/mapput
+	cbl		=	vec 1		//argument block to read above in in dump mode
+	ccnt		=	0		//character count on output
+//STATICS for vestigal BCPL library (Leave as NIL!!!!).
+	batch		=	?
+	ccl		=	?
+	callnm		=	?
+	input		=	?
+	output		=	?
+	daytime		=	?
+	udaytime	=	?
+	err		=	?
+	fl		=	?
+	scb		=	?
+	sl		=	?
+	stackbase	=	?
+	savpdl		=	?
+	savt		=	?
+	mainta		=	?
+	chain		=	?
+	lockflg		=	0		//lets you out on ^C if 0
+$)
+ 
+let appendfile(dev,file,ext,ppn,error) = VALOF
+$(	let r,w,last=?,?,?
+	r_dofile(DEV,FILE,EXT,PPN,LABEL(NX),0,1,lookup.enter,rda,wrb,closefile)
+	w_words(r);	last_w/128+1
+	useti(r,last)
+	SC.ERROR^r_LABEL(END.OF.FILE)
+	SC.READER^R_RDB // NON ASCII READ
+	SC.APPENDCL^R_SC.CLOSER^R
+	SC.CLOSER^R_CLOSEA
+	$(	let ch=?
+		rdb(r,@ch)
+		wrb(r,ch)
+	$)	repeat
+end.of.file:
+	USETO(R,LAST)
+	SC.ERROR^R_ERROR
+	RESULTIS R
+NX:	resultis dofile(dev,file,ext,ppn,error,0,2,enter,sterr,wrb,closefile)
+$)
+and detch()=valof
+$[	$pjob	2,	0
+	$setz	1,	0
+	$trmno.	2,	0
+	$seto	1,	0
+$]
+and Enq(chan) be
+$(	let addr=vec 4
+	!addr_#1000005
+	1!addr_142857
+	2!addr_chan
+	3!addr_$az"mud"+(-1<<18)
+	4!addr_0
+	$[	$move	1,	addr
+		$enq.	1,	0
+		$trn
+	$]
+$)
+
+and Deq(chan) be
+$(	let addr=vec 1
+	!addr_#1000005
+	1!addr_142857
+	$[	$move	1,	addr
+		$hrli	1,	1
+		$deq.	1,	0
+		$trn
+	$]
+$)
+and assign() be jar(@persona.door)<>enq(SC.CHANNEL^perput)
+and deassign() be deq(SC.CHANNEL^perput)<>unjar(@persona.door)
+
+AND FINDTMP(F,ERR) = VALOF	// FINDS TMP:XXX, DOES A READ-DELETE
+$( LET S=NEWVEC(SC.TMPCOR.SIZE+TMP.BLOCKSIZE)
+   LET NAME,BLOCK=SIXBIT(F),(-TMP.BLOCKSIZE<<18)+(SC.TMPCOR.SIZE-1)+S
+   LET REPLY=VALOF
+   $[ $HRLI	AC,#2
+      $HRRI	AC,NAME
+      $TMPCOR	AC,0	// TMP: READ AND DELETE INTO S
+      $SETZM	AC
+   $]
+   SC.TMPNAME^S_F>>18
+   UNLESS REPLY IOERROR(S,ERR.FINDTMP,ERR)
+   SC.FLAGS^S_(SC.TMPCOR.SIZE<<12)+1
+   SC.READER^S_READTMP
+   SC.WRITER^S_sterr
+   SC.CLOSER^S_FCLOSETMP
+   SC.ERROR^S_ERR
+   SC.TMPBYTEP^S_(SELECTOR 7:0:(SC.TMPCOR.SIZE-1))+S	// JUST BEFORE BUFFER
+   SC.TMPLIMIT^S_SC.TMPCOR.SIZE+REPLY+S			// LAST WORD READ
+   RESULTIS S
+$)
+
+AND READTMP(S,LVCH) BE
+$(
+   !LVCH_VALOF
+   $[
+	$HRRZ	SCBREG,S
+	$ILDB	AC,SC.TMPBYTEP(SCBREG)
+   $]
+   IF (SC.TMPWORD^S)>SC.TMPLIMIT^S THEN !LVCH_'*E'
+   // WORD IS THE RH OF BYTEP
+$)
+
+AND FCLOSETMP(S) BE FREEVEC(S)
+and CREATETMP(F,ERR) = VALOF
+$( LET S=NEWVEC(SC.TMPCOR.SIZE+TMP.BLOCKSIZE)
+   IF NUMBARGS<2 THEN ERR_0
+   SC.FLAGS^S_(SC.TMPCOR.SIZE<<12)+1
+   SC.WRITER^S_WRITETMP
+   SC.READER^S_STERR
+   SC.CLOSER^S_CLOSETMP
+   SC.ERROR^S_ERR
+   SC.TMPNAME^S_F>>18
+   SC.TMPBYTEP^S_(SELECTOR 7:0:(SC.TMPCOR.SIZE-1))+S
+   RESULTIS S
+$)
+
+AND WRITETMP(S,C) BE
+$(
+$[ $MOVE	SCBREG,S
+   $MOVE	AC,C
+   $IDPB	AC,SC.TMPBYTEP(SCBREG)
+$]
+$)
+
+AND CLOSETMP(S) BE
+$( LET NAME,BLOCK,Z=SC.TMPNAME^S<<18,((S+(SC.TMPCOR.SIZE-1)-SC.TMPWORD^S)<<18)\/(S+(SC.TMPCOR.SIZE-1)),0
+   FOR I=0 TO 4 WRITETMP(S,0) // CLEAR REST OF LAST WORD
+   UNLESS VALOF
+   $[
+	$SETOM	AC
+	$HRLI	B,#3
+	$HRRI	B,NAME
+	$TMPCOR	B,0	// TMPCOR WRITE
+	$SETZM	AC
+   $] sterr()
+   FREEVEC(S)
+$)
+AND CLOSEA(R) BE
+$(	LET WD=SC.OWD^R
+	LET BUF=SC.OBUF^R+2
+	SETSTS(R,#17)
+	WRDMP(R,IOWD(WD-BUF+1,BUF),0)
+	(SC.APPENDCL^R)(R)
+$)
+AND LOOKUP.ENTER(CH,FILESPEC)=LOOKUP(CH,FILESPEC)&ENTER(CH,FILESPEC)
+AND DOFILE(DEV,FILE,EXT,PPN,ERROR,MODE,BUFFS,SELECT,RD,WR,CL)=VALOF
+$(	LET SIXDEV, date=DEV=0\/LH&&dev\=0\/(LH&&DEV=0&!DEV=0)->$6 "DSK",SIXBIT(DEV), valof $[ $date 1, 0 $]
+	and DEVCHR=VALOF
+	$[	 $MOVE	 AC,	 SIXDEV
+		 $DEVCHR AC,	 0
+	$]
+	and DEVSIZ=VALOF
+	$[	 $MOVEI  AC,	B
+		 $MOVE	 B,	MODE
+		 $MOVE	 C,	SIXDEV
+		 $DEVSIZ AC,	0
+		 $SETZ	 AC,	0
+	$]
+	and scb,ch=?,?
+	IF MODE = 0 & (DEVCHR&ISTTY)\=0 THEN  // INCHWL STREAM
+	$(	LET TTYNAME=VALOF $[ $GETLIN	AC,	0	$]
+		LET PHYSDEV=VALOF $[ $MOVE	AC,	SIXDEV
+				     $DEVNAM	AC,	0
+				     $TRN
+				  $]
+		IF PHYSDEV=TTYNAME THEN RESULTIS TTY
+	$)
+	CH_FINDCHANNEL()
+	IF CH<0 THEN DOFILE..ERROR(0,ERR.NOCHANNEL,ERROR)
+	SCB_NEWVEC(SCBSIZE)
+	clearvec(scb,scbsize)
+	SC.STATUS^SCB, SC.DEV^SCB, SC.OBUFHDR^SCB, SC.IBUFHDR^SCB_
+	MODE, SIXDEV, WR=0\/WR=sterr->0, SC.OBUF+SCB, RD=0\/RD=STERR->0, SC.IBUF+SCB
+	SC.CHANNEL!SCB_CH<<23 // ! TO CLEAR REST OF WORD
+	SC.COUNT^SCB_6
+	SC.FILENAME^SCB_SIXBIT(FILE)
+	SC.EXT^SCB_LH&&SIXBIT(EXT)
+	SC.PPN^SCB_PPN
+	SC.FLAGS^SCB_B0+B35
+	SC.MODE of scb_mode
+	IF DEVCHR\=!#74 &  (DEVCHR & (1 << (BYTE 4:0)&&MODE)) = 0 DOFILE..ERROR(SCB,ERR.BADMODE,ERROR)
+	SC.READER^SCB_RD
+	SC.WRITER^SCB_WR
+	SC.CLOSER^SCB_CL
+	SC.IN^SCB_$IN<<27\/(CH<<23)
+	SC.OUT^SCB_$OUT<<27\/(CH<<23)
+	SC.STATZ^SCB_$STATZ<<27\/(CH<<23)+#740000
+	SC.PROTECTION^SCB_#477
+	SC.USETI^SCB_$USETI<<27\/(#36000003)+(CH<<23) // USETI CHANNEL,@3(P)
+	SC.USETO^SCB_$USETO<<27\/(#36000003)+(CH<<23)
+	SC.SIZE^SCB_SCBSIZE
+	SC.TIME^scb_valof $[ $mstime 1, 0 $]/60000
+	date_((date-61)/372)*372+61
+	SC.CREATEDATE^SCB_date
+	SC.HIDATE^SCB_(BYTE 3:12)&&date
+	SC.ERROR^SCB_ERROR
+	SC.OBUF!SCB_B0 // VIRGIN OUTPUT BUFFER RING (! TO CLEAR REST OF WORD)
+	SC.IBUF!SCB_B0 // DITTO  INPUT
+	UNLESS HOPEN(CH,SC.STATUS+SCB) DO DOFILE..ERROR(SCB,ERR.NODEV,ERROR)
+	UNLESS SELECT(CH,SC.COUNT+SCB) DO DOFILE..ERROR(SCB,ERR.NOFILE,ERROR)
+	IF BUFFS <= 0 THEN BUFFS_LH&&DEVSIZ
+	IF (MODE&#17) LE #14 THEN // MAKE THE BUFFER RINGS
+	$(	UNLESS WR=STERR \/ WR=!#74 DO SC.OBUF^SCB_GETRING(OUTBUF,CH,BUFFS,RH&&DEVSIZ)
+		UNLESS RD=STERR \/ RD=!#74 DO SC.IBUF^SCB_GETRING(INBUF,CH,BUFFS,RH&&DEVSIZ)
+	$)
+	RESULTIS SCB
+$)
+AND GETRING(GETBUF, CHANNEL, NO, SIZE) =VALOF
+$(	LET T=JBFF
+	LET BUF=NEWVEC(SIZE*NO-1)
+	JBFF_BUF
+	GETBUF(CHANNEL,NO)
+	JBFF_T
+	RESULTIS BUF+1
+$)
+AND CLOSEFILE(SCB) BE
+$(	LET CH=SC.CHANNEL^SCB
+	RELEASE(CH,0)
+	FREEBUFRING( SC.IBUF^SCB )
+	FREEBUFRING( SC.OBUF^SCB )
+	FREE( SCB )
+$)
+AND FREEBUFRING(R) BE UNLESS R=!#74 DO
+$(	LET P,Q=R,R
+	$( IF P<Q THEN Q_P; P_RH^P $) REPEATUNTIL P=R
+	FREE(Q-1)
+$)
+AND FINDCHANNEL()BE
+$[	$MOVEI	AC,	#17
+TRYCH:	$MOVE	B,	AC
+	$DEVCHR B,	0     // RETURNS 0 IF NO SUCH CHANNEL
+	$JUMPE	B,	RESULT
+	$SOJGE	AC,	TRYCH
+	$SETOM	0,	AC    // RETURN -1 IF NO CHANNEL EXISTS
+RESULT:
+$]
+AND DOFILE..ERROR(SCB,ERR,LAB) BE
+$(	IF SCB THEN
+	$(	RELEASE(SC.CHANNEL^SCB)
+		FREE(SCB)
+	$)
+	GOTO IOERROR+2 // GO ON AS IOERROR
+$)
+AND IOERROR(ERRSCB,ERRCODE,ERRPARAM) BE
+$(	SCB, ERR_ERRSCB, ERRCODE
+	if errparam jump(errparam)
+	outz($az"?*C*L?MUDIOE MUD I/O error ")
+	IOMESSAGE()
+	FINISH
+$)
+AND IOMESSAGE() BE outz($az"*C*L")
+AND RDA(SCB,LVCH) BE
+$[	$MOVE	SCBREG, SCB
+NEXT:	$SOSLE	0,	WSC.ICOUNT(SCBREG)
+	$JRST		GETOK
+	$XCT	0,	WSC.IN(SCBREG)		      // IN CHANNEL,0
+	$JRST		GETOK			// NOT AT E-O-F
+	$XCT	0,	WSC.STATZ(SCBREG)     // STATZ CHANNEL,#740000
+	$JRST		@ERRSTATUS
+	$MOVEI	AC,	'*E'
+	$MOVEM	AC,	@LVCH
+	$(	return	$)
+GETOK:	$ILDB	AC,	WSC.IBYTE(SCBREG)
+	$JUMPE	AC,	NEXT		     // OMIT ZERO CHARACTERS, TOO
+	$HRRZ	2,	WSC.IBYTE(SCBREG)     // LOOK AT THE WORD THAT THE BYTE CAME FROM
+	$TDNE	ONE,	0(2)		    // AND IF B35=1 SKIP THE WORD (IT'S A LINE NUMBER)
+	$JRST		NEXT			// EVENTUALLY WE'LL DO THIS FASTER&REMEMBER THE NO
+	$MOVEM	AC,	@LVCH		     // SET THE RESULT
+$]
+AND RDB(SCB,LVCH) BE
+$[	$MOVE	SCBREG, SCB
+NEXT:	$SOSLE	0,	WSC.ICOUNT(SCBREG)
+	$JRST		GETOK
+	$XCT	0,	WSC.IN(SCBREG)		      // IN CHANNEL,0
+	$JRST		GETOK			// NO AT E-O-F
+	$XCT	0,	WSC.STATZ(SCBREG)     // STATZ CHANNEL,#740000
+	$JRST		@ERRSTATUS		// REAL STATUS ERROR
+	$JRST		@EOF			// END-OF-FILE CODE
+GETOK:	$ILDB	AC,	WSC.IBYTE(SCBREG)
+	$MOVEM	AC,	@LVCH	     // SET RESULT
+$]
+AND WRB(SCB,CH) BE unless detch()
+$[	$MOVE	SCBREG, SCB
+	$SOSLE	0,	WSC.OCOUNT(SCBREG)
+	$JRST		PUTOK
+	$XCT	0,	WSC.OUT(SCBREG)
+	$JRST		PUTOK
+	$JRST		@ERRSTATUS
+PUTOK:	$MOVE	AC,	CH
+	$IDPB	AC,	WSC.OBYTE(SCBREG)
+$]
+AND RDDMP(SCB,BUFFLIST) BE
+$[	$MOVE	SCBREG, SCB
+	$HLL	B,	WSC.IN(SCBREG)
+	$HRRI	B,	BUFFLIST
+	$XCT	0,	B
+	$(	return		$)
+	$XCT	0,	WSC.STATZ(SCBREG)
+	$JRST		@ERRSTATUS
+	$JRST		@EOF
+$]
+AND WRDMP(SCB,BUFFLIST) BE
+$[	$MOVE	SCBREG, SCB
+	$HLL	B,	WSC.OUT(SCBREG)
+	$HRRI	B,	BUFFLIST
+	$XCT	0,	B
+	$(	return		$)
+	$JRST		@ERRSTATUS
+$]
+and sterr() = IOERROR
+AND NEWVEC(S) = VALOF
+$(	LET N = S+2
+	LET Q, P = @FREELIST, FREELIST
+	UNTIL P=!#74 DO
+	$(	LET S = SIZE^P
+		IF S>=N THEN
+		$(	LET K = S-N
+			TEST K<4 THEN
+			$(	LINK^Q_LINK^P
+				LINK^P_INTEGRITY
+				RESULTIS P+1
+			$) OR
+			$(	LET L = P+K
+				SIZE^P_K
+				SIZE^L_N
+				LINK^L_INTEGRITY
+				RESULTIS L+1
+			$)
+		$)
+		Q_P
+		P ^_LINK
+	$)
+// Expand the current region if necessary
+	$(	LET D, ORIG, SIZ = NIL, NIL, NIL
+		AND Q = QUANTUM
+		TEST QUANTUM<0 THEN
+		$(	D_-1
+			SIZ_#1000*-QUANTUM
+			ORIG_#1000*(1+PAGE+QUANTUM)
+		$) OR
+		$(	D_1
+			ORIG_#1000*PAGE
+			SIZ_#1000*QUANTUM
+		$)
+		UNTIL Q=!#74 DO
+		$(	UNLESS GETPAGE(PAGE) STOREERROR(S,ERR.NEWPAGE,@ORIGIN)
+			PAGE+_D
+			Q-_D
+		$)
+		SIZE^ORIG, LINK^ORIG_SIZ, 0
+		LINK^ORIG_INTEGRITY
+		FREEVEC(ORIG+1)
+		RESULTIS NEWVEC(S)
+	$)
+$)
+AND FREEVEC(B) BE
+$(	LET P0, Q, P = B-1, @FREELIST, FREELIST
+	LET N = SIZE^P0
+	UNLESS LINK^P0=INTEGRITY DO STOREERROR(B,ERR.FREEBAD,@ORIGIN)
+	UNTIL P=!#74\/P>P0 DO
+	$(	Q_P
+		P_LINK^P
+	$)
+	TEST P0+N=P THEN
+	$(	N+_SIZE^P
+		SIZE^P0, LINK^P0_N, LINK^P
+	$) OR SIZE^P0, LINK^P0_N, P
+	$(	LET S = SIZE^Q
+		TEST Q+S=P0 THEN SIZE^Q, LINK^Q_S+N, LINK^P0 OR LINK^Q_P0
+	$)
+$)
+AND GETPAGE(N) = VALOF TEST (N<<9) < SL THEN RESULTIS FALSE OR
+$[	$MOVE	B,	!((1<<18)+C)
+	$MOVEI	C,	1
+	$MOVE	D,	N
+	$PAGE.	B,	0
+	$CAIN	B,	3	      //PAGE ALREADY EXISTS?
+	$JRST		OK		//THEN OK
+	$CAIE	B,	#12	      //NO ROOM IN WORKING SET
+	$JRST		FAIL		//NO, THEN CANT HELP
+	$MOVE	B,	!((1<<18)+C)
+	$HRLI	D,	#200000       //TRY TO CREATE ON DISK
+	$PAGE.	B,	0
+	$CAIN	B,	3	      //PAGE EXISTS?
+	$JRST		OK		//YES, THEN OK
+FAIL:	$SETZ	AC,	0
+	$(	return		$)
+OK:	$MOVE	AC,	N
+	$LSH	AC,	9
+	$CAMGE	AC,	FL	     //LOWER THAN LAST FL?
+	$MOVEM	AC,	FL	     //YES, BECOMES NEW FL
+	$SETO	AC,	0
+$]
+AND STOREERROR(S,ERR,ATORIGIN) BE
+	outz($az"*C*L?MUDNFF - Newvec or Freevec failure.*C*L") <> FINISH
+AND OUT(FS,A,B,C,D,E,F,G,H,I,J,K,L,M,N,P,Q,R,S,T,U,V,W,X,Y,Z) be
+$(	LET FV=VEC 128
+	UNPACKSTRING(FS,FV)
+	FV!(1+FV!0)_-1
+	OV(OUTPUT,FV+1,@A)
+$)
+AND WRITE(ST,FS,A,B,C,D,E,F,G,H,I,J,K,L,M,N,P,Q,R,S,T,U,V,W,X,Y,Z) be
+$(	LET FV=VEC 128
+	UNPACKSTRING(FS,FV)
+	FV!(1+FV!0)_-1
+
+	OV(ST,FV+1,@A)
+$)
+and writesecs(str,t) be
+$(	let h, m, s=t/3600, (t rem 3600/60), t rem 60
+	if h write(str," :N hr:S", h, h=1->"","s")
+	if m write(str," :N min:S",m, m=1->"","s")
+	if s write(str," :N sec:S",s, s=1->"","s")
+$)
+AND OV(STR,C,A)=VALOF
+$(	SWITCHON !C INTO
+	$(	CASE -1:
+			RESULTIS A	       // END OF STRING
+		DEFAULT:
+			WRITECH(STR,!C); C+_1; LOOP
+		CASE ':':
+			C+_1
+			SWITCHON !C INTO
+			$(	CASE 'N':
+				CASE 'n':
+					WRITENO(STR,!A)
+					ENDCASE
+				CASE '8':
+					WRITE8(STR,!A)
+					ENDCASE
+				case '6':
+					there_!a
+				CASE 'F':
+				case 'f':
+					WRITE6(STR,!A)
+					ENDCASE
+				CASE 'S':
+				CASE 's':
+					WRITES(STR,!A)
+					ENDCASE
+				case 'P':
+				case 'p':
+					writename(str,!A)
+					endcase
+				case 'U':
+				case 'u':
+					writeuc(str,!a)
+					endcase
+				case 'r':
+				case 'R':
+					$(	let t, r=tabs!(!a-1), random(LH of t)+1
+						dscribe((r rem 2 -> RH, LH) from t!(r/2), comput)
+					$)
+					endcase
+				case 'i':
+				case 'I':
+					inventory(!A, 0)
+					endcase
+				case 'D':
+				case 'd':
+					writedate(str,!a)
+					endcase
+				case 'T':
+				case 't':
+					writetime(str,!a)
+					endcase
+				CASE 'C':
+				CASE 'c':
+					WRITECH(STR,!A)
+					ENDCASE
+				CASE 'Z':
+				CASE 'z':
+					WRITEZ(STR,!A)
+					ENDCASE
+				CASE 'G':
+				CASE 'g':
+					ENDCASE
+				CASE ':':
+					C+_1
+				default 0 ... #177:
+					writech(str,':')
+					loop
+			$)
+			C+_1
+			A+_1
+	$)
+$)	REPEAT
+AND WRITE8(S,N) BE
+$(	UNLESS 0<=N<=7 THEN WRITE8(S,n>>3)
+	WRITECH(S,(N&7)+'0')
+$)
+AND WRITENO(S,N) BE
+$(     IF N<0 THEN N_-N <> WRITECH(S, '-')
+       WRITEPN(S,N)
+$)
+AND WRITEPN(S,N) BE
+$(	IF N>9 THEN WRITEPN(S,(N/10))
+	WRITECH(S,N REM 10 + '0')
+$)
+AND OUTS(S) BE
+$(	let p=selector 7:29:s
+	and n=valof $[	$LDB	AC,	p	$]
+	for i=1 to n do writech(output,valof $[ $ILDB	AC,	p	$])
+$)
+AND WRITES(S,STR) BE
+$(	let p=selector 7:29:str
+	and n=valof $[	$LDB	AC,	P	$]
+	for i=1 to n do writech(s,valof $[	$ILDB	AC,	p	$])
+$)
+AND WRITE6(S,N) BE
+$(	MANIFEST $( L6=BYTE 6:30 $) // LEFTMOST 6 BITS
+	UNTIL N=!#74 DO WRITECH(S,L6&&N+#40)<>N_N<<6
+$)
+and writez(str,az,nocrlf) be  unless detch()
+if az then prompted_false<>
+test str=tty/\logstr=!#74 /\ snoopedon=!#74 then
+$[	$MOVE	AC,	az
+	$SKIPN		0(AC)
+	$(	return	$)
+	$OUTSTR 	0(AC)
+	$setz	1,	0
+	$skipn		nocrlf
+	$skpinc
+	$(	return	$)
+	$outstr		$az "*C*L"
+$] or
+$(	let ptr=selector 7:36:az
+	writech(str,valof
+	$[	$ILDB	AC,	ptr
+		$SKIPN		AC
+		  $(	return		$)
+	$] )	repeat
+	if str=tty unless valof
+	$[	$setz	1,	0
+		$skipn		nocrlf
+		$skpinc
+		$seto	1,	0
+	$] outs("*C*L")
+$)
+and writeudate() be
+$(	let when = (LH from ud.time())-(LH from LSTM of rec)
+	outz($az "Your last game was ")
+	test when ge 2 then Write(tty, ":N days ago.*C*L", when) or
+	$(	Write(tty, ":Sday at ", when->"yester","to")
+		when_(RH from LSTM of rec)*24
+		write(tty,":N::", when/#1000000)
+		when_(when rem #1000000)*60
+		if when/#1000000 ls 10 Writech(tty,'0')
+		write(tty,":N::", when/#1000000)
+		when_(when rem #1000000)*60
+		if when/#1000000 ls 10 Writech(tty,'0')
+		write(tty,":N.*C*L", when/#1000000)
+	$)
+$)
+AND RUN(D,F,E,PP,S) BE
+$(	LET T,U,V,W,X,Y,Z=?,?,?,?,?,?,?
+	SWITCHON NUMBARGS() INTO
+	$(	CASE 1: F_D;D_$SIXBIT "SYS"
+		CASE 2: E_0
+		CASE 3: PP_0
+		CASE 4: S_0
+	$)
+	T,U,V,W,X,Y,Z_SIXBIT(D),SIXBIT(F),SIXBIT(E),0,PP,0,0
+	$[	$HRLI	AC,	7(P) // LV T
+		$HRRI	AC,	#144 // JOBS LOWEST CORE+4
+		$BLT	AC,	#152  // THE 7 WORD ARG BLOCK
+		$MOVS	AC,	CODEX // XWD #140,CODE
+		$BLT	AC,	#143  // MOVE THE CODE DOWN
+		$HRL	PDL,	S   // STARTING OFFSET
+		$HRRI	PDL,	#144
+		$MOVE	AC,	ONEONE
+		$JRST		#140
+CODE:		$CORE	AC,	0    // REDUCE CORE
+		$HALT		#141
+		$RUN	PDL,	0   // CALL THE PROGRAM
+		$HALT		#143
+CODEX:		$EXP	#140,	CODE
+ONEONE: 	$EXP	#1,	#1
+	$]
+$)
+AND SIXBIT(S) = VALOF
+$[	$HLRZ	AC,	S
+	$JUMPE	AC,	STRSIX
+	$MOVE	AC,	S	// ALREADY SIXBIT
+	$(	return		$)
+STRSIX: $SETZ	AC,	0
+	$SKIPN	0,	S
+	$(	return		$)
+	$MOVSI	B,	LH&&(BYTE 7:29)
+	$HRR	B,	S
+	$LDB	C,	B
+	$CAILE	C,	6
+	$MOVEI	C,	6
+	$HRLZI	E,	#600
+SIXL3:	$SOSGE	0,	C
+	$(	return		$)
+	$ILDB	D,	B
+	$CAIL	D,	#40
+	$CAILE	D,	#137
+	$JRST	SIXL1
+	$SUBI	D,	#40
+SIXL2:	$IDPB	D,	E
+	$JRST		SIXL3
+SIXL1:	$CAIGE	D,	#140
+	$MOVEI	D,	#100
+	$SUBI	D,	#100
+	$JRST		SIXL2
+$]
+AND LOOKUP(CH,ADDR)=IOUUO($LOOKUP,CH,ADDR)
+AND ENTER(CH,ADDR)=IOUUO($ENTER,CH,ADDR)
+AND HOPEN(CH,ADDR)=IOUUO($OPEN,CH,ADDR)
+AND RELEASE(CH,ADDR)=IOUUO($RELEAS,CH,ADDR)
+AND OUTBUF(CH,ADDR)=IOUUO($OUTBUF,CH,ADDR)
+AND INBUF(CH,ADDR)=IOUUO($INBUF,CH,ADDR)
+AND SETSTS(STREAM,VAL) = IOUUO($SETSTS,SC.CHANNEL^STREAM,VAL)
+AND GETSTS(SCB) = VALOF
+$[	$MOVE	SCBREG, SCB
+	$MOVE	B,	SC.CHANNEL(SCBREG)
+	$IOR	B,	GWD
+	$XCT		B
+	$(	return		$)
+GWD:	$GETSTS 0,	AC
+$]
+AND USETI(STR,BL) = VALOF
+$[	$MOVE	SCBREG, STR
+	$XCT		SC.USETI(SCBREG)
+$]
+AND USETO(STR,BL) = VALOF
+$[	$MOVE	SCBREG, STR
+	$XCT		SC.USETO(SCBREG)
+$]
+and inuuo(str,addr)=not iouuo($in,SC.CHANNEL^str,numbargs()=1->0, addr)
+and outuuo(str,addr)=not iouuo($out,SC.CHANNEL^str,numbargs()=1->0,addr)
+and readch(stream,lvch,val) be
+$(	(SC.READER^stream)(stream,lvch)
+	if numbargs()=3 return
+	if logstr /\ bstr=!#74 then wrb(logstr,!lvch)
+	unless bstr checksnoop(!lvch)
+$)
+and outch(c) be writech(output,c)
+and checksnoop(ch) be
+$(	ccnt_valof switchon ch into
+	$(	case '*C':	resultis 0
+		case '*T':	resultis (ccnt+8)-(ccnt rem 8)
+		case '*0' ... '*B':
+		case '*L' ... '*P':	resultis ccnt
+		default '*0' ... '*D':	resultis ccnt+1	//near enough...
+	$)
+	if firstsnoop
+	$(	firstsnoop_false
+		checksnoop(SNOOPROMPT)
+	$)
+	if snoopedon then
+	$(	!snoopbuffer+_1
+		snoopbuffer!!snoopbuffer_ch
+		if !snoopbuffer=69 \/ linebreak(ch) then
+		$(	for i=!#74 to 35 do if (1<<i) bitand snoopedon then
+			$(	let block=getmblock()
+				packstring(snoopbuffer,block+2)
+				send(i, block, K.SNPA,INFO of block)
+			$)
+			!snoopbuffer_0
+			if linebreak(ch) checksnoop(SNOOPROMPT)
+		$)
+	$)
+$)
+and writech(stream,ch) be
+$(	if logstr /\ stream ne logstr wrb(logstr, ch)
+	checksnoop(ch)				//would be better if did this the logstr way, not differently
+$[	$HRRZ	SCBREG, stream
+	$HRRZ	AC,	WSC.WRITER(SCBREG)
+	$JRST		2(AC)
+$]	$)
+AND CLOSE(STREAM) BE
+$[	$HRRZ	SCBREG, STREAM
+	$HRRZ	AC,	WSC.CLOSER(SCBREG)
+	$JRST		2(AC)
+$]
+AND PACKSTRING(V,S) = VALOF
+$[	$MOVSI	AC,	LH&&(BYTE 7:36)
+	$HRR	AC,	S
+	$MOVE	2,	V	      // THE UNPACKED STRING
+	$MOVE	3,	0(2)	      // CHARACTER COUNT
+	$ANDI	3,	#177  // MAX 127 CHARACTERS
+	$MOVE	5,	3
+	$IDIVI	3,	5     // WORDS OF DEST'N -> 3
+	$SETZM		0(AC)  // FIRST WORD OF DEST'N STRING
+	$JUMPE	3,	PSLP  //  BUT NO MORE!
+	$HRLI	4,	0(AC)
+	$HRRI	4,	1(AC)
+	$ADDI	3,	#777777(4)
+	$BLT	4,	0(3)
+PSLP:	$MOVE	3,	5
+PSL:	$IDPB	5,	AC
+	$ADDI	2,	1
+	$MOVE	5,	0(2)
+	$SOJGE	3,	PSL
+	$MOVE	AC,	S// RESULTIS THE DESTINATION
+$]
+AND UNPACKSTRING(V,S) = VALOF
+$[	$MOVSI	AC,	LH&&(BYTE 7:29)
+	$HRR	AC,	V
+	$LDB	3,	AC
+	$MOVEM	3,	@S    //THE COUNT
+	$JUMPN	3,	SOME
+	$MOVE	AC,	S    // RESULT FOR ..
+	$(	return		$) // ZERO COUNT
+SOME:	$MOVN	3,	3
+	$HRLZ	3,	3
+	$HRR	3,	S     //-COUNT,,V
+UL:	$ILDB	4,	AC
+	$MOVEM	4,	1(3)
+	$AOBJN	3,	UL
+	$MOVE	AC,	S    // RESULTIS THE DESTINATION
+$]
+AND IOUUO(FN,ACC,ADDR) = VALOF
+$[	$SETOM	0,	AC
+	$MOVE	B,	FN
+	$LSH	B,	27
+	$HRLZ	C,	ACC
+	$LSH	C,	5
+	$IOR	B,	C
+	$HRR	B,	ADDR
+	$XCT	0,	B
+	$SETZM	0,	AC    // FALSE IF DIDN'T SKIP
+$]
+AND IOWD(N,BL) = VALOF
+$[	$MOVE	AC,	BL
+	$SUBI	AC,	1
+	$MOVN	B,	N
+	$HRL	AC,	B
+$]
+AND ECHO() BE
+$[	$SETO	AC,	0
+	$GETLCH 	AC
+	$TLZ	AC,	B15>>18
+	$SETLCH 	AC
+$]
+AND NOECHO() BE
+$[	$SETO	AC,	0
+	$GETLCH 	AC
+	$TLO	AC,	B15>>18
+	$SETLCH 	AC
+$]
+AND WORDS(ST) = VALOF
+$[	$SETZ	AC,	0
+	$MOVE	SCBREG, ST
+	$SKIPGE 	WSC.FLAGS(SCBREG)
+	$MOVE	AC,	WSC.WORDS(SCBREG)
+	$JUMPGE AC,	FIN
+	$HLRE	AC,	AC
+	$MOVN	AC,	AC
+FIN:
+$]
+AND LABEL(LAB) = VALOF
+$[	$MOVE	AC,	P
+	$SUBI	AC,	@0(T)
+	$HRL	AC,	AC
+	$HRR	AC,	LAB
+$]
+AND JUMP(LAB) BE
+$[	$HRRZ	AC,	LAB
+	$HLRZ	P,	LAB
+	$JRST		0(AC)
+$]
+and resetgame()=valof
+$(	let str=?
+	unless supers
+	$(	str_dofile(disc, mud6, $6"exe",mainta, label(rats),0,0,lookup, sterr,sterr, closefile)
+		if rename(str) supers_true
+	$)
+	Outs("*C*LEverything in the game has been reset to its starting state!*C*L")
+rats:	resultis supers
+$)
+
+and initialise() be
+$(	lvmdoor_@message.door
+	chain_findtmp(callnm->callnm,$6"mud", label(notch))
+//dofile(disc,callnm->callnm,$6"mud",$6"tmp",0,label(notch),0,2,lookup,rda,sterr,closefile)
+	$(	let ch,vect,str=?,newvec(2),vec 9
+		readch(chain,@ch)
+		if ch ne '*^A' then abort()
+		readch(chain,@ch)
+		!str_0
+		$(	!str+_1
+			str!!str_ch
+			readch(chain,@ch)
+		$) repeatwhile 'a' le ch le 'z' \/ !str=9
+		unless ch=8\/ch=3 abort()
+		packstring(str,vect)
+		readno(chain, @str)
+		unless daytime-str ls TIMECHK \/ daytime+WHOLEDAY-str ls TIMECHK abort()
+		Readno(chain, @daytime)
+		readno(chain, @room)
+		readno(chain,@ps.word)
+		readno(chain,@oldscore)
+		room_find.room(room)
+		if room room_LH of room
+		logstr_ch=3->false,appendfile($6"dsk",vect,$6"log",ppn,label(prob))
+		if false do
+prob:		logstr_false
+		chain_vect
+	$)
+	if false do
+notch:	chain_false
+	access()
+	profile_getmblock()
+	name_profile+14
+	me_name
+	SENDER of profile,LINK of profile_player.no,0
+	INFO of profile,PNAME of profile_player.bit,name
+	quitflg_1
+	player.names!player.no_(profile<<18) bitor name
+	createprofile()
+	quitflg_true
+	unless room room_random(!stlist)!(stlist+1)	//Select a random start.
+	oldroom_room
+	savescr_SCORE of profile
+	unless savescr savescr_-1
+	CROOM of profile_room
+	JBNUM of profile_jobno
+	OPR of profile_privved
+	jobnos!player.no_jobno
+	unless chain write(tty, "*C*LHello:s, :p!*L*S*C*L", (games.played of profile)>1->" again","",name)
+	if YOULLBESORRY entered("joined")
+	room.been_newvec(max.room.no/36)
+	clearvec(room.been,max.room.no/36)
+	clearvec(fight,35)
+	objct_fake.node("that")
+	test us(me) \/ (A.HIDE bitand ATTRIB of room) then
+	for i=0 to 35 unless i=player.no
+	$(	let them=player.names!i
+		unless them loop
+		them_LH from them
+		if A.SILENT bitand ATTRIB of CROOM of them loop
+		if us(PNAME of them) transmit(i,0,K.INH,GAMES.PLAYED of profile-1)
+	$)
+	or sendall(true,K.INH,false,true,GAMES.PLAYED of profile-1)
+	lvrdoor_room+DOOR
+	lvqdoor_queue.doors+player.no
+	lvqueue_queue+player.no
+	lvcarry_@carry
+	setbit()
+	unless WIZARD of profile cccnt_CCTRIP*10
+	if maint Outz($az"^C trap is OFF*C*L")<>Ctrap()
+	unless BZK/\BERSERK of profile /\ demo
+	$(	describe(room)
+		been.in(RNUMB of room)_true
+	$)
+	alive()
+	if BZK/\BERSERK of profile/\ demo
+	$(	outz("*C*LSorry, there's a demonstration in progress, no berserkers.*C*L")
+		quit()
+	$)
+$)
+and been.in(num, val)=valof
+$(	let sel=selector 1:num rem 36:num/36
+	test numbargs()=2 then sel of room.been_val	//alternatively, define lhs()...
+	or resultis sel of room.been
+$)
+and readno(str,addr)=valof
+$(	let ch,neg=?,1
+	!addr_0
+	readch(str,@ch)
+	if ch='-' neg_-1<>readch(str,@ch)
+	while '0' le ch le '9' do
+	$(	!addr_!addr*10-'0'+ch
+		readch(str,@ch)
+	$)
+	!addr*_neg
+	resultis !addr
+$)
+and abort() be
+$(	outz($az"*C*LSomething suspicious here...*C*L")
+	finish
+$)
+and entered(s) be if YOULLBESORRY		//all these YOULLBESORRY's to cut down code compiled
+$(	let ap, ch, tmpfil=?, ?, ?
+	ap_appendfile(DISC, mud6, $6"log", MPPN, label(wot))
+	$(	LET S = SIXBIT("idm")>>18
+		LET JOBNO = VALOF $[ $PJOB AC, 0 $]
+		(BYTE 6:30)&&S,(BYTE 6:24)&&S,(BYTE 6:18)&&S :=
+			JOBNO/100+('0'-#40),(JOBNO/10)REM 10+('0'-#40),JOBNO REM 10+('0'-#40)
+		tmpfil_dofile(DISC,s,$6"tmp",0,label(try1),0,2,lookup,rda,sterr,closefile)
+		if false
+try1:			tmpfil_dofile(DISC,s,$6"tmp",0,label(try2),0,2,lookup,rda,sterr,closefile)
+		if false
+try2:			tmpfil_false
+	$)
+	if tmpfil
+	$(	for i=1 to 8
+		$(	Readch(tmpfil, @ch)
+			Writech(ap, ch)
+		$)
+		writech(ap,'*T')
+		Close(tmpfil)
+	$)
+	write(ap,"[:8,:8]*T:D*T:T*T:P :S :6, pts=:N.*C*L",
+	LH from ppn, RH from PPN,
+	valof $[	$date	ac,	0,	$],
+	valof $[	$mstime	ac,	0	$],
+	me, s, mud6,
+	STAMINA of profile le 0 -> -1,SCORE of profile)
+	close(ap)
+wot:
+$)
+and load.data() be
+$(	let play=false
+	magic_true
+	ctrap()
+	$(	for i=!#74 to 35 do if player.names!i then play_true<>break
+		unless play break
+		play_false
+		outz($az"*C*Lsomeone playing...")
+		hibernate()
+	$)	repeat
+	outz($az"*C*LLoading database from MUD.DMP")
+	input_dofile($6"all",$6"mud",$6"dmp",0,0,#14,2,lookup,rdb,sterr,closefile)
+	for i=startloc to @free.space do readch(input,i)
+	$[	$hrlz	1,	free.space
+		$core	1,	0
+		$trna
+		$jrst		ok
+		$outstr		$az"*C*LMUDCGC - cannot get core.*C*L"
+		$(	finish	$)
+ok:	$]
+	for i=@free.space+1 to free.space-1 do readch(input, i)
+	close(input)
+	low1_TOOLOW
+	low2_BITLOW
+	$[	$MOVE	AC,	MUD6
+		$SETNAM AC,	0
+	$]
+	ctrap()
+	outz($az"*C*L")
+	$[	$clrbfi	$]
+	forcetty($AZ "ssa*C*L")
+	magic_false
+	finish
+$)
+and readusername(nme, numsok) be
+$(	/*
+	Reads in a player's pseudonym. Any character outside the range 'a' to 'z'
+	or 'A' to 'Z' ends the name.
+	*/
+	let n,ch,linev,myname=!#74,?,vec NAMELENGTH, vec 2
+	wait.for.input()
+	readch(input,@ch)
+	while 'a'<=(ch bitor #40)<='z' \/ (numbargs()=2/\'0' le ch le '9') do				// While in the desired range
+	$(	n+:1							// Increment count
+		unless n>NAMELENGTH linev!n_'A'<=ch<='Z'->ch+#40,ch	// Put it in
+		readch(input,@ch)					// Read another one
+	$)
+	!linev_n>NAMELENGTH->NAMELENGTH,n				// Insert the count
+	packstring(linev,nme)
+	test ch='-' then
+	$(	$(	chcnt+_1
+			readch(tty,linebuffer+chcnt)
+		$)	repeatuntil linebreak(linebuffer!chcnt)\/chcnt=BUFLENGTH
+		!linebuffer_chcnt
+		if chcnt=BUFLENGTH then until linebreak(linebuffer!chcnt) readch(tty,linebuffer+BUFLENGTH)
+		unless linebuffer!(chcnt-1)='*C' writech(tty,'*C')	//so always get one on buffer full
+		unless linebuffer!chcnt='*L' writech(tty,'*L')
+		nextch_linebuffer
+	$) or until eol(ch) readch(input,@ch)
+	if ESSEX unless maint if !nme=!"gail" then !nme_!"gali"
+	if !nme break
+	outz($az"*C*L**")
+$) repeat
+and eol(ch)='*L'<=ch<='*P'\/ch='*$'\/ch='*^G' 
+and us(name)=valof
+$(	let nm0, nm1=?, ?
+	lH from name_0
+	nm0_!name>>1
+	nm1_(LENGTH of name gr 4)-> 1!name>>1, 0
+	resultis ((nm0=!"richard">>1)/\(nm1=1!"richard">>1))\/
+		(nm0=!"roy">>1)\/
+		((nm0=!"brian">>1)/\(nm1=1!"brian">>1))\/
+		((nm0=!"ronan">>1)/\(nm1=1!"ronan">>1))\/
+		((nm0=!"friday">>1)/\(nm1=1!"friday">>1))\/
+		(nm0=!"yawn">>1)\/
+		((nm0=!"debugger">>1)/\(nm1=1!"debugger">>1))\/ OTHERS /\
+		(	((nm0=!"archone">>1)/\(nm1=1!"archone">>1))\/
+			((nm0=!"archtwo">>1)/\(nm1=1!"archtwo">>1))\/
+			((nm0=!"archthree">>1)/\(nm1=1!"archthree">>1))\/
+			((nm0=!"archfour">>1)/\(nm1=1!"archfour">>1))\/
+			((nm0=!"archfive">>1)/\(nm1=1!"archfive">>1))\/
+			(nm0=!"muse">>1)
+		)
+$)
+and createprofile() be
+$(	let nm=?
+	test chain then
+	$(	!name_!chain
+		if ESSEX if us(name)/\ maint=0 outz($az"charlatan!*C*L")<>finish
+		1!name_1!chain
+		free(chain)
+	$) or
+	$(	outz($az"Welcome! By what name shall I call you?")
+		$(	outz($az"*C*L**")
+			readusername(name)
+		$)	repeatuntil LENGTH of name
+	$)
+	checkname(name)
+	quitflg_false
+	perput_dofile($6"all",ps6,$6".pm",MAINTA,label(drat),#17,1,lookup,rdb,wrb,closefile)
+	assign()
+	$(	searchrec(name)
+		deassign()
+		close(perput)
+		if rec
+		$(	rec_(rec rem WDSPERBUF)+dmpbuf
+			quitflg_1
+			test PSWD of rec then
+			$(	let c=?
+				unless chain
+				$(	outz($az"*C*LThis persona already exists - what's the password?*C*L**")
+					setpswd()
+				$)
+				c_ps.word
+				for i=!#74 to 12 c_ (c>>1) #* 11.0
+				unless c=787512805
+				unless (!name=!"richard" & 1!name=1!"richard" -> valof
+				$(	let c=@name<<17
+					for i=!#74 to 23 do c_(c>>3)*7
+					ps.word_c>>7
+					resultis c=-188321
+				$), false)
+				unless ps.word=PSWD of rec
+				$(	outz($az"*C*LNo!*C*L")
+					giveback()
+				$)
+				unless chain outz($az"*C*Yes!*C*L")
+			$) or
+			$(	out("*C*LNo password on this persona - give me one of up to :N letters, please.*C*L**", NAMELENGTH)
+				setpswd()
+			$)
+			STATES of profile_WIZD of rec
+			unless ISWIZ of profile ne 0/\ps.word WIZARD of profile_false
+			if us(name) WIZARD of profile_true<>maint_true
+			brief_BREEF of profile->-1,0
+			SCORE of profile_SCRE of rec
+			unless chain oldscore_SCRE of rec
+			STRENGTH of profile_rationalise(STRN of rec)
+			DEXTERITY of profile_rationalise(DXTY of rec)
+			STAMINA of profile_rationalise(STNA of rec)
+			GAMES.PLAYED of profile_chain->GAMES of rec, valof
+			$(	let g=(GAMES of rec)+1
+				GAMES.PLAYED of profile_g
+				test g=10 then outz($az"*C*LWell done! You've managed 10 games so far without getting killed!*C*L")
+				or test g=100 then outz($az"*C*LCongratulations! Your 100th game!*C*L")
+				or test g=1000 Outz($az "*C*LAmazing! This is your 1000th game! What dedication!*C*L")
+				or if g=10000 Outz($az"*C*LYes, you DO get a message congratulating you on your 10000th game!*C*L")
+				resultis g
+			$)
+			STAMINAMAX of profile_STMX of rec
+			nm_ud.time()-(LSTM of rec)
+			STAMINA of profile+_(nm/182)
+			unless 0<STAMINA of profile<=STAMINAMAX of profile do
+				STAMINA of profile_STAMINAMAX of profile
+			!name_WRD1 of rec		//sets the sex right too. assume start off awake...
+			unless chain writeudate()
+			return
+		$)
+		quitflg_1
+		newpersona(name)
+		if us(name) WIZARD of profile_true
+		out("*C*LGive me a password for this persona of up to :N letters, please.*C*L**", NAMELENGTH)
+		setpswd()
+		return
+	$) repeat
+drat:	Outs("I don't seem to be able to access your profile - please report this!*C*L")
+$)
+and rationalise(val)=valof
+$(	let max=BZK/\BERSERK of profile->BERSERKMAX, 100
+	resultis val>max -> max, val<1 -> 1, val
+$)
+and setpswd() be
+$(	let nme=vec 1
+	noecho()
+	!nme, 1!nme_0, 0
+	readusername(nme,true)
+	echo()
+	ps.word_encrypt(nme)
+$)
+and encrypt(nam)= valof
+$(	let temp=!nam+(LENGTH of nam>4 -> 1!nam,0)
+	temp_(temp rem ((1<<20)-1))*(temp rem ((1<<25)-1))
+	resultis temp
+$)
+and newpersona(name) be
+$(	outz($az"Creating new persona:*C*L")			//bit inconsistant these $az's...
+	for i=!#74 to valof $[ $MSTIME AC, 0  $]/54321 do ran()     // Bump RAN()
+	SCORE of profile,GAMES.PLAYED of profile_0,1		// Obviously
+	STRENGTH of profile	_	crechar()		// Create STRENGTH characteristic
+	DEXTERITY of profile	_	crechar()		// Create DEXTERITY ditto
+	STAMINA of profile	_	crechar()		// Create STAMINA ditto
+	STAMINAMAX of profile_STAMINA of profile		//Max. stamina
+	SEX of profile_get.sex(name)				//Wish i could...
+	ASLEEP of profile_0					//Start off awake...
+	if SEX of profile sexify(1)
+$)
+and checkname(name) be unless us(name)				//allow 2 of us lot on...
+$(	let old.one=player.names!player.no
+	jar(@name.door)
+	player.names!player.no_0
+	while (find.word(name)\=!#74)\/(find.player(name)\=-1)\/(LENGTH of name = 0) do
+	$(	test(find.player(name)=-1) then out("I can't call you :p, try a different name.*C*L**",name)
+		or out("I can't call you the same name as :p, try a different one*C*L**",name)
+		unjar(@name.door)
+		readusername(name)
+		jar(@name.door)
+	$)
+	player.names!player.no_old.one
+	unjar(@name.door)
+$)
+and writeprofile(chaining) be
+$(	if YOULLBESORRY entered("left")
+	unless chaining
+	if oldscore ls EXP.STEP*(1<<(MAX.LEVEL-1))le SCORE of profile/\STAMINA of profile gr 0
+	$(	write(tty,"Your level of experience is now :p*C*L",(SEX of profile->female,male)!(MAX.LEVEL))
+		test BZK/\BERSERK of profile then
+		$(	STRENGTH of profile_BERSERKMAX
+			Write(tty,"Since you're berserk, I can't put you into :s mode. If*C*L", (SEX of profile -> female, male)!max.level)
+			Write(tty, "it's any consolation, your max. strength is now :n.*C*L", BERSERKMAX)
+		$) or
+		$(	ISWIZ of profile_true
+			write(tty,"You are now able to enter :S mode.*C*L",(SEX of profile->female, male)!max.level)	//ought to put sex test into OV
+		$)
+		$[	$clrbfi $]
+	$)
+	test (ATTED of profile=0) /\
+	seq(me, "glai")=0 /\ seq(me, "gali")=0 /\
+	(	(GAMES.PLAYED of profile gr 1)\/
+		savedp\/
+		(	(STAMINA of profile gr 0)/\
+			(	chaining ne 0 \/
+				(SCORE of profile) ne 0
+			)
+		)
+	) then	//hmm...
+	$(	if false
+curses:		test SCORE of profile ge oldscore /\ STAMINA of profile gr 0 then
+		$(	writes(tty,"*C*LSomeone is accessing the persona file. To quit without updating*C*L")
+			writes(tty,"your persona, hit Q. To try again, hit something else.*C*L")
+			if valof
+			$[	$clrbfi
+				$inchrw		1
+				$clrbfi
+				$trz	1,	'*S'
+				$caie	1,	'Q'
+				$setz	1,	0
+			$]
+			$(	outz($az"*C*LNot updating persona.*C*L")
+				output_tty
+				return
+			$)
+		$) or
+		$(	cccnt+_CCTRIP*10000
+			writes(tty,"*L*S*C*LSomeone is accessing the persona file. Since you have less points than*C*L")
+			writes(tty,"you started with, I have to update your persona so I'll keep on trying...*C*L")
+			$[	$movei	1,	2
+				$sleep	1,	0
+			$]
+		$)
+		perput_dofile($6"all",ps6,$6".pm",MAINTA,label(curses),#17,1,lookup.enter,rdb,wrb,closefile)
+		assign()
+		useti(perput,1)
+		(STAMINA of profile le 0 ->deleterec,saverec)(profile+14)
+		deassign()
+		close(perput)
+	$) or outz($az"*C*LNot updating persona.*C*L")
+	output_tty
+$)
+and load.block(stream,block) be
+$(	if stream=laststream /\ block=lastblock return
+	useti(stream,block)
+	inuuo(stream,cbl)
+	laststream_stream
+	lastblock_block
+$)
+and save.block(block) be
+$(	let blk=numbargs()->block,lastblock
+	useto(laststream,blk)
+	outuuo(laststream,cbl)
+$)
+and searchrec(nam) = valof
+$(	let pnt,lrec,str=?,0,vec 1
+	!str_!nam
+	1!str_LENGTH of nam>4 -> 1!nam, 0
+	load.block(perput,1)
+	lrec_hashval(str)
+	rec_dmpbuf!lrec
+	while rec
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		pnt_(rec rem WDSPERBUF)+dmpbuf
+		if seq(str,2+pnt) break
+		lrec_rec
+		rec_POINTR of pnt
+	$)
+	resultis lrec
+$)
+and saverec(nam) = valof
+$(	searchrec(nam)
+	unless rec addrec(nam)
+	if rec test SCRE of (rec rem WDSPERBUF+dmpbuf) >= savescr then		//In case addrec hasn't added them.
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		dumpersona(rec rem WDSPERBUF+dmpbuf)
+		save.block()
+	$) or
+	$(	outs("Your score seems to have changed without my noticing.*C*L")
+		rec_0
+	$)
+	resultis rec	//return a value to indicate whether you've been saved.
+$)
+and deleterec(nam) be
+$(	let olrec,odel,lrec=?,?,searchrec(nam)
+	and pnt=rec rem WDSPERBUF+dmpbuf
+	unless rec return	//Can't find record
+						//Ok, this may look a little long-winded
+	load.block(perput,rec/WDSPERBUF+1)	//but it's worth it not to corrupt the persona file in case of a crash
+	WRD1 of pnt_0
+	WRD2 of pnt_0		//Zero names for purges etc.
+	GAMES of pnt_0		//Yawn thinks we need this, too! (WE DO! - Yawn xx)
+	olrec_!pnt
+	save.block()
+
+	load.block(perput,lrec/WDSPERBUF+1)
+	dmpbuf!(lrec rem WDSPERBUF)_olrec	//Old pointer to rec now points to old pointer of rec.
+	save.block()
+	
+	load.block(perput,1)	//Get the deleted record pointer
+	odel_DEL of dmpbuf
+	save.block()
+
+	load.block(perput,rec/WDSPERBUF+1)	//And plonk it in the record to be deleted
+	!pnt_odel		//Does anyone read all these comments?
+	save.block()	//Richard does!
+
+	load.block(perput,1)	//Finally update the deleted record pointer to point to the newly deleted record!
+	DEL of dmpbuf_rec
+	save.block()
+$)
+and addrec(nam) be
+$(	let hashcont,olrec=?,?
+	if GAMES.PLAYED of profile>1 outs("*C*LHow can you have no persona AND have played before?!*C*L")<>rec_0<>return
+	load.block(perput,1)
+	rec_DEL of dmpbuf
+	test rec then
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		olrec_POINTR of (rec rem WDSPERBUF+dmpbuf)
+		save.block()
+	$) or
+	$(	rec_FLEN of dmpbuf
+		unless rec			//No persona file exists.
+		$(	rec_2*WDSPERBUF
+			FLEN of dmpbuf_rec	//Create hash table
+		$)
+		olrec_0				//No deleted records
+		FLEN of dmpbuf+_RECLENGTH
+		save.block()
+	$)
+	load.block(perput,1)
+	DEL of dmpbuf_olrec
+	hashcont_dmpbuf!hashval(nam)
+	save.block()
+
+	load.block(perput,rec/WDSPERBUF+1)
+	POINTR of (dmpbuf+rec rem WDSPERBUF)_hashcont
+	save.block()
+	
+	load.block(perput,1)
+	dmpbuf!hashval(nam)_rec
+	save.block()
+$)
+and hashval(nam) =  ((!nam+1!nam)>>1) rem 253
+and dumpersona(place) be
+$(	BREEF of profile_brief>>1
+	place!2_profile!14
+	place!3_profile!15
+	GAMES of place_GAMES.PLAYED of profile
+	SCRE of place_SCORE of profile
+	STRN of place_STRENGTH of profile
+	DXTY of place_DEXTERITY of profile
+	STNA of place_STAMINA of profile
+	STMX of place_STAMINAMAX of profile
+	LSTM of place_ud.time()
+	if GAMES.PLAYED of profile=1 then PN of place_peen
+	WIZD of place_(STATES of profile)
+	unless WIZARD of profile WIZD of place bitand_NOTINVIS
+	PSWD of place_ps.word
+$)
+and realwiz(nam)=valof
+$(	let wizstr, ch, initptr, len=
+		?, ?, selector 7:29:nam, (selector 7:29:0) of nam
+	wizstr_dofile(disc, ps6, $6"wiz", mainta, label(wah), 0, 2, lookup, rda, sterr, closefile)
+	readch(wizstr, @ch, true)
+	while ch ne '*E'
+	$(	let ptr, count, nextch=initptr, 0, valof
+		$[	$ildb	1,	ptr	$]
+		while ch=nextch/\count le len
+		$(	readch(wizstr, @ch, true)
+			nextch_valof
+			$[	$ildb	1,	ptr	$]
+			count+_1
+		$)
+		if count=len/\ch='*C'
+		$(	close(wizstr)
+			resultis true
+		$)
+		until ch='*L' readch(wizstr, @ch, true)
+		readch(wizstr, @ch, true)
+	$)
+	close(wizstr)
+if false
+wah:	Outs("*C*LCan't access the WIZ file - try again?*C*L")
+	resultis false
+$)
+and get.sex(name)=valof
+$(	let ch=?
+	if us(name) resultis false
+	outz($az"*C*LWhat sex do you wish to be?*C*L**")
+	$[	$clrbfi
+		$inchrw		ch
+		$clrbfi
+	$]
+	if ch='m' \/ ch='M'
+	$(	unless ESSEX outz($az"*C*LM")
+		outz($az"ale*C*LOK*C*L")
+		resultis false
+	$)
+	if ch='f' \/ ch='F'
+	$(	unless ESSEX outz($az"*C*LF")
+		outz($az"emale*C*LOK*C*L")
+		resultis true
+	$)
+	if ch='h' \/ ch='H'
+	$(	unless ESSEX outz("*C*LH")
+		outz($az"elp*C*LI have to know what sex you want to be so I can get the terms right*C*L")
+		outz($az"eg hero/heroine, witch/wizard")
+		loop
+	$)
+	outz($az"*C*LEh? M for male, F for female")
+$) repeat
+and boost(facet) be unless facet of profile ge 100 facet of profile_
+	facet of profile ge 100-BOOSTEP->100, facet of profile+BOOSTEP
+and unboost(facet) be facet of profile_
+	facet of profile le BOOSTEP->facet of profile,
+	facet of profile le 2*BOOSTEP->BOOSTEP, facet of profile-BOOSTEP
+and sexify(gender) be
+$(	let s,d,c,sm=STRENGTH of profile,DEXTERITY of profile, STAMINA of profile,STAMINAMAX of profile
+	test gender then
+	$(	unless s ge 100 STRENGTH of profile_s le 20 ->10, s-10
+		unless d ge 100 DEXTERITY of profile_d ge 95->100, d+5
+		unless c ge 100 STAMINA of profile_c ge 95->100, c+5
+		unless sm ge 100 STAMINAMAX of profile_sm ge 95->100,sm+5
+	$) or
+	$(	unless s ge 100 STRENGTH of profile_s ge 90->100, s+10
+		unless d ge 100 DEXTERITY of profile_d le 15->10, d-5
+		unless c ge 100 STAMINA of profile_c le 6->1, c-5	//keep alive if in a fight
+		unless sm ge 100 STAMINAMAX of profile_sm le 15->10,sm-5
+	$)
+$)
+ 
+and writeuc(s,nm) be
+$(	let nmv=vec 127
+	unpackstring(nm,nmv)
+	if 'a' le 1!nmv le 'z' 1!nmv-_#40
+	for i=1 to !nmv writech(s,nmv!i)
+$)
+and writename(s,nm) be
+$(	let nmv,wflg,prof=vec 127,?,?
+	if nm=0 writes(s,"Someone")<>return
+	wflg_find.player(nm)
+	if blind & wflg ge 0 writes(s,"Someone")<>return	// \wflg if you like
+	unless wflg=-1
+	$(	nm_player.names!wflg
+		prof_LH from nm
+		if invisible(prof) writes(s,"Someone")<>return
+	$)
+	unpackstring(nm,nmv)
+	if 'a' le 1!nmv le 'z' 1!nmv-:#40
+	for i=1 to !nmv do writech(s,nmv!i)
+	if wflg=-1 return
+	unless hidden(wflg)\/wflg=player.no
+	$(	(SEX of prof->her,him)_nm
+		them_nm
+	$)
+	test WIZARD of prof then write(s, " the :s:s",us(nm)->"arch-","", (SEX of prof->female, male)!MAX.LEVEL) or
+	$(	nmv_SCORE of prof
+		for i=!#74 to MAX.LEVEL do if nmv ls exp.step*(1<<i)\/i=MAX.LEVEL then
+		$(	unless i break
+			write(s, " the :s:s:s", BZK/\BERSERK of prof->"berserker ","",
+				i=MAX.LEVEL->"mortal ", "",(SEX of prof->female, male)!i)
+			break
+		$)
+	$)
+	if OPR of prof Writes(s, " opr")
+$)
+and startrap() be
+$[	$MOVEI	AC,	restart
+	$MOVEM	AC,	jbsa
+	$MOVEM	AC,	jbren
+	$(	return		$)
+restart:$(	outz($az"Restarting...")
+		run("all",hsname,0,hsppn,0)
+	$)
+$]
+and setbit() be
+$[	$(	lock(lvrdoor)	$)
+	$MOVE	AC,	room
+	$MOVE	B,	player.bit
+	$OR	B,	WHO(AC)
+	$MOVEM	B,	who.copy
+	$MOVEM	B,	WHO(AC)
+	$JSP	T,	@unlock
+	$SUBI	P,	2
+$]
+and unsetbit() be
+$[	$(	lock(lvrdoor)	$)
+	$MOVE	AC,	room
+	$MOVE	B,	WHO(AC)
+	$TDZ	B,	player.bit
+	$MOVEM	B,	WHO(AC)
+	$JSP	T,	@unlock
+	$SUBI	P,	2
+$]
+and ud.time()=valof
+$[	$hrli	ac,	#53
+	$hrri	ac,	#11
+	$gettab ac,	0
+	$trn
+$]
+and timeok(low)=demo\/valof
+$(	let day=(LH from ud.time()) rem 7
+	and time=(valof $[	$mstime	1,	0	$])/3600000
+	day_times!day				//day!_times?
+	while day/\FTIME of day ge time
+	$(	if STIME of day le time ls FTIME of day resultis ~overload(numbargs()->low, low1)
+		day of_LINK
+	$)
+	resultis false
+$)
+and overload(low)=ESSEX/\LOADCHK/\valof
+$[	$hrli	2,	#54
+	$hrri	2,	#11
+	$gettab	2,	0
+	$jrst		huh
+	$hrli	1,	#50
+	$hrri	1,	#11
+	$gettab	1,	0
+	$jrst		huh
+	$sub	1,	2
+	$camle	1,	low
+huh:	$tdza	1,	1
+	$seto	1,	0
+$]
+and access() be
+$(	let lab=?
+	unless maint\/timeok(low2)				//incorporate maint into timeok()?
+	$(	let day=?
+		out("*C*L:6 isn't available at the moment", mud6)
+		if overload(low2)
+		$(	outz($az" - the computer is becoming overloaded.*C*LTry again later.*C*L")
+			finish
+		$)
+		day_(LH from ud.time()) rem 7
+		for i=(valof $[	$mstime	1,	0	$])/3600000+1 to 24
+		$(	let check=times!day
+			while check/\FTIME of check ge i
+			$(	if STIME of check le i ls FTIME of check
+					out(" - next time you can play is at :C:N00hrs*C*L",
+						i<10->'0','*0',i)<>finish
+				check of_LINK
+			$)
+		$)
+		outz($az". Try again tomorrow?*C*L")
+		finish
+	$)
+	unless chain if privved
+	$(	outz($az"You shouldn't run MUD privileged!*C*L")
+		unless random(200)
+		$[	$sleep	13,	0
+			$outstr		$az "Well there goes ACCT.SYS!*C*L"
+		$]
+	$)
+	lab_label(nodisc)
+	unless maint do
+	$(	if batch outz(strtab!5)<>finish
+		if magic outz(strtab!7)<>finish
+		if locked outz(strtab!9)<>finish
+		if micstatus outz($az"*C*LYou can't run me under MIC!*C*L")<>finish
+//		if ESSEX/\guest unless peen=GUESTPN outz($az"*C*LYou're on the wrong PPN, chum!*C*L")<>finish
+	$)
+	if ccl/\maint then load.data()
+	unless index test maint then load.data()
+	or outz(strtab!7)<>finish
+	quitflg_false
+	!cbl_(-BUFFERS<<18)bitor(dmpbuf-1)
+	1!cbl_0
+	roomput_true
+	roomput_dofile(DISC,mud6,$6".rm",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	textput_true
+	textput_dofile(DISC,mud6,$6".tm",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	objput_true
+	objput_dofile(DISC,mud6,$6".om",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	comput_true
+	comput_dofile(DISC,mud6,$6".cm",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	mapput_true
+	mapput_dofile(DISC,mud6,$6".mm",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	perput_true
+	cmndput_true
+	cmndput_dofile(DISC,mud6,$6".gm",MAINTA,lab,#17,1,lookup,rdb,sterr,closefile)
+	if false
+	$(
+whoops:		unless maint/\first jump(lab)
+		first_false
+		perput_dofile($6"all",ps6,$6".pm",mainta,label(huh),#17,1,enter,sterr,wrb,closefile)
+		assign()
+		useto(perput,2)
+		clearvec(dmpbuf, BUFFERS)
+		outuuo(perput, cbl)
+		deassign()
+		close(perput)
+		if false
+huh:			jump(lab)
+	$)
+	perput_dofile($6"all",ps6,$6".pm",MAINTA,label(whoops),#17,1,lookup,rdb,wrb,closefile)
+	close(perput)
+	unless hsname=mud6 write(tty,"Wrong name for :F!*C*L",mud6)<>finish
+	startrap()
+	unless chain
+	$(	out("*L *C*L:SMulti-User Dungeon.*L *C*LThis :s created:: :D at :T*C*L",
+		BOASTNAME->"ESSEX UNIVERSITY: ","",MUDNAM->@MUDNAM,"Dungeon",date,time)
+		out("Origin of version:: :T", rdate)
+		if rhours
+		$(	out(".*C*LAccumulated game time::")
+			writesecs(tty,rhours)		//hmm, lousy name!
+		$)
+		out(".*C*L")
+	$)
+	lock(@inidr)
+	if player>=35 then
+	$(	outz($az"*C*LIt looks as if you are too late for this game mate! I'll reset one for you.")
+		unlock()
+		resetgame()
+		finish
+	$)
+	player+:1
+	player.no_plynum!player
+	$(	let r, oldseln, oldr4=randoms, 0, 0
+		while r
+		$(	let sel1, dest, sel2, roomlist=1!r, 2!r, 3!r, RH from 4!r
+			test r!4=oldr4 then roomlist_oldseln or
+			$(	for i=1 to random(LH from r!4) roomlist_LINK of roomlist
+				roomlist_LH of roomlist
+				oldseln, oldr4_roomlist, r!4
+			$)
+			test sel2 then unless firsttime
+			$(	sel1 of dest_sel2 of roomlist
+				sel2 of roomlist_dest
+			$) or sel1 of dest_roomlist
+			r_LINK of r			//won't let me do r of_LINK
+		$)
+	$)
+	unless firsttime while randirs
+	$(	$(	let rd1, ptr=randirs+1, RH of rd1
+			for i=1 to random(LH of rd1) ptr_RH of ptr
+			LH of LH of randirs_LH of ptr
+		$)
+		randirs_RH of randirs
+	$)
+	firsttime_true
+	unlock()
+	player.bit_1<<player.no
+	$(	let tmp=?
+		tmp_Createtmp($6"where", Label(tish))
+		Close(tmp)
+tish:	$)
+ 	unless chain if peace outz($az"*C*LFighting is currently NOT permitted!*C*L")
+	return
+nodisc:	test mud6 then out("I don't seem to be able to access :F.:F[:8,:8], it's*C*Lnot your fault, sorry.*C*L",
+		perput->ps6,mud6,perput->$6".pm",mapput->$6".mm",
+		comput->$6".cm",objput->$6".om",textput->$6".tm",
+		cmndput->$6".gm",$6".rm",
+		LH from mainta, RH from mainta) or
+	outz($az"You are stood in a void and shapeless world, which has not yet been*C*Lcreated. Please try again later.")
+	finish
+$)
+and get.cmnd(num,fast.action)=valof
+$(	let block=num/WDSPERBUF+1
+	unless num resultis 0
+	if fast.action resultis num	//Action stored in core.
+	unless laststream=cmndput /\ block=lastblock
+	$(	useti(cmndput, block)
+		inuuo(cmndput, cbl)
+		laststream_cmndput
+		lastblock_block
+	$)
+	num_dmpbuf+(num rem WDSPERBUF)
+	for i=0 to DRSIZE i!cmndbuf_i!num		//In case dmpbuf gets altered by the command
+	resultis cmndbuf
+$)
+and delete(s) be
+$(	let v=vec 3
+	for i=0 to 3 v!i_0
+	iouuo($rename,sc.channel^s,v)
+	close(s)
+$)
+and rename(s)=valof
+$(	let v, res=vec 3, ?
+	!v_WSC.FILENAME!s
+	1!v_WSC.EXTWORD!s
+	2!v_WSC.TIMEDATE!s
+	3!v_WSC.PPN!s
+	res_iouuo($rename,sc.channel^s,v)
+	close(s)
+	resultis res
+$)
+and seq(s1,s2)=valof
+$(	for i=!#74 to (LENGTH of s1)/5 do if (s1!i>>1) ne (s2!i>>1) resultis false
+	resultis true
+$)
+and random(n)=valof		//gives random no. between 0 and n-1
+$(	let m=fixd(ran()#*floatd(n))
+	resultis m>=n->n-1,m
+$)
+/*	LOCK and JAR have been improved by Alan Grieg, incorporating the
+	'first part done' stuff. It can still deadlock though, just not so
+	likely... I'm not sure WHY it works, I thought AOSN was non-interruptable,
+	but it seems to! Also a bug spotted by Ronan Flood - ta' Rho!
+*/
+and lock(lvdr) be
+$[	$SETZ	B,	0
+	$move	c,	player
+	$aosg		c
+	$movei	c,	1
+	$imul	c,	napct
+	$MOVE	AC,	lvdr
+	$MOVEM	AC,	lastdr
+	$AOS		lockflg
+	$SKIP		0(AC)			//ensure we're swapped in for this page
+L1:	$jfcl	#17,	L2
+L2:	$AOSN		0(AC)
+	$(	return	$)
+ 	$jcry0	L3
+	$SLEEP	B,	0
+	$caml	c	0(ac)
+	$JRST		L1
+	$setzm		JBINT
+	$move	c,	magic
+	$jumpn	c,	l5
+	$setom		magic
+	$(	resetgame()			//doesn't matter if get 2 of these...
+	$)
+l5:	$(	outs("*C*LSomething unexpected has happened magically...*C*L")
+		writeprofile(false)
+	$)
+	$exit	1,	0
+L3:	$setom		0(ac)
+	$jrst		L1
+$]
+and jar(lvdr) be
+$[	$setz	b,	0
+	$move	c,	player
+	$aosg		c
+	$movei	c,	1
+	$imul	c,	napct
+	$move	ac,	lvdr
+	$aos		lockflg
+	$SKIP		0(AC)			//ensure we're swapped in for this page
+l1:	$jfcl	#17,	l2
+l2:	$aosn		0(ac)
+	$jrst		l4
+	$jcry0		l3
+	$sleep	b,	0
+	$caml	c,	0(ac)
+	$jrst		l1
+	$setzm		jbint
+	$move	c,	magic
+	$jumpn	c,	l5
+	$setom		magic
+	$(	resetgame()
+	$)
+l5:	$(	outs("*C*LSomething evil has happened unexpectedly...*C*L")
+		writeprofile(false)
+	$)
+	$exit	1,	0
+l3:	$setom		0(ac)
+	$jrst		l1
+l4:	$trn
+$]
+and unjar(lvdr) be
+$[	$setom		@lvdr
+	$sos		lockflg
+$]
+and unlock() be
+$[	$SETOM		@lastdr
+	$SETZM		lastdr
+	$sos		lockflg
+$]
+and read.line() be
+$(	let cha=valof		//take this out the instant they make skpinl work properly! (^C's mucked up)
+	$[	$(	if ESSEX
+			$[	$jrst		testch
+			$]
+		$)
+		$skpinl		//skip if there is an input line
+		$trna
+testch:		$inchrs		ac
+		$(	return	$)
+		$movem	13,	chcnt
+	$]
+	if logstr/\bstr=!#74 wrb(logstr,cha)
+	unless bstr checksnoop(cha)
+	linebuffer!chcnt_cha
+	unless linebreak(cha)
+	$(	$(	chcnt+_1
+			readch(tty,linebuffer+chcnt)
+		$)	repeatuntil linebreak(linebuffer!chcnt)\/chcnt=BUFLENGTH
+		!linebuffer_chcnt
+		if chcnt=BUFLENGTH then until linebreak(linebuffer!chcnt) readch(tty,linebuffer+BUFLENGTH)
+	$)
+	unless linebuffer!(chcnt-1)='*C' writech(tty,'*C')	//so always get one on buffer full
+	unless linebuffer!chcnt='*L' writech(tty,'*L')
+	nextch_linebuffer
+$)
+and getch()=valof
+$(	let ch=valof
+	$(	if chcnt<=0\/nextch-linebuffer=BUFLENGTH+1 resultis '*L'
+		chcnt,nextch+:-1,1
+		resultis !nextch
+	$)
+	resultis ch
+$)
+and linebreak(ch)=valof
+$[	$SETO	AC,	0
+	$MOVE	B,	ch
+	$CAIG	B,	'*P'
+	$CAIGE	B,	'*L'
+	  $TRNA
+	$(	return		$)
+	$CAIE	B,	'*$'
+	$CAIN	B,	'*E'
+	  $(	return		$)
+	$CAIN	B,	'*^G'
+	  $(	return		$)
+	$SETZ	AC,	0
+$]
+and unlink(lvlist)=valof
+$(	let node=LINK of lvlist
+	if node LINK of lvlist_LINK of node
+	resultis node
+$)
+and hibernate()=valof
+$[	$MOVE	AC,	hibflg
+	$HIBER	AC,	0
+	  $TRN
+	$SKPINL
+	  $SETZ AC,	0
+$]
+and wait.for.input() be
+$[	$MOVE	AC,	hibflg
+l1:	$SKPINL
+	  $TRNA
+	$(	return		$)
+	$HIBER	AC,	0
+	  $TRN
+	$JRST		l1
+$]
+and ran()=valof
+$[	$MOVE	AC,	!630360016   //14**29 (MOD 2^31 - 1)
+	$MUL	AC,	ranseed
+	$ASHC	AC,	4
+	$LSH	B,	-4
+	$ADD	AC,	B
+	$TLZE	AC,	#760000
+	$ADDI	AC,	1
+	$MOVEM	AC,	ranseed
+	$HLRZ	B,	AC
+	$FSC	B,	#216
+	$HRLI	AC,	AC
+	$FSC	AC,	#174
+	$FAD	AC,	B
+$]
+and crechar()=valof
+$(	let sum=0
+	for i=0 to 4 do sum+:random(20)		//5d20+5
+	resultis sum ge 90 -> 100, sum+10
+$)
+and writetime(s,t) be
+$(	let h,m,c=?,?,?
+	if numbargs()<2 t_valof $[ $MSTIME	AC,	0	$]
+	h,m,c_t/3600000,(t REM 3600000)/60000,(t REM 60000)/1000
+	if h<10 writech(s,'0'); writeno(s,h);	writech(s,':')
+	if m<10 writech(s,'0'); writeno(s,m);	writech(s,':')
+	if c<10 writech(s,'0'); writeno(s,c)
+$)
+and writedate(s,d) be
+$(	let dy,mn,yr,rd=?,?,?,?
+	if numbargs()<2 d_valof $[ $DATE	AC,	0	$]
+	dy,mn,yr_(d rem 31)+1,(d/31) rem 12,(d/372)+1964
+	rd_dy rem 10
+	write(s,":N:S :S :N",dy,10<=dy<=20\/rd>3\/rd=0->"th",rd=1->"st",rd=2->"nd","rd",months!mn,yr)
+$)
+and outz(msg,nocrlf) be writez(output,msg,numbargs()=2/\nocrlf)	//used to have the if msg test here not in writez
+and getmblock(sht)=valof
+$(	let blk=? and messages=? and count=0
+	unless numbargs() sht_false
+	messages_sht->@shortmess, @longmess
+	jar(lvmdoor)
+	until !messages
+	$(	unjar(lvmdoor)
+		if count=napct then
+		$(	unless magic
+			$(	magic_true
+				resetgame()
+			$)
+			outs("*C*LSomething unexpectedly magical has happened...*C*L")
+			$[	$setzm		JBINT	$]
+			writeprofile(false)
+		$)
+		$[	$aos		count
+			$setz	1,	0
+			$sleep	1,	0
+		$]
+		jar(lvmdoor)
+	$)
+	blk_!messages
+	!messages_LINK of blk
+	unjar(lvmdoor)
+	clearvec(blk,sht->2,15)
+	SHORT of blk_messages
+	resultis blk
+$)
+and freemblock(blk) be
+$(	let messages=SHORT of blk
+	jar(lvmdoor)
+	LINK of blk_!messages
+	!messages_blk
+	unjar(lvmdoor)
+$)
+and pushlist(lvlist,blk) be LINK of blk_LINK of lvlist<>LINK of lvlist_blk
+and forcetty(s) be
+$[	$MOVE	C,	ttyno
+	$MOVEI	B,	#21
+	$MOVE	D,	s
+	$HRLI	AC,	3
+	$HRRI	AC,	B
+	$TRMOP. AC,	0
+	  $TRN
+$]
+and outstr(tab,n,a,b,c) be out(tab!random(n),a,b,c)<>outs("*C*L")//not $az please!
+and clearvec(vect,size) be
+$[	$MOVE	AC,	vect
+	$HRLI	B,	0(AC)
+	$HRRI	B,	1(AC)
+	$SETZM		0(AC)
+	$ADD	AC,	size
+	$BLT	B,	0(AC)
+$]
+and copy(vect,dest,size) be
+$[	$HRL	AC,	vect
+	$HRRZ	B,	dest
+	$HRRI	AC,	0(B)
+	$ADD	B,	size
+	$BLT	AC,	0(B)
+$]
+and ctrap() be
+$[	$SETZ	AC,	0
+	$SKIPN		JBINT
+	$MOVEI	AC,	INTBLK
+	$MOVEM	AC,	JBINT
+$]
+and fixd(n)=valof
+$[	$FIX	AC,	n	$]
+and floatd(n)=valof
+$[	$FLTR	AC,	n	$]
+and giveback() be
+$(	quitflg_false
+	player.names!player.no_0
+	jar(@inidr)
+	plynum!player_player.no
+	player-_1
+	unjar(@inidr)
+	freemblock(profile)
+	echo()
+	finish
+$)
+
+ 
+/* rda, rdb, wrb, wrdmp, rddmp all jump to errstatus
+   when a status error happens after an in or an out,
+   which is not caused by an end-file being set.
+   scbreg has the stream in (as does 2(P))
+*/
+$[ eof: $EXP		eoflab
+eoflab: $MOVEI	AC,	ERR.EOF
+	$JRST		erl1
+errstatus:
+	$EXP		erslab
+erslab: $MOVEI	AC,	ERR.STATUS
+erl1:	$MOVEM	AC,	3(P)
+	$MOVE	AC,	WSC.ERROR(SCBREG)
+	$MOVEM	AC,	4(P)
+	$(	goto ioerror+2	$)
+el1:	$EXP		ERR.EOF
+BCPL.:	$mstime	1,	0
+	$movem	1,	daytime
+	$skipn		rdate		//it's actually time, not date...
+	$movem	1,	rdate
+	$hrli	1,	#53
+	$hrri	1,	#11
+	$gettab	1,	0
+	$trn
+	$movem	1,	udaytime
+	$SETZM		BATCH
+	$HRROI	AC,	#40
+	$GETTAB AC,	0
+	$CAIA		BCPL		// ALSO SERVES TO LOAD MBOOTS
+	$TLNE	AC,	#200		// ARE WE BATCH
+	$SETOM		BATCH		// IF ERROR OR CONTROLLED, SET TRUE
+	$MOVE		ZERCAL
+	$MOVEI	ONE,	1
+	$HRRZ	P,	JBFF		// INITIAL VALUE OF P
+	$MOVEI	AC,	#2000(P)
+	$CAML	AC,	JBREL
+	$CORE	AC,	0	// TRY FOR 2K INITIAL CORE (MINIMUM)
+	$TRN			// IGNORE ERROR RETURN
+	$MOVE	AC,	JBREL
+	$MOVEM	AC,	SL
+	$MOVEI	AC,	#400000
+	$MOVEM	AC,	FL
+	$MOVEM	P,	stackbase
+	$MOVE	PDL	stack
+	$SETO	AC,	0
+	$WAKE	AC,	0
+	  $TRN
+	$MOVEI	AC,	1
+	$HIBER	AC,	0	//no wait protection
+	  $TRN
+	$MOVEI	AC,	intloc
+	$HRRM	AC,	intblk
+	$MOVEI	AC,	intblk
+	$MOVEM	AC,	jbint
+	$PJOB	B,	0
+	$MOVEM	B,	jobno
+	$TRMNO. B,	0
+	  $SETZ B,	0
+	$MOVEM	B,	ttyno
+	$MOVEI	AC,	#22
+	$MOVE	D,	trmpar
+	$(	if ESSEX
+		$[	$TRMOP.	D,	0
+		$]
+	$)
+	  $SETZ	C,	0
+	$MOVEM	C,	micstatus
+	$SETZ	B,	0
+	$GETPPN AC,	0
+	  $TRN
+	$MOVEM	AC,	ppn
+	$HRRZM	AC,	peen
+	$HLLM	AC,	hwmain
+	$CAME	AC,	hwmain
+	$CAMN	AC,	mainta
+	  $SETO	B,	0
+	$MOVEM	B,	maint
+	$(	if ESSEX guest_valof $[
+	$setob	1,	2
+	$trmno.	2,	0
+	$move	2,	tty6
+	$gtntn.	2,	0
+	$seto	2,	0
+	$hlrz	3,	2
+	$hrli	2,	0
+	$cain	3,	#3
+	$caige	2,	#21
+	$setz	1,	0
+	$] $)
+	$MOVE	AC,	jobno
+	$CTLJOB AC,	0
+	  $SETO AC,	0
+	$MOVEM	AC,	ctlno
+	$MOVE	AC,	getarg1
+	$GETTAB AC,	0
+	  $MOVE AC,	ppn
+	$MOVEM	AC,	hsppn
+	$MOVE	AC,	getarg2
+	$GETTAB AC,	0
+	  $SETZ AC,	0
+	$MOVEM	AC,	hsname
+	$SETO	AC,	0
+	$MOVE	B,	ttyno
+	$DVURS. B,	0
+	  $SETZ AC,	0
+	$MOVEM	AC,	privved
+	$MSTIME	AC,	0
+	$MOVEM	1,	ranseed
+	$JSP	T,	@START
+	$SUBI	P,	2
+fn:	$EXIT	1,	0
+	$JRST		fn
+intloc: $PUSH	PDL,	retadr
+	$SETZM		retadr
+	$CLRBFI
+	$outstr		$az "ouch!*C*L"
+	$sosg		cccnt
+	$jrst		whoops
+conted:
+	$SKIPE		lockflg
+	  $POPJ	PDL,	0
+	$aos		pain
+	$SKIPN		quitflg
+	  $POPJ PDL,	0
+	$SKIPL		quitflg
+	  $JRST		startin
+	$JSP	T,	@quit
+	$SUBI	P,	2
+	$JRST		fn
+whoops:	$clrbfo
+	$outstr		$az"*C*LToo many ^C's for me - I'm off! CONT to continue.*C*L"
+	$exit	1,	0
+	$movem	1,	cccnt
+	$movei	1,	CCTRIP
+	$exch	1,	cccnt
+	$jrst		conted
+startin:$(	giveback()	$)
+ZERCAL: $JRST		ZERO
+arg:	$XWD	2,	B
+getarg1:$XWD	#777776,2
+getarg2:$XWD	#777776,3
+NUMBARGS:$EXP		numl1
+numl1:	$MOVE	AC,	0(P)	// LINK ADDRESS
+	$MOVE	AC,	0(AC)	// ADDRESS OF INFO WORD
+	$LDB	AC,	SELCTR	// LOAD 12 BIT FIELD
+	$JRST	2,	1(T)	// RETURN PAST SUBI
+SELCTR: $EXP	0,	(SELECTOR 12:23:0) + (AC << 18)
+TTY:	$EXP		TTYSTR
+TTYSTR: $EXP		#030001 		// 3 WORD SCB
+	$EXP		TTYRD
+	$EXP		TTYWR
+	$EXP		TTYCL
+ttyrd:	$ADDI	P,	@0(T)
+	$MOVEM	T,	0(P)
+	$INCHWL 	AC
+	$MOVEM	AC,	@3(P)
+	$JRST		ttyret
+ttywr:	$ADDI	P,	@0(T)
+	$MOVEM	T,	0(P)
+	$pjob	1,	0
+	$setz	2,	0
+	$trmno.	1,	0
+	$seto	2,	0
+	$skipn		2
+	$OUTCHR 	3(P)
+	$MOVE	AC,	3(P)
+ttyret: $CAIG	AC,	'*P'
+	$CAIGE	AC,	'*L'
+	  $TRNA
+	$SETZM		prompted
+	$CAIE	AC,	'*$'
+	$CAIN	AC,	'*E'
+	  $SETZM	prompted
+	$CAIN	AC,	'*^G'
+	  $SETZM	prompted
+	$(	return		$)
+TTYCL:	$ADDI	P,	@0(T)
+	$MOVEM	T,	0(P)
+	$(	return		$)
+zero:	$SKPINC
+	$TRN
+	$OUTSTR $AZ "*C*L?MUDJTZ jump to zero"
+nogo:	$EXIT	1,	0
+	$SKPINC
+	$TRN
+	$OUTSTR $AZ "*C*L?MUDCCT can't continue"
+	$JRST		nogo
+$]
+ 

@@ -1,0 +1,56 @@
+	$null	none	none	null	null	0	0
+	$flush	none	none	flush	null	0	0
+	$poison	none	none	ifenabled	null	1	0
+	$poison	none	none	ifenabled	null	3	0
+	$poison	none	none	ifenabled	null	16	0
+	$poison	none	none	null	null	765	0	-3
+	$poison1	none	none	null	null	907	0	-16
+	$poison2	none	none	dead	null	48	0
+	$provoke	none	none	ifasleep	null	1	0
+	$provoke	none	none	ifinvis	null	1	0
+	$provoke	none	none	ifwiz	null	0	0
+	$provoke	.provoke	something	none	ifrstas	null	0	0	-4
+	$cure	none	none	destroy	medicine	0	0
+	$calm	none	none	sendeffect	rain	955	0	-28
+	$brewing	none	none	set	rain	1	0	-31
+	$brewing1	none	none	sendeffect	rain	956	0	-29
+	$pouring	none	none	set	rain	0	0	-32
+	$pouring1	none	none	sendeffect	rain	957	0	-30
+	$winter	none	none	ifdisenable	null	28	0	-34
+	$winter	none	none	ifdisenable	null	29	0	-34
+	$winter	none	none	ifdisenable	null	30	0	-34
+	$winter	none	none	ifdisenable	null	31	0	-34
+	$winter	none	none	ifdisenable	null	32	0	-34
+	$summer	none	none	ifdisenable	null	28	0	-42
+	$summer	none	none	ifdisenable	null	29	0	-42
+	$summer	none	none	ifdisenable	null	31	0	-42
+	$summer	none	none	ifdisenable	null	32	0	-42
+	$summer	none	none	ifdisenable	null	33	0	-42
+	$summer	none	none	ifdisenable	null	34	0	-42
+	$summer	none	none	ifdisenable	null	35	0	-42
+	$summer	none	none	ifdisenable	null	36	0	-42
+	$summer	none	none	ifdisenable	null	37	0	-42
+	$summer	none	none	ifdisenable	null	38	0	-42
+	$summer	none	none	ifdisenable	null	39	0	-42
+	$summer1	none	none	set	rain	0	0	-30
+	$snow	none	none	set	rain	2	0	-35
+	$snow1	none	none	sendeffect	rain	959	0	-36
+	$snow2	none	none	set	rain	0	0	-37
+	$snow3	none	none	sendeffect	rain	960	0	-38
+	$snow4	none	none	sendeffect	rain	955	0	-39
+	$snake	none	none	ifr	null	90	0
+	$snake	none	none	null	null	973	0	-1
+	$change	.sleep	none	none	null	null	0	0
+	$dead	none	none	dead	null	0	0
+	$deaf	none	none	ifwiz	null	42	0
+	$deaf	.deafen	none	none	null	null	43	0
+	$blind	none	none	ifwiz	null	39	0
+	$blind	.blind	none	none	null	null	40	0
+	$paralyse	none	none	ifwiz	null	36	0
+	$paralyse	.paralyse	none	none	null	null	37	0
+	$dumb	none	none	ifwiz	null	33	0
+	$dumb	.dumb	none	none	null	null	34	0
+	$cured	none	none	unlessill	null	0	0
+	$cured	.cure	none	none	null	null	28	0
+	$alter	none	none	stamina	null	100	0	-58
+	$firework	none	none	sendeffect	rain	1502	1502

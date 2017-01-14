@@ -1,0 +1,828 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let interact(fn) be
+$(	let snd,bit,block,damage,pp,pn,inv,inf=?,?,?,?,?,?,?,?
+	if numbargs() then
+	$(	unless objct=fake error("To use the verb :p you have to give someone's name!", verbname)
+		person(objct)
+		snd_P1 of objct
+		pn_player.names!snd
+		pp_LH from pn
+		switchon fn into
+		$(	case I.KILL:
+				unless RELAXED\/us(me)
+					if WIZARD of profile
+					unless ~WIZVWIZ/\WIZARD of pp ne 0
+					error("That's a bit un:s!",
+						SEX of profile->"ladylike", "gentlemanly")
+				if snd=player.no error("Committing suicide is too easy a way to get points!")
+				if fight!snd then error("You're already fighting :p",pn)
+				bit_1<<snd
+				unless WIZARD of profile unless bit bitand who.copy error(":p isn't here!",objname)
+				send(snd,0,K.IWKU)
+				endcase
+			case I.TELL:
+				if snd=player.no error("Talking to yourself is the first sign of madness...")
+				block_getmblock()
+				read.message(block+2)
+				send(snd,block,K.TOLD,2!block)
+				verb_0		//To stop <return> getting U in a loop.
+				endcase
+			case I.SNOOP:
+				if snd=player.no error("You should already know what YOU'RE doing...")
+				if snd=snooping error("You're already snooping on :p!",pn)
+				transmit(snd, 0, K.SNOP)
+				out("You have started to :s on :p.*C*L", verbname, pn)
+				snooping_snd
+				SNOOPBIT of profile_true
+				endcase
+			case I.WAKE:
+				if snd=player.no return
+				unless WIZARD of profile unless (1<<snd) bitand who.copy error(":p isn't here to :s.", objname, verbname)
+				unless ASLEEP of pp error(":p is already awake.",pn)
+				transmit(snd,0,K.WU)
+				out("You :s :p.*C*L", verbname,objname)
+				endcase
+			case I.MAKE:
+				unless WIZARD of profile if WIZARD of pp
+				error("You can't do that to a :s or :s unless you are one!", male!max.level, female!max.level)
+				unless chcnt>0 do
+					Error("Say it again, and this time mention what you want to :p :p do.",verbname,objname)
+				block_getmblock()
+				read.message(block+2)
+				unless us(me) for i=0 to 35 do
+					if player.no\= i /\
+					snd \= i /\
+					player.names!i /\
+					WIZARD of LH from player.names!i then
+				$(	let msg=getmblock()
+					copy(block+2, msg+2, 13)
+					send(i,msg,K.SHBF, 2!block)
+				$)
+				send(snd,block,K.MAKE,2!block)
+				verb_0
+				endcase
+			case I.FOD:
+				unless RELAXED\/us(me)\/(WIZARD of pp ne 0) error("Not to mortals!")
+				transmit(snd,0,K.FOD)
+				endcase
+			case I.STEAL:
+				if snd=player.no then
+				error("Stealing from yourself is silly!")
+				bit_1<<snd
+				unless WIZARD of profile unless bit bitand who.copy then
+				error(":p isn't here to :s from.",objname, verbname)
+				test PTYPE of instrmnt=S.OBJECT then
+					send(snd,0,K.IWSU,((DEXTERITY of profile)<<18)\/instrmnt)
+				or test PTYPE of instrmnt=S.CLASS then
+					error(":U is a class, you can only steal individual objects!", insname) or error()
+				flush()
+				endcase
+			case I.SUMMON:
+				if snd=player.no error("You're already here!")
+				bit_1<<snd
+				if bit bitand who.copy error(":P is already here!", pn)
+				transmit(snd,0,K.TTH,(verbname<<18)\/room)
+				endcase
+			case I.GIVE:
+				if snd=player.no then
+				error("Giving things to yourself is rather miserly...")
+				unless toting(D1 of (DREC of instrmnt)) then
+				unless PTYPE of instrmnt = S.CLASS then
+				test PTYPE of instrmnt=S.ALL then
+					error("You can't ':s all', only 'get all' or 'drop all'.", verbname)
+					or error("There's a word I don't know there, try rephrasing the command...")
+				bit_1<<snd
+				unless WIZARD of profile unless bit bitand who.copy then
+				error(":p isn't here to :s anything to.",objname, verbname)
+				test PTYPE of instrmnt=S.OBJECT then
+				$(	let oldnd, nd, bit=lvcarry,carry,D1 of (DREC of instrmnt)
+					block_getmblock()
+					nd, oldnd_carry, lvcarry
+					until LH of nd=bit do
+					$(	oldnd_nd
+						nd of_LINK
+					$)
+					LINK of oldnd_LINK of nd
+					CARRY.COUNT of profile-:WEIGHT of nd
+					OBJ.CARRIED of profile-:1
+					ROBJT of profile_carry
+					adjustdown(nd)
+					inform(nd,K.IDROPT)
+					block!2_(nd<<18)+(RH from instrmnt)
+					send(snd, block, K.IWGU, block!2)
+				$) or test PTYPE of instrmnt=S.CLASS then
+				error(":U is a class, you can only give individual objects!", insname) or error()
+				endcase
+			case I.FOLLOW:
+				if snd=player.no then
+				error("Isn't following yourself rather vain?")
+				unless WIZARD of profile unless who.copy bitand (1<<snd) error(":p isn't here to :s!",objname, verbname)
+				if not leading then test snd=leading then
+					error("You're already following :p!",objname)
+				or unfollow()
+				leading_snd
+				transmit(snd,0,K.IWTF)
+				out("You have started to follow :p.*C*L", pn)
+				endcase
+			case I.LOSE:
+				if snd=player.no error("If you want to lose yourself shut your eyes and hit the keyboard at random...")
+				unless followers bitand (1<<snd) out (":p isn't following you!*C*L",objname)<>return
+				followers bitand:\(1<<snd)
+				transmit(snd,0,K.SFM)
+				out("You have lost :p.*C*L", objname)
+				endcase
+			case I.JOIN:
+				if snd=player.no then
+				error("Assisting yourself isn't useful unless you're schizophrenic!")
+				unless WIZARD of profile unless who.copy bitand (1<<snd) do
+				error(":p isn't here to :s!", objname, verbname)
+				if not frontman then test frontman=snd then
+				error("You're already assisting :p!", objname) or
+				$(	transmit(frontman, 0, K.ISJY)
+					out("You have stopped assisting :p.*C*L", player.names!frontman)
+				$)
+				frontman_snd
+				transmit(snd, 0, K.IWJY)
+				out("You have offered to assist :p.*C*L", pn)
+				endcase
+			case I.REFUSE:
+				if snd=player.no error("Refusing yourself is the action of a cataleptic!")
+				unless joined bitand(1<<snd) error(":p isn't assisting you!", objname)
+				joined bitand_\(1<<snd)
+				transmit(snd, 0, K.SJM)
+				out("You have refused assistance from :p.*C*L", objname)
+				endcase
+			case I.CHANGE:
+				unless us(me)\/snd=player.no if WIZARD of pp
+					error("Not to a :s you don't!",(SEX of pp->female,male)!MAX.LEVEL)
+				out(":p is now :smale.*C*L",objname,SEX of pp->"","fe")
+				transmit(snd,0,K.TSEX)
+				endcase
+			case I.SLEEP:
+				if snd=player.no
+				$(	objct_fake.node("that")
+					special(SF.SLEEP)
+					return
+				$)
+				unless WIZARD of profile unless (1<<snd)bitand who.copy error(":P isn't here!", objname)
+				transmit(snd, 0,K.ZZZ)
+				if WIZARD of pp
+					error("Not to a :p you don't...", (SEX of pp->female,male)!MAX.LEVEL)
+				endcase
+		$)
+	$)
+	$(	lock(lvqdoor)
+		block_unlink(lvqueue)
+		unlock()
+		unless block return
+		snd_SENDER of block
+		pn_player.names!snd
+		inv_invisible(snd)
+		inf_INFO of block
+		pp_LH from pn
+		switchon FUNC of block into
+		$(	case K.IHHU:
+				if fight!snd endcase
+				$(	let ins, damge=RH from inf,
+						WIZVWIZ/\WIZARD of profile ne 0 -> 0, LH from inf
+					out("*C*L:p has suddenly attacked you", pn)
+					if ins Out(" with :s :s", SEX of pp->"her","his", PNAME of ins)
+					outs("!*C*L")
+					STAMINA of profile -_damge
+					if ASLEEP of profile STAMINA of profile-_damge
+					if STAMINA of profile le 0 STAMINA of profile_1	//no outright kills
+				$)
+			case K.IWKU:
+				if fight!snd endcase
+				quitflg_false
+				fight!snd_-1
+				$(	let kipped=kips!player.no
+					wake.up()
+					unless FUNC of block=K.IHHU fightmess(B.START, snd)
+					send(snd,block,K.IACPT,WIZVWIZ/\WIZARD of profile ne 0->10000000,kipped->-1,DEXTERITY of profile)
+					loop
+				$)
+			case K.IACPT:
+				quitflg_false
+				fight!snd_-1
+				for i=0 to 35 do if player.no\=i/\i\=snd/\player.names!i then
+				$(	let p=LH from player.names!i
+					if WIZARD of p ne 0\/(who.copy bitand (1<<i))
+					unless A.SILENT bitand ATTRIB of CROOM of p
+					transmit(i,0,K.WAF,snd)
+				$)
+				wake.up()
+				if INF>DEXTERITY of profile then
+				$(	send(snd,block,K.ISAM)
+					loop
+				$)
+			case K.ISAM:
+				unless fight!snd endcase
+				if phased(snd,block)loop
+				fightmess(B.THEYMISS, snd)
+				damage_WIZVWIZ/\WIZARD of profile ne 0->0,random(100)+1+(CARRY.COUNT of profile)/F.ENCMB
+				test damage<=DEXTERITY of profile \/  INF=-1 then
+				$(	damage_WIZVWIZ/\WIZARD of profile ne 0->1000000,random(STRENGTH of profile/F.DMGE1)+1
+					send(snd,block,snd=player.no->K.ISAHM, K.ISAH,INF=-1 ->2*damage, damage)
+					fightmess(B.IHIT, snd)
+				$) or
+				$(	send(snd,block,snd=player.no->K.ISAMM, K.ISAM)
+					fightmess(B.IMISS, snd)
+				$)
+				wake.up()
+				loop
+			case K.ISAH:
+				unless fight!snd endcase
+				if phased(snd,block)loop
+				fightmess(B.THEYHIT, snd)
+				STAMINA of profile-:INF
+				checkout(block)
+				fightmess(B.IMOK, snd)
+				damage_WIZVWIZ/\WIZARD of profile ne 0->0,random(100)+1+(CARRY.COUNT of profile)/F.ENCMB
+				test damage<=DEXTERITY of profile then
+				$(	damage_WIZVWIZ/\WIZARD of profile ne 0->10000000,random(STRENGTH of profile/F.DMGE2)+1
+					send(snd,block,snd=player.no->K.ISAHM, K.ISAH,damage)
+					fightmess(B.IHITBACK, snd)
+				$) or
+				$(	send(snd,block,snd=player.no->K.ISAMM, K.ISAM)
+					fightmess(B.IMISSAGAIN, snd)
+				$)
+				wake.up()
+				loop
+			case K.IMDD:	case K.IHD:
+				if snd=player.no /\ MOTN of fight!snd then
+					FIGHTS of MOTN of fight!snd bitand_\player.bit
+				fight!snd_0
+				setscore(INF, 2)
+				test FUNC of block=K.IHD then
+					out(":U has died, but not because of the fight!*C*L", block+3) or
+					fightmess(B.VICTORY, snd, block+3)
+				freemblock(block)
+				for i=0 to 35 if fight!i snd_-1<>break
+				if snd=-1 loop
+				retaliated_0
+				outz($az"You are victorious - this time...*C*L")
+				quitflg_true
+				return
+			case K.WAF:
+				unless ASLEEP of profile unless inv
+				unless IGNORE of profile
+				$(	out("*C*L:p and :p have started to fight", pn, player.names!(INF))
+					givewhere(snd,pp)
+				$)
+				endcase
+			case K.IFM:
+				unless ASLEEP of profile unless inv
+				unless IGNORE of profile
+				$(	out("*C*L:p and the :p have started to fight", pn, INF)
+					givewhere(snd,pp)
+				$)
+				endcase
+			case K.MFM:
+				unless ASLEEP of profile unless inv
+				unless IGNORE of profile
+				$(	out("*C*L:p has been attacked by the :p",pn,INF)
+					givewhere(snd,pp)
+				$)
+				endcase
+			case K.ISAHM:
+			$(	let monster=fight!player.no
+				unless monster endcase
+				DESTROYED of monster -: INF
+				if DESTROYED of monster ls 0 then
+				$(	let val, name=0, PNAME of monster
+					destroy(monster, 0)
+					if P4 of monster = SCOREPROP of monster val_VALUE of monster
+					block!3_!name
+					block!4_1!name
+					send(player.no, block, K.IMDD, val)
+					return
+				$)
+				unless DESTROYED of monster DESTROYED of monster+_1
+			$)
+			case K.ISAMM:
+			$(	let monster=fight!player.no
+				unless monster endcase
+				if DESTROYED of monster ls 0
+				$(	send(player.no,block,K.ISAHM,0)
+					loop
+				$)
+				damage_random(100)
+				test damage ls 60 then
+				$(	damage_WIZARD of profile->0,random((WEIGHT of monster)/1000/F.DMGE2)+1
+					send(player.no, block, K.ISAH, damage)
+				$) or send(player.no, block, K.ISAM)
+				return
+			$)
+			case K.IHR:
+			$(	let obj,damge=RH from inf, LH from inf
+				if snd=player.no
+				$(	send(player.no, block, K.ISAHM, damge)
+					loop
+				$)
+				if obj out(":P retaliates with :s :s.*C*L",
+					pn, SEX of pp->"her","his", PNAME of obj)
+				STAMINA of profile-_damge
+				if STAMINA of profile le 0 STAMINA of profile_1
+				endcase
+			$)
+			case K.GRO:
+				get.rid.of(RH from inf,LH from inf)
+				endcase
+			case K.MESS:
+				if deaf endcase
+				out("*C*L:p says *"",pn)
+				longdescribe(INF,false,true)
+				outs("*"*C*L")
+				wake.up()
+				endcase
+			case K.ISCY:
+				out("*C*L:P is about to contact you with a *":s*" command...", pn, inf)
+				endcase
+			case K.TEXT:	case K.TOLD:
+				if deaf endcase
+				bit_FUNC of block=K.TEXT
+				test conversing /\ bit then
+					$(	if inv pn_"someone"
+						out("*C*L:U:: *":s*"*C*L",pn,block+2)
+					$) or
+					out("*C*L:p :s *":s*"*C*L",pn,bit->"says","tells you", block+2)
+				wake.up()
+				endcase
+			case K.LAUGH:
+				if deaf endcase
+				out("*C*L:p laughs", pn)
+				if inf out(", :s", block+2)
+				outs("*C*L")
+				wake.up()
+				endcase
+			case K.MAKE:
+				wake.up()
+				sendall(true, K.IHBF, true, true)
+				unless us(pn)
+				$(	justforced_true
+					test WIZARD of profile then
+					out("*C*L:U has forced you to :s*C*L",pn,block+2) or
+					$(	let osnp=snoopedon
+						snoopedon bitand_~(1<<snd)
+						out((osnp bitand (1<<snd))->"*C*L:s*C*L", "*C*LYou are forced to :s*C*L",block+2)
+					$)
+				$)
+				unpackstring(block+2,linebuffer)
+				chcnt,nextch_!linebuffer+2,linebuffer
+				chcnt!linebuffer,(chcnt-1)!linebuffer_'*l','*C'
+				freemblock(block)
+				scanch_-1
+				at_false
+				parse.command()
+				instate()
+				execute.command()
+				reset()
+				loop
+			case K.IHBF:
+				out(":p has been forced.*C*L", pn)
+				endcase
+			case K.SHBF:
+				out(":p has forced someone to :s*C*L", pn, block+2)
+				endcase
+			case K.IHA:
+				unless IGNORE of profile
+				out(":p has attached to :p.*C*L", player.names!inf, pn)
+				endcase
+			case K.WU:
+				unless ASLEEP of profile endcase
+				unless inv out("*C*L:p has started to wake you up.*C*L",pn)
+				wake.up()
+				endcase
+			case K.ITTE:
+				unless ASLEEP of profile if visible() out("*C*L:p tries to enter your room but it is too small for you both.*C*L",pn)
+				endcase
+			case K.SPEC:
+				unless logstr special(SF.SPECLOG)
+			case K.DIST:	case K.BELW:
+				if deaf endcase
+				$(	let osnp=snoopedon
+					snoopedon_false
+					test WIZARD of profile=1\/FUNC of block ne K.DIST then out("*C*L:p shouts",pn)
+						or out("*C*LA :Smale voice in the distance shouts",SEX of pp->"fe","")
+					test block!2 then out(" *":S*"*C*L",block+2)or outz($az" something*C*L")
+					wake.up()
+					snoopedon_osnp
+				$)
+				endcase
+			case K.LOUD:
+				if deaf endcase
+				outz($az"*C*L")
+				longdescribe(INF)
+				wake.up()
+				endcase
+			case K.IWSU:
+				bit_D1 of(DREC of(RH from (INF)))
+				unless toting(bit) then
+				$(	send(snd,block,K.INCI,block!2)
+					loop
+				$)
+				damage_WIZARD of profile->102,ASLEEP of profile->-1,random(100)+1
+				test us(me)\/(damage>(LH from(INF))/\us(pn)=0) then
+				$(	out("*C*LYou catch :p trying to steal the :s from you!*C*L",pn, PNAME of (RH from block!2))
+					send(snd,block,K.IFYO,block!2)
+				$) or
+				$(	let nd, oldnd=carry, lvcarry
+					until LH of nd=bit do
+					$(	oldnd_nd
+						nd of_LINK
+					$)
+					LINK of oldnd_LINK of nd
+					CARRY.COUNT of profile-:WEIGHT of nd
+					OBJ.CARRIED of profile-:1
+					ROBJT of profile_carry
+					adjustdown(nd)
+					inform(nd,K.IDROPT)
+					if random(100-(WEIGHT of nd)/100)+1 le DEXTERITY of profile then
+					$(	setit(RH from block!2)
+						unless ASLEEP of profile out("*C*L:p has stolen the :s from you!*C*L",pn,PNAME of RH from block!2)
+					$)
+					LH from block!2_nd
+					send(snd,block,K.YSFM,block!2)
+				$)
+				loop
+			case K.INCI:	   case K.IFYO:
+				out(FUNC of block=K.INCI->"*C*L:p isn't carrying the :s*C*L","*C*L:p discovers your attempt to steal the :s!*C*L",
+				pn,PNAME of (RH from block!2))
+				endcase
+			case K.IWGU:
+				bit_LH from block!2
+				if (((WEIGHT of bit)+CARRY.COUNT of profile>max.wt())\/
+					full.up())/\(WIZARD of profile)=0 then
+				$(	send(snd, block,K.ITHM,block!2)
+					loop
+				$)
+			case K.ITHM:
+				test FUNC of block=K.ITHM then
+				$(	out("*C*L:p can't take the object you try to give :s.*C*L", pn, SEX of pp->"her","him")
+					bit_LH from block!2
+				$) or unless ASLEEP of profile
+				$(	setit(RH from block!2)
+					out("*C*L:p has given you the :s.*C*L", pn, PNAME of RH from block!2)
+				$)
+				//Hope you've not picked up another in the meantime!
+				//Maybe sending the PNAME only would be better...
+				pushlist(lvcarry,bit)
+				CARRY.COUNT of profile+_WEIGHT of bit
+				OBJ.CARRIED of profile+:1
+				ROBJT of profile_carry
+				adjustup(bit)
+				inform(bit,K.IGOT)
+				if FUNC of block=K.IWGU then
+				$(	send(snd,block,K.TYVM,block!2)
+					loop
+				$)
+				endcase
+			case K.YSFM:
+				bit_LH from block!2
+				test (((WEIGHT of bit)+(CARRY.COUNT of profile)>MAXWEIGHT*(STRENGTH of profile))\/
+						full.up())/\(WIZARD of profile)=0 then
+				$(	out(":U's :s is too hard to hold and you have to put it down*C*L",pn,PNAME of (RH from block!2))
+					unless here(bit) do
+					$(	lock(lvrdoor)
+						pushlist(room+4,bit)
+						unlock()
+					$)
+				$) or
+				$(	pushlist(lvcarry,bit)
+					CARRY.COUNT of profile+:WEIGHT of bit
+					OBJ.CARRIED of profile+:1
+					ROBJT of profile_carry
+					adjustup(bit)
+					inform(bit,K.IGOT)
+					out("*C*L:U stolen from :p*C*L",PNAME of (RH from block!2),pn)
+				$)
+				endcase
+			case K.IWTF:
+				followers bitor:(1<<snd)
+				if WIZARD of profile unless inv out("*C*L:p has started following you.*C*L",pn)
+				endcase
+			case K.SFM:
+				test animal then
+				$(	out("*C*LYou cannot follow the :P further.*C*L",PNAME of animal)
+					animal_false
+				$) or
+				$(	if pn out("*C*LYou cannot follow :p further*C*L",pn)
+					leading_true
+				$)
+				endcase
+			case K.ISFY:
+				followers bitand_\(1<<snd)
+				if WIZARD of profile unless inv out("*C*L:p has stopped following you.*C*L", pn)
+				endcase
+			case K.YFIM:
+				if ASLEEP of profile endcase
+				test animal then out("*C*LYou follow the :P...*C*L",PNAME of animal) or out("*C*LYou follow :p...*C*L",pn)
+				snd_block!2
+				freemblock(block)
+				move.ser(snd)
+				loop
+			case K.ISJY:
+				joined bitand_\(1<<snd)
+				unless ASLEEP of profile if pn out("*C*L:p has stopped assisting you.*C*L",pn)
+				endcase
+			case K.IWJY:
+				joined bitor:1<<snd
+				out("*C*L:p has offered to assist you.*C*L", pn)
+				endcase
+			case K.SJM:
+				if pn out("*C*LYou can help :P no longer.*C*L",pn)
+				frontman_true
+				endcase
+			case K.SSNO:
+				snooping_true
+				SNOOPBIT of profile_false
+				out("*C*LYou can snoop on :p no longer*C*L",pn)
+				them_0
+				(INF->her,him)_0
+				objct_fake.node("that")
+				wake.up()
+				endcase
+			case K.SNOP:
+				unless us(pn) if (WIZARD of profile ne 0) \/snooping ne -1 then
+				$(	send(snd,block,K.SSNO,SEX of profile)
+					unless inv out("*C*L:p has tried to snoop on you!*C*L",pn)
+					return
+				$)
+				unless snoopedon firstsnoop_true
+				snoopedon bitor_1<<snd
+				endcase
+			case K.IWSS:
+				snoopedon bitand_\(1<<snd)
+				unless snoopedon then !snoopbuffer_0
+				unless us(pn) if WIZARD of profile out("*C*L:p has stopped snooping on you.*C*L",pn)
+				endcase
+			case K.SNPA:	case K.PIM:
+				outs(block+2)
+				if FUNC of block=K.PIM outs("*C*L")
+				endcase
+			case K.IFFY:
+				wake.up()
+				fight!snd_0
+				bit_LH from INF
+				test bit then
+				$(	out("*C*L:p has fled by going :P!*C*L", pn,PNAME of INF)
+					setscore(bit, 1)
+				$) or out("*C*LYou can no longer fight :P.*C*L", pn)
+				freemblock(block)
+				for i=0 to 35 if fight!i snd_-1<>break
+				if snd=-1 loop
+				retaliated_0
+				if bit outz($az"You have defeated the coward!*C*L")
+				quitflg_true
+				return
+			case K.TSEX:
+				SEX of profile_NOT (SEX of profile)
+				sexify(SEX of profile)
+				out("*C*LYour sex has been magically changed to :smale!*C*L",SEX of profile->"fe","")
+				endcase
+			case K.BGON:
+				stop.fighting()
+				outs(block+2)
+				freemblock(block)
+				quit()
+			case K.FOD:
+				STAMINA of profile_-1
+				if us(pn)\/~WIZVWIZ
+				$(	ISWIZ of profile_false
+					WIZARD of profile_false
+				$)
+				fodsville_true
+				out("*C*LA finger of death by :P has terminated you.*C*L",pn)
+				freemblock(block)
+				checkout()
+				return
+			case K.TYVM:
+				out("*C*L:U given to :p.*C*L",PNAME of RH from block!2, pn)
+				endcase
+			case K.STTE:
+				unless IGNORE of profile
+				unless ASLEEP of profile if visible() out("*C*LAn attempt to enter your room has failed, made by some :p.*C*L",INF)
+				endcase
+			case K.SJL:
+				unless ASLEEP of profile if visible()
+					unless ~snooping/\(((1<<snooping)bitand who.copy)ne 0)
+					out("*C*LThe :p has just left.*C*L", PNAME of INF)
+				endcase
+			case K.SJA:	case K.SHBD:
+				if FUNC of block=K.SHBD\/CURROOM of MOTN of INF=room
+				$(	let them, it.moves=P4 of INF,MOTN of INF
+					//can't cut double snoops in case snoopee hasn't sent msg yet so you don't know what's attacking you
+					unless (ASLEEP of profile ne 0)\/(FUNC of block=K.SHBD/\(A.HIDEAWAY bitand ATTRIB of room)/\(WIZARD of profile)=0) then
+					$(	Outz($az"*C*L")
+						longdescribe(@mud6, (selector 18:18*(them rem 2):them/2+objectsize+1) of INF)
+					$)
+					somethingarrived_true		//suppose could use sta_setbit(...)
+					setit(INF)
+					if it.moves
+					$(	let oldvb,oldobj,oldins=verb,objct,instrmnt
+						and demon=ACTIONS of it.moves
+						verb, objct, instrmnt_D.VERB of demon,
+							D.OBJECT of demon=#777777->find.word(PNAME of INF), D.OBJECT of demon,
+							D.INSTRUMENT of demon=#777777->find.word(PNAME of inf), D.INSTRUMENT of demon
+						freemblock(block)
+						instate()
+						action(false)
+						reinstate(oldvb, oldobj, oldins)
+						return		//or loop if you prefer
+					$)
+				$)
+				endcase
+			case K.OHM:
+				out("*C*L:C:C",SNOOPROMPT,SNOOPROMPT)
+				describe(CURROOM of MOTN of INF, INF)
+				out(":C:C*C*L",SNOOPROMPT,SNOOPROMPT)
+				endcase
+			case K.SFO:
+				out("*C*L(The :P is fighting :P).*C*L",PNAME of INF,pn)
+				endcase
+			case K.OHD:
+				if snobj
+				$(	snobj_false
+					out("*C*LYou can snoop on the :p no longer.*C*L",PNAME of INF)
+				$)
+				endcase
+			case K.IGOT:	case K.IDROPT:
+				unless inv out("*C*L(:P has :Sthe :P)*C*L",pn,FUNC of block=K.IGOT->"got ","dropped ",PNAME of INF)
+				endcase
+			case K.MGOT:	case K.MDROPT:
+				out("*C*L(The :P has :Sthe :P)*C*L",block!3,FUNC of block=K.MGOT->"got ","dropped ",PNAME of INF)
+				endcase
+			case K.IINS:	case K.IREM:
+				bit_FUNC of block
+				bit_bit=K.IINS->0,bit=K.IREM->1,bit=K.IGIV->2,3
+				unless inv out("*C*L(:P has :sthe :p :s some:s)*C*L",
+					pn,
+					bit!(table "inserted ","removed ","given ","taken "),
+					PNAME of INF,
+					bit!(table "inside","from","to","from"),
+					bit ge 2->" creature","thing")
+				endcase
+			case K.TTH:
+				$(	let dropsy, sumnd=WIZARD of pp, LH from INF
+					if sumnd if WIZARD of profile=1 \/ valof
+					$(	let nd=lvcarry
+						if dropsy resultis false
+						while nd test luminous(nd, NOSUMMON)
+						then resultis true or nd_LINK of nd
+						resultis false
+					$) then unless us(pn)
+					$(	out("*C*L:P has tried to :s you.*C*L",
+							pn, LH from INF)
+						send(snd, block, K.YCSM, INF)
+						loop
+					$)
+					bit_RH from INF
+					if bit=room endcase
+					wake.up()
+					lose.followers()
+					start.leading()
+					stop.fighting()
+					if sumnd
+					$(	Out("*C*L:P has summoned you magically!*C*L", pn)
+						if carry/\dropsy=0 outz($az"You drop everything...*C*L")
+					$)
+					freemblock(block)
+					unless dropsy drop.everything()
+					move.ser(bit,true)
+					loop
+				$)
+			case K.IHWU:
+				unless inv out("*C*L:P has woken up.*C*L", pn)
+				endcase
+			case K.ZZZ:
+				if WIZARD of profile
+				$(	unless inv out("*C*L:p has tried to put you to sleep!*C*L", pn)
+					endcase
+				$)
+				if ASLEEP of profile send(snd,block,K.IAA)<>loop
+				if valof
+				$(	for i=0 to 35 if fight!i
+						send(snd,block,K.IMOF)<>resultis true
+					resultis false
+				$) loop
+				kips!player.no_ud.time()
+				start.leading()
+				doownthing()
+				ASLEEP of profile_true
+				out("*C*L:p has put you to sleep!*C*L", pn)
+				broadcast(K.IHFA,who.copy)
+				endcase
+			case K.IMOF:
+				out("*C*L:P is in the middle of a fight!*C*L", pn)
+				endcase
+			case K.IAA:
+				out("*C*L:p is already asleep!*C*L", pn)
+				endcase
+			case K.IHFA:
+				unless inv out("*C*L:P has fallen asleep.*C*L", pn)
+				endcase
+			case K.SHBE:
+				unless IGNORE of profile
+				out("*C*L:U has been exorcised.*C*L", block+3)
+				if snooping=INF
+				$(	snooping_true
+					SNOOPBIT of profile_false
+					him, her, them_false, false, false
+				$)
+				if snoopedon bitor (1<<inf)
+				$(	snoopedon bitand_\(1<<inf)
+					unless snoopedon then !snoopbuffer_0
+				$)
+				if fight!inf
+				$(	setscore(block!5, 2)
+					fight!inf_0
+					for i=0 to 35 if fight!i snd_-1<>break
+					unless snd=-1
+					$(	retaliated_0
+						quitflg_true
+					$)
+					outz($az"Well you won that one anyway!*C*L")
+				$)
+				endcase
+			case K.INH:
+				unless IGNORE of profile
+				out("*C*L:P has entered :F having played :N time:c before.*C*L",
+					pn, mud6, block!2, block!2=1-> '*0', 's')
+				endcase
+			case K.IHCL:
+				unless IGNORE of profile
+				$(	let sx=(SEX of pp->female,male)
+					out("*C*L:U has changed experience level from :S to :S.*C*L",
+					pn,sx!(RH from INF), sx!(LH from INF))
+				$)
+				endcase
+			case K.YCSM:
+				out("*C*LYou cannot :s :p.*C*L", LH from INF, pn)
+				endcase
+			case K.WM:
+				unless IGNORE of profile
+				unless us(pn) unless inv
+				$(	let theirp=pp
+					Out("*C*L:P is:s in :s mode:s*C*L", pn,
+						WIZARD of theirp->""," not",SEX of theirp->female!max.level,male!max.level,
+						WIZARD of theirp->"...",".")
+				$)
+				endcase
+			case K.OHDS:
+				unless ASLEEP of profile if visible() longdescribe(INF)
+				endcase
+			case K.IHPO:
+				unless IGNORE of profile
+				unless ASLEEP of profile out(":U has just passed on.*C*L",block+2)
+				endcase
+			case K.DTD:
+				enable(INF)
+				endcase
+			case K.IHSE:
+				wake.up()
+				out(":p has given you a nice :s!*C*L", pn, block+3)
+				setscore(INF)
+				endcase
+			case K.IHKS:
+				unless ASLEEP of profile unless inv out(":P has given :P a nice :s.*C*L",pn, INF, block+3)
+				endcase
+			case K.GOWM:
+				if WIZARD of profile
+				$(	out("*C*LLeaving :s mode.*C*L",(SEX of profile->female,male)!max.level)
+					WIZARD of profile_false
+				$)
+				unsnoop(true)
+				endcase
+		$)
+	freemblock(block)
+	$)	repeat
+$)
+and phased(snd,block)=valof
+$(	unless snd=player.no resultis false
+	snd_fight!player.no
+	if DESTROYED of snd ls 0
+	$(	send(player.no, block, K.ISAHM, 0)
+		resultis true
+	$)
+	resultis false
+$)
+and givewhere(snd,pp) be
+$(	if WIZARD of profile Out(" in :6",!(CROOM of pp))
+	outs("!*C*L")
+$)

@@ -1,0 +1,88 @@
+conj	and
+fprep	with
+bprep	at
+quant	all
+pron	it
+mpron	him
+fpron	her
+ppron	them
+place	there
+self	me
+inst	whichever
+universal	shout
+noclass	none
+persn	person
+sthing	something
+athing	anything
+motion	in
+	out
+	up
+	down
+	north
+	south
+	east
+	west
+	southeast
+	northwest
+	northeast
+	southwest
+	jump
+	$special
+	swamp
+	$unswamp
+syn	u	up
+	above	up
+	exit	out
+	away	out
+	upwards	up
+	d	down
+	downwards	down
+	below	down
+	upward	up
+	ascend	up
+	descend	down
+	downward	down
+	e	east
+	easterly	east
+	w	west
+	westerly	west
+	n	north
+	northerly	north
+	s	south
+	southerly	south
+	se	southeast
+	sw	southwest
+	ne	northeast
+	nw	northwest
+	inside	in
+	outside	out
+	o	out
+	leap	jump
+	to	at
+	do	and
+	that	and
+	then	and
+	using	with
+	into	with
+	unto	and
+	from	with
+	on	with
+	onto	with
+	lot	all
+	everything	all
+	do	and
+	em	them
+	they	them
+	er	her
+	she	her
+	im	him
+	he	him
+noise	the
+	a
+	an
+	someone			;To prevent people from having this 'name'
+	bartle			;why should anyone have my surname?!
+	mallett			;he made me do it, guv!
+	is
+	again
+	repeat

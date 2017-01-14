@@ -1,0 +1,91 @@
+	swing	familiar	none	testsmall	null	792	793
+	write	forum	none	writein	null	0	0
+	melt	something	torch	ifprop	null	1	308
+	light	container	flame	destroy	null	771	0
+	light	torch	flame	dec	null	109	4
+	light	something	torch	unlessgot	second	391	0
+	light	something	torch	ifprop	second	1	307
+	light	container	torch	destroy	null	771	0
+	light	firework	torch	expdestroy	null	17	0	16
+	light	firework	none	null	null	18	0
+	light	missile	none	unlesshere	rain	1500	0
+	light	missile	torch	expdestroy	null	1501	0	-59
+	light	missile	none	null	null	18	0
+	light	spark	torch	dec	null	1503	1504
+	light	spark	none	null	null	18	0
+	light	torch	torch	ifprop	second	1	242
+	light	torch	torch	dec	null	131	4
+	light	torch	stone	null	null	67	0
+	stroke	torch	torch	null	null	132	4
+	douse	none	none	holdfirst	null	0	0
+	douse	flame	none	null	null	177	0
+	douse	torch	none	inc	null	110	4
+	douse	stone	none	null	null	68	0
+	douse	spark	none	null	null	1505	0
+	cook	familiar	none	null	null	640	0
+	cook	serpent	none	null	null	975	0
+	fell	something	tool	unlesslevel	null	3	845
+	fell	none	forest	null	null	436	0
+	feed	familiar	none	ifprop	null	9	519
+	drink	liquid	medication	destroydestroy	second	575	0
+	drink	medication	liquid	destroydestroy	second	575	0
+	drink	liquid	none	ifprop	null	0	574	-1
+	drink	liquid	none	expdestroy	null	365	0
+	drink	.sleep	medication	none	ifdisenable	null	1	139	-23
+	drink	.sleep	medication	none	ifdisenable	null	3	914	-23
+	drink	.sleep	medication	none	ifdisenable	null	16	914	-23
+	drink	.sleep	medication	none	expset	null	1	139
+	eat	familiar	none	unlessprop	null	9	637
+	eat	familiar	none	expdestroy	null	638	0
+	eat	serpent	none	null	null	969	0
+	kill	something	tool	unlesslevel	null	3	845
+	kill	person	tool	unlesslevel	null	3	845
+	kill	lavatory	none	null	null	830	0
+	kill	.empty	container	none	null	null	0	0
+	kill	person	tool	hurt	null	15	0	-4
+	kill	.kill	person	torch	ifprop	second	1	0	-4
+	kill	person	torch	hurt	null	5	0	-4
+	kill	familiar	none	ifinsis	curiosity	560	0
+	kill	.kill	familiar	none	ifprop	null	10	488	-4
+	kill	familiar	none	inc	null	431	432	-4
+	drop	.insert	torch	container	unlessprop	null	0	0
+	drop	torch	container	destroydestroy	second	771	0
+	drop	.insert	anything	flame	null	null	781	0
+	drop	.insert	anything	container	null	null	0	0
+	drop	.insert	something	flame	null	null	781	0
+	drop	medication	liquid	destroyinc	second	573	0	;don't need drop liquid medication
+	drop	something	lavatory	ifweighs	null	2001	826
+	drop	something	stream	ifweighs	null	2001	836
+	drop	tack	none	null	null	1506	0	1507
+	toss	money	none	ifrprop	coinval	0	724
+	toss	money	none	null	null	725	0
+	summon	.summon	none	none	ifwiz	null	0	0
+	summon	.summon	none	none	ifrlevel	null	4	756
+	snoop	.snoop	none	none	ifwiz	null	0	0
+	l	none	none	ifblind	null	1	25
+	l	flame	none	unlesswiz	null	0	782
+	make	.make	none	none	ifwiz	null	0	0
+	make	.flush	none	none	ifin	null	limbo	590
+	make	.make	none	none	ifrlevel	null	4	756
+	where	.where	none	none	iflevel	null	9	0	;let legends where anyway
+	where	.where	none	none	ifrlevel	null	6	756
+	fix	none	none	holdfirst	null	0	0
+	fix	something	lavatory	ifweighs	null	2001	826
+	fix	something	stream	ifweighs	null	2001	836
+	piss	none	none	ifobjis	off	846	0
+	rape	none	none	ifobjis	off	846	0
+	open	none	none	ifobjis	sesame	344	0
+	open	container	none	unlessobjis	bag	809	0
+	open	container	none	dec	null	811	810
+	close	container	none	unlessobjis	bag	809	0
+	close	container	none	inc	null	812	813
+	quit	.quit	none	none	ifwiz	null	0	0
+	quit	none	none	ifin	null	limbo	696
+	bye	none	none	ifin	null	limbo	696
+	piss	none	lavatory	null	null	829	0
+	get	.get	anything	person	null	null	0	0
+	get	anything	container	ifprop	null	1	816
+	get	.remove	anything	container	unlessobjis	cat	0	0
+	get	.remove	anything	container	unlessinsis	bag	0	0
+	get	.remove	anything	container	null	null	764	0
+	get	anything	flame	null	null	780	0

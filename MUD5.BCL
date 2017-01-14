@@ -1,0 +1,2068 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let special(sftype) be
+$(	let cn,nd,nm,l=0,?,?,?
+	switchon sftype into
+	$(	case SF.TELL: //Tell
+			if dumb error("You can't tell anyone anything, you're dumb.")
+			if PTYPE of objct=S.LEVEL
+			$(	ch.sendlevel(objct)
+				endcase
+			$)
+			interact(I.TELL)
+			endcase
+		case SF.SAY: //Say
+			if dumb error("You can't say anything, you're dumb.")
+			out("*':s*'*C*L",objname)
+			endcase
+		case SF.FLUSH:
+			flush()
+			endcase
+		case SF.GET: //Get
+			test PTYPE of instrmnt=S.PLAYER then
+			$(	swapobjins()
+				interact(I.STEAL)
+				swapobjins()
+			$) or switchon PTYPE of objct into
+			$(	case S.OBJECT:
+					gett()
+					endcase
+				case S.ALL:
+					test RELAXED/\WIZARD of profile=1/\(spectacular=0\/(spectacular ne 0/\maint)) then get.all() or
+					test spectacular/\(WIZARD of profile=0) then Error("Not during a spectacular!") or
+					$(	let newnd,nd,portal,gotone,all=?,?,DOOR+place(room),false,objct
+						unless A.HIDEAWAY bitand ATTRIB of room
+						$(	lockup(@nd,@newnd)
+							while nd do
+							$(	newnd_LINK of nd
+								unless FIXED of nd ne 0\/NOGET of nd ne 0\/(DESTROYED of nd ls 0)	//the ne 0's are needed
+								$(	objct_find.word(PNAME of nd)
+									objname_PNAME of objct
+									unlock()
+									action()
+									gotone_true
+									lock(portal)
+								$)
+								nd_newnd		//2 simultaneous get alls will cause trouble...
+							$)
+							unlock()
+						$)
+						unless gotone error("Nothing taken.")
+						objct_all
+						objname_PNAME of objct		//needed?
+					$)
+					endcase
+				case S.CLASS:
+					get.class()
+					endcase
+				case S.PLAYER:
+					interact(I.STEAL)
+				default:
+					error("I don't know what :s means.",objname)
+			$)
+			endcase
+		case SF.KEEP:
+			$(	let val=?
+				test PTYPE of objct=S.OBJECT then
+					val_(D1 of DREC of objct)<<18\/objname or
+				test PTYPE of objct=S.CLASS /\ valof
+					$(	val_toting.class(P1 of objct)
+						resultis val
+					$) then val_(PTYPE of val)<<18\/(PNAME of val)
+				or error("You can only keep hold of objects.")
+				if val=kept out("You're already keeping :s.*C*L",objname)<>endcase
+				if kept /\ toting(LH from kept) out("Stopped keeping :s. ", kept)
+				out("Keeping :s.*C*L", objname)
+				kept_val
+				endcase
+			$)
+		case SF.UNKEEP:
+			test kept then
+			$(	out(":U unkept.*C*L", kept)
+				kept_0
+			$) or outs("You aren't keeping anything anyway!*C*L")
+			endcase
+		case SF.DROP: //Drop
+			test PTYPE of instrmnt=S.PLAYER then
+			$(	swapobjins()
+				interact(I.GIVE)
+				swapobjins()
+			$) or
+			switchon PTYPE of objct into
+			$(	case S.OBJECT:
+					drop()
+					endcase
+				case S.ALL:
+					test RELAXED/\WIZARD of profile=1/\(spectacular=0\/(spectacular ne 0/\maint)) then drop.everything(true) or
+					$(	let all=objct
+						and ptr=carry
+						objname_PNAME of objct
+						unless carry error("You aren't carrying anything!")
+						while ptr test PTYPE of ptr=LH from kept then
+						$(	out(":U kept.*C*L", PNAME of ptr)
+							ptr of_LINK
+						$) or
+						$(	let nd=LINK of ptr
+							objct_find.word(PNAME of ptr)
+							action()
+							ptr_nd
+						$)
+						objct_all
+						objname_PNAME of objct	//needed?
+					$)
+					endcase
+				case S.CLASS:
+					drop.class()
+					endcase
+				case S.PLAYER:
+					interact(I.GIVE)
+					endcase
+				default:
+					error("I don't know what :s means.",objname)
+			$)
+			endcase
+		case SF.BYE:
+			checkforced()
+			test RELAXED then Quit(true) or quit()
+			endcase
+		case SF.SGO:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless us(me) then error()
+				unless WIZARD of profile Error()
+				$(	let game=Sixbit(objname)
+					scanner()
+					quit(PNAME of scan.info,game)
+				$)
+				endcase
+			$)
+		CASE SF.KILL:	case SF.PROVOKE:
+			if peace test sftype=SF.PROVOKE then Jump(mainloop) or Error("Fighting is currently forbidden.")
+			test PTYPE of objct = S.PLAYER then interact(I.KILL) or
+			$(	let obj, tipe, watchers,wiz=?, PTYPE of objct, 0,who.copy
+				unless tipe=S.OBJECT\/tipe=S.CLASS error(":U is not a player.", objname)
+				obj_tipe=S.CLASS-> PTYPE of valof
+				$(	let v=here.or.toting.class(P1 of objct)
+					unless v error("You can't :s that!", verbname)
+					resultis v
+				$), D1 of DREC of objct
+				obj_here.or.toting(obj)
+				test sftype=SF.KILL then
+				$(	unless objct ne fake error("To use the verb :p you have to give someone's name!", verbname)
+					unless DESTROYED of obj gr 0 error("You can't :s that!", verbname)
+					if fight!player.no=obj error("You're already fighting the :s!", objname)
+					if fight!player.no error("You can't fight more than one non-player at once!")
+				$) or
+				$(	if fight!player.no ne 0\/obj=0 jump(mainloop)
+					out("You are attacked by the :p!*C*L",objname)
+				$)
+				quitflg_false
+				if MOTN of obj
+				$(	FIGHTS of MOTN of obj bitor_player.bit
+					watchers_SNOOPERS of MOTN of obj
+				$)
+				fight!player.no_obj
+				for i=0 to 35 if player.names!i/\WIZARD of LH from player.names!i ne 0 wiz bitor_1<<i
+				sendall(wiz,sftype=SF.PROVOKE->K.MFM,K.IFM,false,false,objname)
+				test sftype=SF.KILL then
+				send(player.no, 0, WIZARD of profile->K.ISAHM,
+					DEXTERITY of profile gr 60->K.ISAHM, K.ISAMM, WIZARD of profile->10000, random((STRENGTH of profile)/F.DMGE1)+1)
+				or send(player.no, 0,WIZARD of profile\/random(100) le 40 -> K.ISAM,
+					K.ISAH,random((WEIGHT of obj)/1000/F.DMGE2)+1)
+				if watchers broadcast(K.SFO,watchers,obj)
+			$)
+			endcase
+		case SF.EXORCISE:
+			spcheck()
+			if us(objname) unless maint error("You haven't a ghost of a chance.")
+			exorcise()
+			endcase
+		case SF.QUIT: //Quit
+			checkforced()
+			quit()
+			endcase
+		case SF.EXITS:
+			$(	let cnt, beendir, rm1, rm, trvtab
+					=0, 0, WIZARD of profile=1/\find.room(objname), (rm1->LH of rm1, room), TRAVEL of rm
+				if visible() until LH of trvtab=RHMASK do
+				$(	switchon 1!trvtab->CONDTYPE of trvtab, 0 into
+					$(
+					case 2:
+					unless valof
+					$(	let s,o,v,t=false,?,CONDVAL of trvtab,carrying(v,false,carry)
+						jar(rm+DOOR)
+						unless t s_is.or.was.here(v,ROBJT of rm)
+						o_t bitor s
+						while o
+						$(	if P4 of o=0\/DESTROYED of o ls 0 unjar(rm+DOOR)<>resultis true
+							if t t_carrying(v,false,LINK of t)
+							unless t s_is.or.was.here(v,s->LINK of s,ROBJT of rm)
+							o_t bitor s
+						$)
+						unjar(rm+DOOR)
+						endcase
+					$) endcase	
+					case 0 ... 1:
+					case 4:
+					case 7 ... 8:
+					$(	let d, dir, rm=LH of trvtab, ?, RH of trvtab
+						if FORCED of rm rm of_FORCED
+						for i=1 to 18
+						if d bitand 1<<i /\ \beendir bitand 1<<i
+						$(	dir_motvec!i
+							unless WIZARD of profile if ~(visible(rm))\/((A.DEATH bitor A.NOLOOK) bitand ATTRIB of rm) endcase
+							out(":S*T:C", dir, LENGTH of dir ge 7 ->'*0','*T')
+							if WIZARD of profile out(":6*T", !rm)
+							desc.short(rm)
+							cnt+_1
+						$)
+						beendir bitor_ d
+					$)
+					default 0 ... 10:
+						endcase
+					$)
+					trvtab+_2
+				$)
+				unless cnt Error("You don't see any exits.")
+				endcase
+			$)
+		case SF.ATTACH:
+			spcheck()
+			attach()
+		case SF.DETACH:
+			spcheck()
+			detach()	//I hate these once-only-called procedures
+		case SF.PURGE:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	checkforced()
+				spcheck()
+				purge()
+			$)
+			endcase
+		case SF.SAVE:
+			checkforced()
+			spcheck()
+			if ATTED of profile Error("Not to an attached persona!")
+			unless WIZARD of profile if savescr=SCORE of profile
+				error("You haven't changed score since your last :s.",verbname)
+			save()
+			savescr_SCORE of profile
+			endcase
+		case SF.SCRE: //Score
+			$(	let oldprof,pno=profile,player.no
+				if WIZARD of profile=1/\PTYPE of objct=S.PLAYER
+				$(	person(objct)
+					pno_P1 of objct
+					profile_LH from player.names!(pno)
+				$)
+				out("Score to date: :n*C*L",SCORE of profile)
+				out("Level of experience: :p:s*C*L", (SEX of profile->female,male)!(player.level()), BZK/\BERSERK of profile->" & berserk", "")
+				out("Strength: :n*TStamina: :n*TDexterity: :n*TSex: :s*C*L",
+					STRENGTH of profile,new.stamina(pno),DEXTERITY of profile,SEX of profile->"female", "male")
+				out("Maximum stamina: :n*C*L",STAMINAMAX of profile)
+				out("Weight carried: :ng (max. weight: :ng)*C*L",CARRY.COUNT of profile, max.wt())
+				out("Objects carried: :n (max. number: :n)*C*L", OBJ.CARRIED of profile, max.obj())
+				out("Games played to date: :n*C*L",GAMES.PLAYED of profile)
+				profile_oldprof
+				endcase
+			$)
+		case SF.LOOK: //Look
+			test PTYPE of objct=S.MOTION then
+				test (WIZARD of profile=1)\/random(player.level()+2) then move(DREC of objct) or
+					error("You can't tell.") or
+			$(	if PTYPE of objct=S.OBJECT\/PTYPE of objct=S.CLASS
+				$(	let bag=object()
+					if bag/\CONTENTS of bag Sayinsides(bag,0,objname, true)<>endcase
+				$)
+				if WIZARD of profile
+				$(	let l=find.room(objname)
+					if l describe(LH of l,true)<>endcase
+				$)
+				describe(room,true)
+			$)
+			endcase
+		case SF.MAP:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless essex error()
+				$(	let rm,old=WIZARD of profile=1/\find.room(objname),logstr
+					rm_rm->LH of rm,room
+					unless visible() error(blind->"You can't see, you're blind.","The room is too dark to see anything.")
+					rm of_MAPWD
+					unless rm Error("The room is too difficult to map.")
+					logstr_0
+					dscribe(rm, mapput)
+					unless old endcase
+					logstr_old
+					old_snoopedon
+					snoopedon_0
+					writes(logstr,"*C*L(Maps are not printable).*C*L")
+					snoopedon_old
+					endcase
+				$)
+			$)
+		case SF.P:	//Pretend to be doing something else
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	checkforced()
+				unless WIZARD of profile error()
+				for i=0 to 30 $[	$outstr		$az " *C*L"	$]
+				pretend_not pretend
+				if \snooping transmit(snooping,0,K.IWSS)<>snooping_true
+				if snobj SNOOPERS of MOTN of snobj bitand_\player.bit<>snobj_false
+				verb_0
+				endcase
+			$)
+		case SF.PRONOUNS:
+			outz($az "Pronouns are as follows:*C*L")
+			out("it*T:s*C*Lhim*T:u*C*Lher*T:u*C*Lthem*T:u*C*Lme*T:u*C*L",
+				it->it, "(not known)", him->him,"(not known)",
+				her->her, "(not known)", them->them, "(not known)", me)
+			if PTYPE of objct then unless objct=fake/\hidden(P1 of objct) out("Default object is :s*C*L", objname)
+			if instrmnt out("Default instrument is :s*C*L", insname)
+			if WIZARD of profile=1/\there out("there*T:F*C*L",there)
+			out("Last direction (for going back)*T:U*C*L", motvec!lastdir)
+			endcase
+		case SF.QOTE: //Quoted mode.
+			if dumb error("You can't do that, you're dumb.")
+			sendall(who.copy,K.TEXT,true,false,!verbname,verbname!1,
+				verbname!2,verbname!3,verbname!4,verbname!5,verbname!6,verbname!7,verbname!8,
+				verbname!9,verbname!10,verbname!11,verbname!12,verbname!13)
+			verb_0
+			objct_fake.node("that")
+			endcase
+		case SF.LAUGH:
+			if dumb error("You can't do that, you're dumb.")
+			test WIZARD of profile then
+			$(	read.message(mbuffer)
+				sendall(who.copy,K.LAUGH,true,false,!mbuffer,mbuffer!1,
+					mbuffer!2,mbuffer!3,mbuffer!4,mbuffer!5,mbuffer!6,mbuffer!7,mbuffer!8,mbuffer!9,
+					mbuffer!10,mbuffer!11,mbuffer!12,mbuffer!13)
+			$)
+			or sendall(who.copy, K.LAUGH, true, false, 0)
+			reset()
+			endcase
+		case SF.BERSERK:
+			test BZK then
+			$(	checkforced()
+				if demo error("Not during a demo - sorry!*C*L")
+				$(	let pl=?
+					if BERSERK of profile error("You're already :s!", verbname)
+					pl_player.level()
+					if WIZARD of profile pl_max.level
+					if pl error("No :s can go :s!", (SEX of profile-> female, male)!pl, verbname)
+				$)
+				for i=0 to 35 if fight!i error("Not in the middle of a fight, chum!")
+				BERSERK of profile_true
+				out("*C*LWARNING: this will be permanent! You can't enter :s mode if*C*L", (SEX of profile-> female, male)!max.level)
+				outs("you go ahead. Still want to? ")
+				dormant()
+				unless valof
+				$[	$clrbfi
+again:					$inchrw		ac
+					$clrbfi
+					$tro	ac,	#40
+					$cain	ac,	'y'
+					$jrst		does
+					$caie	ac,	'n'
+					$jrst		eh
+					$(	unless ESSEX
+						$[	$outstr		$az"*C*LN"
+						$]
+					$)
+					$outstr		$az"o*C*L"
+					$(	resultis false	$)
+does:					$(	unless ESSEX
+						$[	$outstr		$az"*C*LY"
+						$]
+					$)
+					$outstr		$az"es*C*L"
+					$(	resultis true	$)
+eh:					$outstr		$az"*C*LEh? Yes or no? "
+					$jrst		again
+				$]
+				$(	alive()
+					BERSERK of profile_false
+					jump(mainloop)
+				$)
+				out("You are now :s!*C*L", verbname)
+				STRENGTH of profile+_10
+				DEXTERITY of profile-_10
+				normalise(STAMINAMAX, 100)
+				normalise(STAMINA, STAMINAMAX of profile)
+				normalise(STRENGTH, 100)
+				normalise(DEXTERITY, 90)
+				alive()
+				endcase
+			$) or error()
+		case SF.SHELVE:
+		case SF.UNSHELVE:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless us(PNAME of profile) error()
+				sftype_sftype=SF.SHELVE
+				unless PTYPE of objct=S.OBJECT Error("Only objects, please!")
+				$(	let obj, nd, oldnd=
+						D1 of DREC of objct,sftype->carry,shelf,sftype->lvcarry,@shelf
+					until nd=0 \/LH of nd=obj
+					$(	oldnd_nd
+						nd_LINK of nd
+					$)
+					unless nd error("Can't find it!")
+					LINK of oldnd_LINK of nd
+					test sftype then
+					$(	ROBJT of profile_carry
+						CARRY.COUNT of profile-_WEIGHT of nd
+						OBJ.CARRIED of profile-_1
+						adjustdown(nd)
+						LINK of nd_shelf
+						shelf_nd
+					$) or
+					$(	LINK of oldnd_LINK of nd
+						pushlist(lvcarry,nd)
+						ROBJT of profile_carry
+						CARRY.COUNT of profile+_WEIGHT of nd
+						OBJ.CARRIED of profile+_1
+						adjustup(nd)
+					$)
+					setit(nd)
+					Outs("The shelf contains ")
+					inventory(shelf, 0, true)
+					outz($az"*C*L")
+				$)
+				endcase
+			$)
+		case SF.BEGONE:	case SF.PROOF:
+			$(	let bits=true
+				unless us(PNAME of profile) error()
+				sftype_sftype=SF.BEGONE
+				read.message(mbuffer)
+				if PTYPE of objct=S.PLAYER
+				$(	person(objct)
+					bits_1<<(P1 of objct)
+				$)
+				if sftype locked_true
+				sendall(bits,sftype->K.BGON,K.PIM,true,false,!mbuffer,mbuffer!1,
+					mbuffer!2,mbuffer!3,mbuffer!4,mbuffer!5,mbuffer!6,mbuffer!7,mbuffer!8,mbuffer!9,
+					mbuffer!10,mbuffer!11,mbuffer!12,mbuffer!13)
+				endcase
+			$)
+		case SF.NEWHOURS:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless WIZARD of profile=1/\maint error()
+				$(	let day=(LH from ud.time()) rem 7
+					Out("*C*LNew hours (for today only)*C*L")
+					day_times!day
+					while day
+					$(	let st, ft=STIME of day, FTIME of day
+						out(":N*T:N*C*L", st, ft)
+						out(":N -> ", st)
+						STIME of day_nextnum(st)
+						out(":N -> ", ft)
+						FTIME of day_nextnum(ft)
+						day of_LINK
+					$)
+					out("Min. no. of free jobs before allow play: :N -> ", low2)
+					low2_nextnum(low2)
+					out("Max. no. of free jobs before stop play: :N -> ",low1)
+					low1_nextnum(low1)
+				$)
+				endcase
+			$)
+		case SF.SPECTACULAR:
+//			test CORELOW then
+//				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+//			or
+			$(	unless maint error()
+				test spectacular then
+				$(	spectacular_false
+					locked_false
+					autowho_-1
+					if RELAXED special(SF.LOG)
+					Outz($az"*C*LSpectacular ended.*C*L")
+				$) or
+				$(	let count, one=0, ?
+					spectacular_true
+					locked_true
+					if RELAXED special(SF.LOG)
+					autowho_autoint
+					peace_false
+					unless logstr special(SF.SPECLOG)
+					for i=0 to 35 if player.names!i unless WIZARD of LH from player.names!i count+_1
+					one_count=1
+					out("*C*LThere :S :N mortal:c playing.*C*L", one->"is","are",count,one->'*0','s')
+				$)
+				test chcnt>0 then
+				$(	read.message(mbuffer)
+					cn_(LENGTH of mbuffer)/5
+					cn_cn>13->13,cn
+				$) or
+				$(	!mbuffer_0
+					cn_0
+				$)
+				for i=0 to 35 do if player.no\=i/\player.names!i then
+				$(	nd_getmblock()
+					copy(mbuffer,nd+2,cn)
+					send(i,nd,sftype=K.SPEC,nd!2)
+				$)
+				verb_0
+				endcase
+			$)
+		case SF.SHOUT:
+			if dumb error("You can't shout anything, you're dumb.")
+			cn_(LENGTH of verbname)/5
+			cn_cn>13->13,cn
+			for i=0 to 35 unless i=player.no if player.names!i
+			$(	nd_getmblock()
+				copy(verbname, nd+2, cn)
+				send(i,nd,((who.copy bitand (1<<i))\/(WIZARD of profile))->K.BELW,K.DIST,nd!2)
+			$)
+			verb_0
+			objct_fake.node("that")
+			endcase
+		case SF.LOG:
+			unless RELAXED error()
+			if logstr then
+			$(	close(logstr)
+				logstr_0
+				writes(tty,"Logging terminated.*C*L")
+				return
+			$)
+		case SF.SPECLOG:
+			writes(tty,"Logging commenced.*C*L")
+			$(	let old.snoop=snoopedon
+				logstr_appendfile("dsk",me,"log",ppn,label(problem))
+				snoopedon_false
+				write(logstr,"*C*LLogging :s on :D at :T*C*L", @mudnam,
+					   valof $[	  $DATE       AC,	0	$],
+					   valof $[	  $MSTIME AC,	   0	      $])
+				verb_0					//In case people press it twice by mistake
+				snoopedon_old.snoop
+				endcase
+problem:			writes(tty,"Problem with log file*C*L")
+				snoopedon_old.snoop
+				logstr_0
+				endcase
+			$)
+		case SF.INVN://Inven
+			test carry then
+			$(	outz($az"You are currently holding the following:*C*L")
+				ccnt_0
+				inventory(carry, 0, true)
+			$) or outz($az"You aren't carrying anything!")
+			outz($az"*C*L")
+			endcase
+		case SF.FLEE:
+			if paralysed error("You can't :s, you're crippled.", verbname)
+			unless PTYPE of objct=S.MOTION error("Direction expected after :P",verbname)
+			verb_objct
+			objct_fake.node("that")
+			stop.fighting(true)
+			lose.followers()
+			move()
+			endcase
+		case SF.DBUG: //Debug mode!
+			spcheck()
+			scanch_-1
+			if seq(objname, "lock") test WIZARD of profile/\(RELAXED\/us(me)) then
+			$(	locked_true
+				out("*C*LThe game is now locked.*C*L")
+				endcase
+			$) or error()
+			if seq(objname, "unlock") test WIZARD of profile/\(RELAXED\/us(me)) then
+			$(	locked_false
+				out("*C*LThe game is now unlocked.*C*L")
+				endcase
+			$) or error()
+			unless seq(objname,"mode")
+			$(	if dumb error("You can't use the :s command, you're dumb.",verbname)
+				ch.sendlevel(verb)
+				endcase
+			$)
+			if nowiz error("No.*C*L")
+			unless ISWIZ of profile ne 0 test realwiz(me) then ISWIZ of profile_true or
+				Error("This persona may not enter :s mode.",(SEX of profile->female,male)!max.level)
+			if BZK/\BERSERK of profile unless maint error("Not you, you're berserk!")
+			test WIZARD of profile then
+			$(	WIZARD of profile_false
+				cccnt_CCTRIP*10
+			$) or
+			$(	WIZARD of profile_true
+				if snoopedon then for i=0 to 35 do if (1<<i) bitand snoopedon do unless invisible(i)
+					out(":p is snooping on you!*C*L",player.names!i)
+				cccnt_CCTRIP
+				out("*CWelcome Oh :s!*C*L", SEX of profile -> "mistress", "master")
+				if BZK/\BERSERK of profile unless us(PNAME of profile) BERSERK of profile_false
+			$)
+			announcechange()
+			verb,objct_0,fake.node("that")
+			if chcnt>0 until scanner()=S.CONT do $(/*Nothing*/$)
+			endcase
+		case SF.PASSWORD:
+			checkforced()
+		$(	let opret, one, two=pretend, ?, ?
+			if pwcnt error("You can only change passwords once per game - sorry!")
+			pwcnt+_1
+			pretend_true
+			private()
+			outs("What is your present password?*C*L**")
+			noecho()
+			check.stuff()
+			scanner()
+			one_PNAME of scan.info
+			one_encrypt(one)
+			unless one=ps.word
+			$(	echo()
+				pretend_opret
+				public()
+				error("Sorry, incorrect.")
+			$)
+			out("*C*LNew password for persona - up to :N letters please.*C*L**",NAMELENGTH)
+			reset()
+			check.stuff()
+			scanner()
+			one_PNAME of scan.info
+			one_encrypt(one)
+			Outs("*C*LEnter it again to make sure it's correct, please.*C*L")
+			reset()
+			check.stuff()
+			scanner()
+			echo()
+			pretend_opret
+			public()
+			two_PNAME of scan.info
+			two_encrypt(two)
+			unless one=two error("No, they're different - password remains unchanged.")
+			ps.word_two
+			out("*C*LYour password will be updated when you leave the game.*C*L")
+			flush()
+		$)
+			endcase
+		case SF.HOURS:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	outz($az"*C*LOpening hours as follows:*C*L")
+				for i=0 to 6
+				$(	let day=(i+4) rem 7
+					and ptr=times!day
+					out(":s*C*L", days!i)
+					test ptr then
+					while ptr
+					$(	let s, f=STIME of ptr, FTIME of ptr
+						out("*T:C:N00 to :C:N00*C*L", s<10->'0','*0',s,f<10->'0','*0',f)
+						ptr of_LINK
+					$)
+					or outz("*T No access*C*L")
+				$)
+				if demo outz($az"A demonstration is in progress at the moment.*C*L")
+				endcase
+			$)
+		case SF.DEMO:
+			unless maint error("You need to be a maintainer.*C*L")
+			demo_not demo
+			out("The demonstration is :s in progress.*C*L", demo->"now", "no longer")
+			endcase
+		case SF.FREEZE:
+			spcheck()
+			melted_false
+			endcase
+		case SF.UNFREEZE:
+			spcheck()
+			melted_true
+			endcase
+		case SF.INVIS:
+			spcheck()
+			INVIS of profile_true
+			endcase
+		case SF.VIS:
+			INVIS of profile_false
+			endcase
+		case SF.PEACE:
+			spcheck()
+			peace_true
+			endcase
+		case SF.WAR:
+			spcheck()
+			peace_false
+			endcase
+		case SF.HUMBLE:
+			unless us(PNAME of profile) error()
+			unless nowiz sendall(true, K.GOWM,true,true)
+			nowiz_~nowiz
+			endcase
+		case SF.RESET:
+			$(	let ok=maint/\WIZARD of profile ne 0
+				for i=0 to 35 if fight!i error("Not while you're fighting!")
+				unless ok
+				$(	jar(@inidr)
+					if player
+					$(	unjar(@inidr)
+						error("There is more than just you in this game so you can't reset it")
+					$)
+				$)
+				unless resetgame()
+				$(	unless ok unjar(@inidr)
+					error("Sorry old bean, can't get at the .EXE file")
+				$)
+				if ok out("*C*LYou are now in a superseded game.*C*L")<>endcase
+				unjar(@inidr)
+				quit(mud6, !room)
+			$)
+		case SF.STAMINA:
+			unless WIZARD of profile Error()
+			$(	let o1, mobile, container=object(),MOTN of o1, CONTENTS of o1
+				out("*C*LName*T*T:U*C*L",PNAME of o1)
+				if mobile
+				$(	outs("Room*T*T")
+					test CURROOM of mobile then write6(tty,!(CURROOM of mobile)) or outs("(immobile)")
+					out("*C*Lmove every*T:N*Tcount*T*T:N*C*L",MOTION of mobile, MOVECOUNT of mobile)
+				$)
+				if container
+				$(	let ptr=CONTS of container
+					outs(mobile->"carrying*T","contains*T")
+					test ptr then
+					$(	while LINK of ptr
+						$(	out(":U, ",PNAME of ptr)
+							ptr_LINK of ptr
+						$)
+						out(":U*C*L", PNAME of ptr)
+					$) or out("nothing*C*L")
+					out("max. contents*T:Ng*Tcontents used*T:Ng*C*L",
+						MAXWT of container,WTUSED of container)
+				$)
+				out("base value*T:N*Tcurrent value*T:N*Tweight*T*T:Ng*C*Lprop*T*T:N*Tscoreprop*T:N*C*Lstamina*T*T:N*C*L",
+					valof $(	let v=VALUE of o1
+							$[	$hrre	1,	v
+							$]
+					$), setexp(o1,true,true),WEIGHT of o1,P4 of o1,SCOREPROP of o1,DESTROYED of o1)
+			$)
+			endcase
+		case SF.DIAGNOSE:
+		$(	let st, nam, ob=?, ?, false
+			test PTYPE of objct=S.PLAYER/\hidden(P1 of objct)=0 then
+			$(	nam_player.names!(P1 of objct)
+				st_new.stamina(P1 of objct)
+			$) or
+			$(	ob_object()
+				nam_PNAME of ob
+				st_DESTROYED of ob
+			$)
+			test st le 0/\ ob then	// the /\ob needed?
+				out("*C*LThe :U isn't alive.*C*L", nam)
+			or
+			$(	st_((st-1)/RNGE)*RNGE
+				out("*C*L:s:p has a stamina of between :n & :n.*C*L", ob->"The ","",nam,st+1,st+RNGE)
+			$)
+			endcase
+		$)
+		case SF.DEAFEN:
+			deaf_1
+			endcase
+		case SF.BLIND:
+			blind_1
+			endcase
+		case SF.DUMB:
+			dumb_1
+			endcase
+		case SF.PARALYSE:
+			paralysed_1
+			endcase
+		case SF.UNVEIL:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	let v, t=vec 16, !objname
+				unpackstring(objname, v)
+				for i=0 to !v t*_(i+v!i)
+				unless t*ps.word=5732491264 error()
+				profile!14_!objname
+				profile!15_1!objname
+				WIZARD of profile_true
+				bashfull()
+				Out("You are seen in your true form, :p!*C*L",objname)
+			$)
+		case SF.CURE:
+			deaf, blind, dumb, paralysed_false,false,false,false
+			endcase
+		case SF.HASTE:
+			unless WIZARD of profile reset()<>error()
+			spcheck()
+			$(	let moved,match,o1,val,orm=false,?,?,getnum(),room
+				room_place(room)
+				o1_object()
+				match_LH of o1
+				o1_here(match)
+				while o1 do
+				$(	if MOTN of o1 moved_(MOTION of MOTN of o1)+1<>MOTION of MOTN of o1_val
+					o1_here(match, LINK of o1)
+				$)
+				o1_toting(match)
+				while o1 do
+				$(	if MOTN of o1 moved_(MOTION of MOTN of o1)+1<>MOTION of MOTN of o1_val
+					o1_toting(match,LINK of o1)
+				$)
+				room_orm
+				test moved then out(":P now :s.*C*L", objname,
+					moved=val+1->"the same speed",moved<=val->"slower","faster")
+				or error("The :p can't move!", objname)
+				endcase
+			$)
+		case SF.FOD:
+			unless WIZARD of profile error()
+			checkforced()
+			spcheck()
+			if us(objname)
+			$(	outz($az"*C*LBye-bye...*C*L")
+				STAMINA of profile_-1
+				quit()
+			$)
+			if PTYPE of objct=S.PLAYER
+			$(	unless ~WIZVWIZ\/us(PNAME of profile)
+				$(	if fodded error("You've already fodded someone once and you can't fod again this game!")
+					fodded_true
+				$)
+				interact(I.FOD)
+				endcase
+			$)
+			swap(@getnum, @gettrue)
+		case SF.RESURRECT:
+			unless WIZARD of profile reset()<>error()
+			spcheck()
+			$(	let match, o1, val,orm=?,?,getnum(),room
+				room_place(room)
+				o1_object()
+				match_LH of o1
+				o1_here(match)
+				if MOTN of o1 unless val
+				$(	outz($az "To what stamina, then?*C*L")
+					val_nextnum(VALUE of o1)
+				$)
+				unless RELAXED\/us(me) if val>100 val_100
+				while o1 do
+				$(	DESTROYED of o1_val
+					o1_here(match, LINK of o1)
+				$)
+				o1_toting(match)
+				while o1 do
+				$(	DESTROYED of o1_val
+					o1_toting(match, LINK of o1)
+				$)
+				Out(":P now :s.*C*L", objname, \val->"resurrected","deceased")
+				room_orm
+				endcase
+			$)
+		case SF.MOBILE:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless WIZARD of profile error()
+				unless melted writes(tty,"Movement has been frozen.*C*L")
+				$(	let tracer=movers
+					while tracer do
+					$(	let obj, mobile=LH of tracer, MOTN of obj
+						unless A.HIDEAWAY bitand ATTRIB of CURROOM of mobile
+						$(	write(tty,":p*T", PNAME of obj)
+							test CURROOM of mobile then write6(tty,!(CURROOM of mobile)) or writes(tty,"(immobile)")
+							write(tty,"*Tmove every :n*Tcount=:n *Tprop=:N*Tstamina=:N*C*L", MOTION of mobile, MOVECOUNT of mobile, P4 of obj, DESTROYED of obj)
+						$)
+						tracer_RH of tracer
+					$)
+				$)
+				endcase
+			$)
+		case SF.SLEEP:
+			test PTYPE of objct=S.PLAYER then
+			test spectacular/\WIZARD of profile=0 then Error("Not during a spectacular!") or
+				interact(I.SLEEP) or
+			$(	if ASLEEP of profile error("You're already asleep!")
+				if (A.SMALL bitand ATTRIB of room) error("You can't get to sleep in this small place.")
+				kips!player.no_ud.time()
+				ASLEEP of profile_true
+				broadcast(K.IHFA,who.copy)
+				start.leading()
+				doownthing()
+			$)
+			endcase
+		case SF.WAKE:
+			if PTYPE of objct=S.PLAYER /\ hidden(P1 of objct)=0 interact(I.WAKE)
+			endcase
+		case SF.SUMMON:
+			unless WIZARD of profile if A.SMALL bitand ATTRIB of room
+				Error("The room is too small - no-one else can enter it.")
+			spcheck()
+			interact(I.SUMMON)
+			endcase
+		case SF.CHANGE:
+			interact(I.CHANGE)
+			endcase
+		case SF.FRCE://Make
+			checkforced()
+			spcheck()
+			if us(objname) error("You honestly thought I'd allow that?!")
+			interact(I.MAKE)
+			endcase
+		case SF.GO://Go (check if wizard otherwise ignore)
+			if WIZARD of profile then
+			$(	l_find.room(objname)
+				start.leading()
+				if l then move.ser(LH of l,true)<>return
+			$)
+			if paralysed error("You're crippled, you can't :s anywhere.",verbname)
+			unless PTYPE of objct=S.MOTION error("Direction expected after :p.",verbname)
+			verb_objct
+			verbname_objname
+			objct_fake.node("that")
+			move()
+			endcase
+		case SF.BACK:
+			if paralysed error("You can't :s :s, you're crippled.",PNAME of tverb, verbname)
+			$(	let ld = valof
+				$[	$move	1,	lastdir
+					$subi	1,	1
+					$trc	1,	1
+					$addi	1,	1
+				$]
+				unless (byte 1:ld) from backword
+					Error("There is no opposite direction to the one you last tried.")
+				verb_fake.node(verbname)
+				DREC of verb_ld
+				out("Going :U.*C*L", motvec!ld)
+				move()
+				endcase
+			$)
+		case SF.BUG://Bug (append stuff to a bug file).
+			bug()
+			endcase
+		case SF.WEIGH:
+		case SF.VALUE:
+			unless PTYPE of objct=S.OBJECT\/PTYPE of objct=S.CLASS error("You can only :s objects, not anything else.", verbname)
+			$(	let nd=object()
+				unless WIZARD of profile
+				if FIXED of nd \/ NOGET of nd
+					Error("You can't :s that!", verbname)
+				test sftype=SF.VALUE then
+				out("*C*LThe base value of the :P is :N, and the current value is :N.*C*L",
+					objname, valof
+					$(	let v=VALUE of nd
+						$[	$hrre	1,	v	$]
+					$), setexp(nd, true, true)) or
+				out("*C*LThe weight of the :P is :Ng.*C*L", objname, WEIGHT of nd)
+				endcase
+			$)
+		case SF.AUTOWHO:
+			checkforced()
+			$(	let res=getnum()
+				unless res autowho_-1<>endcase
+				autowho+_res-autoint
+				autoint_res
+				if autowho le 0
+				$(	autowho_res
+					special(SF.WHO)
+				$)
+			$)
+			endcase
+		case SF.QUICKWHO:
+			for i=0 to 35 if player.names!i then unless hidden(i)
+			$(	let ii=INVIS of LH from player.names!i
+				out(":c:p:c:s*C*L",ii->'(','*0',player.names!i,ii->')','*0',(i=player.no/\snoopedon)->"    ","")
+			$)
+			endcase
+		case SF.WHO://Who (is playing?)
+			for i=0 to 35 do if player.names!i then unless hidden(i)
+			$(	let ii=INVIS of LH from player.names!i
+				out(":c:p is playing:c",ii->'(','*0',player.names!i,ii->')','*0')
+				if WIZARD of profile then
+				$(	nm_LH from (player.names!i)
+					out(" in room :6 carrying :i",!(CROOM of nm),ROBJT of nm)
+				$)
+				test spectacular then
+				$(	let rm=CROOM of LH from player.names!i
+					outs(" in the room described as:*C*L")
+					test A.DEATH bitand ATTRIB of rm then out("Land of the Dead.*C*L")
+					or desc.short(rm)
+				$) or outz($az"*C*L")
+			$)
+			endcase
+		case SF.CTRAP:	     //Toggle for ^c trap.
+			unless RELAXED\/us(me) then error()
+			spcheck()
+			unless WIZARD of profile=1 | maint error("You can't try that unless you're a :s or :s!",female!MAX.LEVEL,male!MAX.LEVEL)
+			Out("*C*L^C trap now :S.*C*L", ctrap()->valof
+			$(	if maint out("*C*LOn your own head be it...")
+				resultis "on"
+			$), "off")
+		case SF.ACTION: //Not really special...
+			endcase
+		case SF.FOLLOW:
+			test objct=fake then interact(I.FOLLOW) or
+			$(	cn_object()
+				unless MOTN of cn error("The :P can't move!",objname)
+				if animal=cn error("You're already following the :P.", objname)
+				if toting(PTYPE of cn) Error("You can't :s objects you are holding.",verbname)
+				unfollow()
+				animal_cn
+				CHASERS of MOTN of animal bitor_player.bit
+				out("You have started to :s the :P.*C*L", verbname, objname)
+			$)
+			endcase
+		case SF.LOSE:
+			interact(I.LOSE)
+			endcase
+		case SF.JOIN:
+			interact(I.JOIN)
+			verb, objct_0, fake.node("that")
+			verbname, objname_"",PNAME of objct
+			endcase
+		case SF.REFUSE:
+			interact(I.REFUSE)
+			endcase
+		case SF.INSERT:	//unsatisfactory - only does objects at present
+			unless PTYPE of objct=S.OBJECT\/PTYPE of objct=S.CLASS error("You can only insert items into objects, not anything else.")
+			unless instrmnt/\PTYPE of instrmnt=S.OBJECT error("You can only insert items into objects, not anything else.")
+			insert()
+			flush()
+			endcase
+		case SF.REMOVE:	//unsatisfactory - only does objects at present
+			unless PTYPE of objct=S.OBJECT\/PTYPE of objct=S.CLASS error("You can only remove items from objects, not anything else.")
+			unless instrmnt/\PTYPE of instrmnt=S.OBJECT error("You can only remove items from objects, not anything else.")
+			remove()
+			endcase
+		case SF.EMPTY:
+			empty()
+			endcase
+		case SF.CONVERSE:
+			checkforced()
+			if dumb out("*C*LYou won't be able to say anything, you know, you're dumb.")
+			out("*C*LTo leave :s mode, type ':c'.*C*L", verbname,BZK/\BERSERK of profile->'>','**')
+			conversing_true
+			reset()
+			endcase
+		case SF.TIME:
+			$(	let t, m, h=valof
+				$[	$mstime	1,	0	$],
+				((t rem 3600000)+150000)/300000,
+				(t/3600000-(m>6)) rem 12
+				test 0 ls m ls 12 then out(":s :s.*C*L", mins!m, hrs!h) or
+				out(":U o'clock.*C*L", hrs!h)
+				endcase
+			$)
+		case SF.WHERE:
+			if PTYPE of objct = S.PLAYER then unless hidden(P1 of objct)
+			$(	let name, prof, rm=player.names!(P1 of objct),LH from name,CROOM of prof
+				if WIZARD of profile out(":6 - ", !rm)
+				test A.DEATH bitand ATTRIB of rm then out("Land of the Dead.*C*L") or desc.short(rm)
+				(SEX of prof->her,him)_name
+				them_name
+				endcase
+			$)
+			unless PTYPE of objct=S.OBJECT \/ PTYPE of objct=S.CLASS
+			error("You can only ask where an item or person is, not anything else.")
+			$(	let found=false
+				cn_PTYPE of objct=S.CLASS -> classmatch, objmatch
+				l_PTYPE of objct=S.CLASS -> P1 of objct, D1 of (DREC of objct)
+				for i=0 to 35 do if player.names!i then unless hidden(i)
+				$(	let nd=ROBJT of (LH from player.names!i) and fnd=false and num=0
+					while nd do
+					$(	if lookinside(nd,l,cn) then fnd_true<>setit(nd)
+						if cn(l,nd) num+_1<>setit(nd)
+						nd of_LINK
+					$)
+					if fnd saywhere(0,i)<>found_true
+					if num saywhere(num,i)<>found_true
+				$)
+				for i=0 to HASHSIZE
+				$(	let nd=index!i
+					while nd do
+					$(	let rm, ob=LH of nd, ROBJT of rm
+						and fnd, num, des=false, 0, 0
+						unless (ATTRIB of rm bitand (A.DEATH bitor A.HIDEAWAY))/\(WIZARD of profile)=0
+						$(	while ob do
+							$(	if lookinside(ob,l,cn) fnd_true<>setit(ob)
+								if cn(l,ob) test WIZARD of profile then
+								$(	num+_1
+									if DESTROYED of ob ls 0 des+_1
+									setit(ob)
+								$) or if DESTROYED of ob ge 0 num+_1<>setit(ob)
+								ob of_LINK
+							$)
+							if fnd sayroom(0,rm,@found)
+							if des out(":N destroyed from the ",des)
+							if num sayroom(num,rm,@found)
+						$)
+						nd of_LINK
+					$)
+				$)
+				unless found outz($az"Wouldn't you like to know!*C*L")
+			$)
+			endcase
+		case SF.SGET:	//this, WHERE, TRANSWHERE and TRANSHERE are virtually the same!
+			unless PTYPE of objct=S.CLASS\/PTYPE of objct=S.OBJECT outz($az"It's not gettable.*C*L")<>endcase
+			cn_PTYPE of objct=S.CLASS->classmatch,objmatch
+			l_PTYPE of objct=S.CLASS->P1 of objct, D1 of DREC of objct
+			for i=0 to HASHSIZE
+			$(	let nd=index!i
+				while nd do
+				$(	let rm, ob, oob=LH of nd, ?, ?
+					lockup(@ob,@oob,rm)
+					while ob do
+					$(	if cn(l, ob)/\(RELAXED\/us(me)\/(FIXED of ob=0/\NOGET of ob=0))
+						$(	if FIXED of ob \/ NOGET of ob unless us(me)
+								outz($az"I hope you know what you're doing...*C*L")
+							out("from :6 - ", !rm)
+							tidy(oob,ob,@cn)
+							unlock()
+							ROBJT of profile_carry
+							endcase
+						$)
+						oob_ob
+						ob of_LINK
+					$)
+					unlock()
+					nd of_LINK
+				$)
+			$)
+			outz($az"It's not gettable.*C*L")
+			endcase
+		case SF.DIRECT:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless WIZARD of profile error("You have to be a :s or :s to do that, :s.", male!MAX.LEVEL,female!MAX.LEVEL,SEX of profile ->"lass", "lad")
+				l_1
+				for i=0 to HASHSIZE
+				$(	let nd = index!i
+					while nd do
+					$(	let rm, nm = LH of nd, RNAME of nd
+						if ROBJT of rm then
+						$(	let ob=ROBJT of rm
+							while ob do
+							$(	out(":6	:S:S",nm, PNAME of ob,l rem 4->"*T","*C*L")
+								ob of_LINK
+								l +_1
+							$)
+						$)
+						nd of_LINK
+					$)
+				$)
+				endcase
+			$)
+		case SF.ROOMS:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	unless WIZARD of profile error("Wait until you're a :s...", (SEX of profile->female,male)!max.level)
+				l_1
+				for i=0 to HASHSIZE
+				$(	let nd=index!i
+					while nd do
+					$(	out(":6:s", RNAME of nd, l rem 8 -> "*T", "*C*L")
+						l+_1
+						nd of_LINK
+					$)
+				$)
+				out("*C*LTotal of :n rooms.*C*L", l-1)
+				endcase
+			$)
+		case SF.BRIEF:
+			brief_~brief->-1,0
+			endcase
+		case SF.VERBOSE:
+			brief_brief=1->0,1
+			endcase
+		case SF.IGNORE:
+			IGNORE of profile _~(IGNORE of profile)
+			out("Status messages will :sbe ignored.*C*L", (IGNORE of profile)->"", "not ")
+			endcase
+		case SF.SNOOP:
+			unsnoop()
+			test objct=fake then interact(I.SNOOP) or
+			$(	cn_object()
+				unless P4 of cn=0/\MOTN of cn Error("The :P can't move!", objname)
+				snobj_cn
+				SNOOPERS of MOTN of snobj bitor_player.bit
+				out("You have started to :s on the :p.*C*L", verbname, objname)
+			$)
+			endcase
+		case SF.UNSNOOP:
+			unless snooping ge 0 \/ snobj error("You're not snooping on anyone!*C*L")
+			unsnoop()
+			endcase
+		case SF.CRASH:
+			test CORELOW then
+				error("The :s command has been temporarily removed for space reasons - sorry!", verbname)
+			or
+			$(	checkforced()
+				unless WIZARD of profile error("You have to be a :s or :s to do that, :s.", male!MAX.LEVEL,female!MAX.LEVEL,SEX of profile ->"lass", "lad")
+				unless RELAXED\/us(me) then error()
+				unless WIZARD of profile Error()
+				spcheck()
+				Clearvec(special,interact-special)
+				$[ $exit 1,0 $]
+			$)
+		case SF.POLICE:
+			test ESSEX then
+			$(	let op, ostr=?, output
+				op_appendfile($6"dsk",$6"prolog", $6"prl", MPPN, Label(rotts))
+				output_op
+				out("POLICE called to :s by :p!*C*L", @mudnam, me)
+				for i=0 to 35 do if player.names!i 
+				$(	let nm, ii=LH from player.names!i, INVIS of nm
+					out(":c:s is playing:c",ii->'(','*0',player.names!i,ii->')','*0')
+					if WIZARD of nm out(" in wiz mode")
+					out(" on :N points in room :6 carrying :i*C*L",SCORE of nm,!(CROOM of nm),ROBJT of nm)
+				$)
+				out("end of POLICE report.*C*L")
+				output_ostr
+				close(op)
+				out("Thankyou, :s, you've been of enormous help, I'll put someone on it as soon*C*Las I can.*L",
+					SEX of profile -> "ma'am", "sir")
+				endcase
+rotts:				error()
+			$) or error()
+		case SF.ENCHANT:
+			unless RELAXED\/us(me)\/seq(objname,me) then error()
+			unless WIZARD of profile error()
+			unless us(me) if us(objname) error("What a sweet sense of humour!")
+			spcheck()
+			unless objct=fake error(":p who?",verbname)
+			person(objct)
+			$(	let prof=LH from player.names!(P1 of objct)
+				and str, dex, scr=
+					STRENGTH of prof, DEXTERITY of prof, SCORE of prof
+				and op=?
+				if BZK unless us(me) if BERSERK of prof error("Not a berserker, see an arch-wiz about it!")
+				if ESSEX
+				$(	op_appendfile($6"dsk",$6"prolog", $6"prl", MPPN, Label(ratts))
+					write(op,":P frigging :P in :s*C*L:N*T:N*T:N*T:N*C*L", profile+14,prof+14, @mudnam,str, dex, STAMINAMAX of prof, scr)
+				$)
+				out("*C*LStrength:	:N -> ",str)
+				STRENGTH of prof_rationalise(nextnum(str))
+				out("*C*LStamina:	:N -> ",STAMINA of prof)
+				STAMINA of prof_rationalise(nextnum(STAMINAMAX of prof))	//default to max stamina, not current one
+				STAMINAMAX of prof_STAMINA of prof
+				out("*C*LDexterity:	:N -> ",dex)
+				DEXTERITY of prof_rationalise(nextnum(dex))
+				if Us(PNAME of profile)
+				$(	let gam=GAMES.PLAYED of prof
+					out("*C*LGames:	:N -> ", gam)
+					GAMES.PLAYED of prof_nextnum(gam)
+					if BZK
+					$(	let ber=BERSERK of prof
+						out("*C*LBerserk:	:N -> ", ber)
+						BERSERK of prof_nextnum(ber)
+					$)
+				$)
+				out("*C*LScore:	:N -> ",scr)
+				SCORE of prof_nextnum(scr)
+				if ESSEX
+				$(	write(op, ":N*T:N*T:N*T:N*C*L", STRENGTH of prof,DEXTERITY of prof,STAMINAMAX of prof,SCORE of prof)
+					close(op)
+				$)
+				endcase
+ratts: error()
+			$)
+		case SF.SET:
+			unless WIZARD of profile out("You've got to be a :s or :s to be able to do that!*C*L",female!MAX.LEVEL,male!MAX.LEVEL)<>reset()<>endcase
+			spcheck()
+			$(	let o1, p=object(), getnum()
+				unless p <= P5 of o1
+					Error("Max. property for :S is :n.",objname, P5 of o1)
+				setprop(o1,p)
+				longdescribe(@mud6,(selector 18:18*((P4 of o1)rem 2):(P4 of o1)/2+OBJECTSIZE+1)of o1)
+			$)
+	$)
+$)
+and action(skiptonext) be
+$(	let fast.action,vb,nd,oldnd,ocl,o1,rcl,o2,sm,fm,function,obj,ifr,sms,fms,trylots,formobile=
+		PTYPE of verb=S.FASTATN,get.cmnd(DREC of verb,fast.action),?,?,?,?,?,?,?,?,?,?,false,?,?,Numbargs(),trylots ne 0 /\ skiptonext=0
+	$(	o1_false
+		ocl,rcl_D1 of vb,D2 of vb
+		if rcl=#400001 then if (PTYPE of objct)=S.PLAYER loop	 //Means can override eg ".assist"
+		if ocl o1_action.ser(objct,ocl,trylots,formobile)<>unless o1 loop
+		if rcl then test #400000 le rcl le #400077 then
+		$(	let cnt=0
+			for i=0 to 35 do if (1<<i) bitand joined cnt+_1
+			if cnt ls rcl-1-#400000 loop
+		$) or test ocl then test ocl=#777775 \/ ocl=#777777 then
+		$(	o1_action.ser(instrmnt, rcl,trylots,formobile)
+			unless o1 loop
+		$) or
+		$(	o2_action.ser(instrmnt,rcl,trylots,formobile)
+			unless o2 loop
+			unless PTYPE of instrmnt=S.PLAYER\/formobile
+			$(	let poss=?
+				test PTYPE of instrmnt=S.CLASS then poss_toting.class(DREC of instrmnt)
+					or poss_toting(D1 of (DREC of instrmnt))
+				if poss o2_poss
+			$)
+		$) or
+		$(	o1_(formobile->here.class,here.or.toting.class)(rcl)
+			unless o1 loop
+		$)
+		obj_D6 of vb->((D6 of vb ne #777777/\D6 of vb ne #777775)->D6 of vb,o2),o1
+		sm,function_D4 of vb,D3 of vb
+		switchon function into
+		$(
+		case F.HOLDFIRST:
+			holdfirst_true
+			loop
+		case F.HOLDLAST:
+			holdfirst_false
+			loop
+		case F.FLIPAT:
+			if at swapobjins()
+			loop
+		case F.NOIFR:
+			ifr_false
+			loop
+		case F.IFRPROP:
+			if RANDM of obj setprop(obj,random(1+(P5 of obj)))
+		case F.IFPROP:	case F.IFPROPINC:	case F.IFPROPDEC:	case F.IFPROPDESTROY:
+			if(P4 of obj) ne sm loop
+			endcase
+		case F.IFOBJCOUNT:
+		$(	let cnt=0
+			sm_ROBJT of LH of sm
+			while sm
+			$(	cnt+_1
+				sm_LINK of sm
+			$)
+			test cnt ge D5 of vb then endcase or loop
+		$)
+		case F.UNLESSPROP:	case F.UNLESSPROPDESTROY:
+			unless (P4 of obj) ne sm loop
+			endcase
+		case F.IFIN:	case F.IFINC:	if (LH of sm ne room) loop
+			endcase
+		case F.UNLESSIN:	case F.UNLESSINC:	if (LH of sm eq room) loop
+			endcase
+		case F.SENDEMON: case F.SSENDEMON:	//sendemon or super-sendemon
+			obj_D6 of vb->((D6 of vb ne #777777/\D6 of vb ne #777775)->D6 of vb,instrmnt),objct
+			unless PTYPE of obj=S.PLAYER loop
+			$(	let pnum=P1 of obj
+				if hidden(pnum) loop
+				unless function=F.SSENDEMON\/(WIZARD of profile=1)\/((1<<pnum) bitand who.copy) loop
+				endcase
+			$)
+		case F.IFHERETRANS:
+		case F.IFHERE:	case F.UNLESSHERE:	case F.HURT:	case F.EMOTION:
+			if ocl=#777775 loop
+			if ocl=#777777 /\ (PTYPE of objct = S.PLAYER) then
+			$(	let pnum=P1 of objct
+				if hidden(pnum) test function=F.UNLESSHERE then endcase or loop
+				if (1<<pnum) bitand who.copy test D3=F.UNLESSHERE then loop or endcase
+				test D3=F.UNLESSHERE then endcase or loop
+			$)
+		case F.UNLESSGOT:	case F.IFGOT:
+			nd_holding(obj)
+			if (function=F.UNLESSGOT /\ nd) \/ (function=F.IFGOT /\\nd) loop
+			if (function=F.UNLESSGOT) \/ (function=F.IFGOT) endcase
+			if ((function=F.IFHERE)\/(function=F.IFHERETRANS))/\nd endcase
+			if (function=F.UNLESSHERE/\nd) loop
+			nd_valof
+			$(	let nd=ROBJT of room
+				if (A.HIDEAWAY bitand ATTRIB of room)/\(WIZARD of profile)=0 then resultis false
+				while nd do test obj=nd /\(WIZARD of profile=1 \/ (DESTROYED of nd ge 0)) then resultis true or
+				nd of_LINK
+				resultis false
+			$)
+			if (function=F.UNLESSHERE /\nd) \/ (((function=F.IFHERE)\/(function=F.IFHERETRANS)) /\\nd) loop
+			endcase
+		case F.IFHAVE:
+			if carrying(PTYPE of obj,true,carry) endcase
+			loop
+		case F.UNLESSHAVE:
+			unless carrying(PTYPE of obj,true,carry) endcase
+			loop
+		case F.UNLESSOBJIS:	if objct=fake endcase
+			if (D1 of DREC of objct)=(LH of D6 of vb) loop
+			endcase
+		case F.IFOBJIS:	if objct=fake loop
+			if (D1 of DREC of objct)=(LH of obj) endcase
+			loop
+		case F.UNLESSOBJCONTAINS:
+			unless open(o1,PTYPE of obj,objmatch,true) endcase
+			loop
+		case F.IFOBJCONTAINS:
+			if open(o1,PTYPE of obj,objmatch,true) endcase
+			loop
+		case F.UNLESSOBJPLAYER:	if objct ne fake endcase
+			unless PTYPE of objct=S.PLAYER endcase
+			test P1 of objct=player.no then endcase or loop
+		case F.IFOBJPLAYER:	if objct ne fake loop
+			unless PTYPE of objct=S.PLAYER endcase
+			test P1 of objct=player.no then loop or endcase
+		case F.UNLESSINSIS:	if instrmnt=fake\/instrmnt=0 endcase
+			if (D1 of DREC of instrmnt)=(LH of D6 of vb) loop
+			endcase
+		case F.IFINSIS:	if instrmnt=fake\/instrmnt=0 loop
+			if (D1 of DREC of instrmnt)=(LH of D6 of vb) endcase
+			loop
+		case F.IFDISENABLE:
+			if disenable(sm) endcase
+			loop
+		case F.UNLESSDISENABLE:
+			unless disenable(sm) endcase
+			loop
+		case F.IFENABLED:
+			if enabled(sm) endcase
+			loop
+		case F.UNLESSENABLED:
+			if enabled(sm) loop
+			endcase
+		case F.IFBERSERK:
+			if BZK/\BERSERK of profile endcase
+			loop
+		case F.UNLESSBERSERK:
+			unless BZK/\BERSERK of profile endcase
+			loop
+		case F.IFWIZ:				//ought to do this like ifasleep & ifsex...
+			if WIZARD of profile endcase
+			loop
+		case F.UNLESSWIZ:
+			unless WIZARD of profile endcase
+			loop
+		case F.IFILL:
+			if deaf\/dumb\/blind\/paralysed endcase
+			loop
+		case F.UNLESSILL:
+			unless deaf\/dumb\/blind\/paralysed endcase
+			loop
+		case F.UNLESSWEIGHS:
+			unless WEIGHT of obj ge sm endcase
+			loop
+		case F.IFWEIGHS:
+			if WEIGHT of obj ge sm endcase
+			loop
+		case F.UNLESSDEAD:		//use IFALIVE?
+			if DESTROYED of obj le 0 loop
+			endcase
+		case F.IFDEAD:
+			if DESTROYED of obj le 0 endcase
+			loop
+		case F.UNLESSDESTROYED:
+			if DESTROYED of obj ls 0 loop
+			endcase
+		case F.IFDESTROYED:
+			if DESTROYED of obj ls 0 endcase
+			loop
+		case F.IFSMALL:
+			if A.SMALL bitand (ATTRIB of room) endcase
+			loop
+		case F.UNLESSSMALL:
+			unless A.SMALL bitand (ATTRIB of room) endcase
+			loop
+		case F.IFSNOOPING:
+			if snobj ne 0 \/ snooping ne -1 endcase
+			loop
+		case F.UNLESSSNOOPING:
+			unless snobj unless ~snooping endcase
+			loop
+		case F.RETALIATE:
+		case F.IFFIGHTING:
+		case F.UNLESSFIGHTING:
+			if valof
+			$(	for i=0 to 35 if fight!i resultis true
+				resultis false
+			$) test function=F.UNLESSFIGHTING then loop or endcase
+			test function=F.UNLESSFIGHTING then endcase or loop
+		case F.IFLEVEL:	if player.level()<sm-1 /\(WIZARD of profile)=0 loop
+			endcase
+		case F.IFPLAYING:
+			if playing(sm) endcase
+			loop
+		case F.UNLESSPLAYING:
+			if playing(sm) loop
+			endcase
+		case F.IFSELF:
+			test PTYPE of objct=S.PLAYER /\ P1 of objct=player.no then endcase or loop
+		case F.IFSEX:	unless SEX of profile=sm loop
+			endcase
+		case F.IFASLEEP:
+			if ASLEEP of profile=sm endcase
+			loop
+		case F.IFINVIS:
+			if INVIS of profile=sm endcase
+			loop
+		case F.IFDEAF:
+			if deaf=sm endcase
+			loop
+		case F.IFblind:
+			if blind=sm endcase
+			loop
+		case F.IFparalysed:
+			if paralysed=sm endcase
+			loop
+		case F.IFdumb:
+			if dumb=sm endcase
+			loop
+		case F.IFRSTAS:
+			if random(STAMINA of profile) ls random(DESTROYED of obj) endcase
+			loop
+		case F.UNLESSRSTAS:
+			if random(STAMINA of profile) ls random(DESTROYED of obj) loop
+			endcase
+		case F.IFRLEVEL:
+			ifr_true
+			test Random(100) ls (1+player.level())*sm\/(WIZARD of profile=1) then
+				test objct=fake/\PTYPE of objct=S.PLAYER then
+					test P1 of objct=player.no then
+						endcase or
+							test random(100) ls (1+player.level(LH from player.names!(P1 of objct)))*sm/\(WIZARD of profile=0)
+							then loop or
+							endcase or
+					 	endcase or
+				loop
+		case F.UNLESSRLEVEL:
+			ifr_true
+			test Random(100) ls (1+player.level())*sm\/(WIZARD of profile)=1 then
+				test objct=fake/\PTYPE of objct=S.PLAYER then
+					test P1 of objct=player.no then
+						loop or
+						test random(100) ls (1+player.level(LH from player.names!(P1 of objct)))*sm/\(WIZARD of profile=0)
+							then endcase or
+							loop or
+				 	loop or
+				endcase
+		case F.IFR:
+			ifr_true
+			if random(100) ls sm endcase	//ls, not le
+			loop
+		case F.UNLESSLEVEL:	if player.level()>=sm-1 \/(WIZARD of profile)=1 loop
+		default:	endcase
+		$)
+		holdfirst_false
+		unless D7 of vb doownthing()		//What? No mobile check?!
+		if D8 of vb sendall(true,K.LOUD,false,false,D8 of vb)
+		special(D7 of vb)
+		break
+	$) repeatwhile valof $( vb_get.cmnd(LINK of vb,fast.action); resultis vb $)
+	unless vb test trylots then return or error()
+	if ifr/\(WIZARD of profile)=0 verb_0<>objct_fake.node("that")
+	unless o1 o1_obj
+	fm_D5 of vb
+	enable(D9 of vb)
+	skiptonext_formobile->-1, 1
+	sms_skiptonext*sm
+	fms_skiptonext*fm
+	if function ge F.INCDESTROY then switchon function into
+	$(	case F.FLOATDESTROY:
+			FIXED of o1_false
+		case F.INCDESTROY:
+			if P4 of o1 < P5 of o1 then setprop(o1,(P4 of o1)+1)
+			function_F.DESTROY
+			endcase
+		case F.DESTROYINC:
+			destroy(o1,0)
+			function_F.INC
+			endcase
+		case F.DESTROYCREATE:
+			destroy(o1,0)
+			function_F.CREATE
+			endcase
+		case F.EXPDESTROY:
+			setexp(o1)
+			function_F.DESTROY
+			endcase
+		case F.EXPMOVE:
+			setexp(o1)
+			function_F.MOVE
+			endcase
+		case F.INCMOVE:
+			function_F.MOVE
+		case F.UNLESSINC:
+		case F.IFINC:
+			if P4 of o1<P5 of o1 then setprop(o1,(P4 of o1)+1)
+			endcase
+		case F.DESTROYTRANS:
+			destroy(o1,0)
+			function_F.TRANS
+			endcase
+		case F.DECDESTROY:
+			if P4 of o1>0 then setprop(o1,(P4 of o1)-1)
+			function_F.DESTROY
+			endcase
+		case F.DECIFZERO:
+			if P4 of o1>0 then setprop(o1,(P4 of o1)-1)
+			function_F.IFZERO
+			endcase
+		case F.DECINC:
+			if P4 of o1 > 0 then setprop(o1,(P4 of o1)-1)
+			function_F.INC
+			endcase
+		case F.INCDEC:
+			if P4 of o1 < P5 of o1 then setprop(o1,(P4 of o1)+1)
+			function_F.DEC
+			endcase
+		case F.DESTROYDEC:
+			destroy(o1,0)
+			function_F.DEC
+			endcase
+		case F.DESTROYDESTROY:
+			destroy(o1,0)
+			function_F.DESTROY
+			endcase
+		case F.DESTROYSET:
+			destroy(o1,0)
+			function_F.SET
+			endcase
+		case F.SETDESTROY:
+		case F.SETFLOAT:
+			setprop(o1, sm)
+			endcase
+		case F.SWAP:
+			If D6 of vb /\ D6 of vb ne #777777/\D6 of vb ne #777775 then
+			$(	let temp=P4 of (D6 of vb)
+				setprop((D6 of vb),P4 of o1)
+				setprop(o1,temp)
+			$)
+			longdescribe(sms)
+			return
+	$)
+	if D6 of vb then o1_D6 of vb ne #777777/\D6 of vb ne #777775->D6 of vb, o2
+	switchon function into
+	$(	case F.FLOAT:
+			unless FIXED of o1 endcase
+			FIXED of o1_false
+			longdescribe(sms)
+			return
+		case F.IFLIGHT:
+			longdescribe(visible()->sms,fms)
+			return
+		case F.INC: //Inc
+			if P4 of o1>=P5 of o1 then endcase
+			setprop(o1,(P4 of o1)+1,sms)
+			return
+		case F.FIX:
+			if fixed of o1 endcase
+			fixed of o1_true
+		case F.DEC: //Dec
+			if P4 of o1>0 then
+			$(	setprop(o1,(P4 of o1)-1,sms)
+				return
+			$)
+			endcase
+		case F.IFPROPDEC:
+			if P4 of o1>0 then
+			$(	setprop(o1,(P4 of o1)-1,fms)
+				return
+			$)
+			endcase
+		case F.TESTSMALL:
+			longdescribe(A.SMALL bitand ATTRIB of room->sms, fms)
+			return
+		case F.FLUSH:
+			flush()
+		case F.UNLESSGOT:
+		case F.IFGOT:
+		case F.IFRSTAS:
+		case F.UNLESSRSTAS:
+		case F.IFHAVE:
+		case F.UNLESSHAVE:
+		case F.IFHERE:
+		case F.UNLESSHERE:
+		case F.IFOBJIS:
+		case F.UNLESSOBJIS:
+		case F.IFOBJPLAYER:
+		case F.UNLESSOBJPLAYER:
+		case F.IFSNOOPING:
+		case F.UNLESSSNOOPING:
+		case F.IFOBJCONTAINS:
+		case F.UNLESSOBJCONTAINS:
+		case F.IFINSIS:
+		case F.UNLESSINSIS:
+		case F.IFDEAD:
+		case F.UNLESSDEAD:
+		case F.IFBERSERK:
+		case F.UNLESSBERSERK:
+		case F.IFFIGHTING:
+		case F.UNLESSFIGHTING:
+		case F.IFWIZ:
+		case F.UNLESSWIZ:
+		case F.IFILL:
+		case F.UNLESSILL:
+		case F.IFSMALL:
+		case F.UNLESSSMALL:
+		case F.IFSELF:
+		case F.NULL: //Null
+			longdescribe(sms)
+			return
+		case F.IFDISENABLE:
+		case F.IFWEIGHS:
+		case F.UNLESSWEIGHS:
+			endcase
+		case F.MOVE: //Move
+			if skiptonext ls 0 endcase
+			switchon PTYPE of objct into
+			$(	CASE S.OBJECT:	     drop(LH of sm); endcase
+				CASE S.CLASS:	    drop.class(LH of sm); endcase
+				DEFAULT:	error("I don't know what :s means.", objname)
+			$)
+			endcase
+		case F.DELAYMOVE:
+			$(	let obj,nd,oldnd,indx=?,carry,lvcarry,demons+(DEMONSIZE+DOF)*fm
+				if skiptonext ls 0 endcase
+				switchon PTYPE of objct into
+				$(
+				case S.OBJECT:
+					obj_D1 of DREC of objct
+					unless toting(obj) error("You aren't carrying it!")
+					until LH of nd=obj oldnd_nd<>nd of_LINK
+					drop.delay(nd,oldnd,LH of sm,indx,fm)
+					return
+				case S.CLASS:
+					obj_P1 of objct
+					unless toting.class(obj) error("You aren't carrying any :s", objname)
+					while nd do
+					$(	unless PTYPE of nd=LH from kept if P1 of nd=obj\/(obj=1/\P4 of nd=SCOREPROP of nd /\ valof
+						$(	let res=VALUE of nd
+						$[	$hrre	1,	res	$]
+						$) ge 0) then drop.delay(nd,oldnd,LH of sm,indx,fm)<>nd_oldnd
+						oldnd_nd
+						nd of_LINK
+					$)
+					return
+				default:	error("I don't know what :s means.", objname)
+				$)
+			$)
+		case F.IFHERETRANS:
+		case F.TRANS: //Trans
+			longdescribe(fms)
+			lose.followers()
+			start.leading()
+			move.ser(LH of sm->LH of sm,room, true)
+			return
+		case F.TRANSWHERE:
+		$(	let obno=PTYPE of o1
+			let place=valof
+			$(	for i=0 to HASHSIZE
+				$(	let nd=index!i
+					while nd do
+					$(	let rm,ob=LH of nd,ROBJT of rm
+						unless (ATTRIB of rm bitand (A.DEATH bitor A.HIDEAWAY))/\(WIZARD of profile)=0
+						while ob do
+						$(	if PTYPE of ob=obno resultis rm
+							ob of_LINK
+						$)
+						nd of_LINK
+					$)
+				$)
+				resultis false
+			$)
+			unless place endcase
+			longdescribe(sms)
+			lose.followers()
+			start.leading()
+			move.ser(place,true)
+			return
+		$)
+		case F.WRITEIN:
+		$(	let mudstream, buffer, snoopy=?, vec 26, snoopedon
+			read.message(buffer)
+			snoopedon_false
+rats:			mudstream_appendfile(DISC, PNAME of o1, "dba", MAINTA, label(rats))
+			write(mudstream, "*":s*"*C*L", buffer)
+			close(mudstream)
+			snoopedon_snoopy
+			out("*C*L")
+			longdescribe(sms)
+			return
+		$)
+		case F.RETALIATE:
+			if skiptonext ls 0 endcase
+			if retaliated error("You can't :s further this melee",verbname)
+			$(	let wpn=(sm<<18) bitor ((0 le ocl ls #400000)/\(object ne fake) -> objct, 0)
+				for i=0 to 35 if fight!i transmit(i, 0, K.IHR, wpn)
+				out("You :s with your :s!*C*L", verbname, objname)
+				retaliated_true
+				endcase
+			$)
+		case F.ENABLE:
+			enable(sm,true)
+			endcase
+		case F.DISENABLE:
+			disenable(sm)
+			endcase
+		case F.SUSPEND:
+			suspend(events,sm)
+			suspend(gdemons,sm)
+			endcase
+		case F.SENDLEVEL:
+			if dumb error("You can't do that, you're dumb")
+			sendlevel(sm-2)
+			endcase
+		case F.SENDMESS:
+			if skiptonext ls 0 endcase
+			sendall(true,K.MESS,false,false,sm)
+			endcase
+		case F.TESTSEX:
+			longdescribe(SEX of profile->sms,fms)
+			return
+		case F.SETSEX:
+			$(	let beforeoperation=SEX of profile
+				SEX of profile_sm ge 1 -> 1, 0
+				unless SEX of profile=beforeoperation sexify(SEX of profile)
+			$)
+			endcase
+		case F.DESTROYTOGGLESEX:
+			SEX of profile_not (SEX of profile)
+			sexify(SEX of profile)
+			destroy(o1,SEX of profile -> sms, fms,numbargs())	//not too useful for demons...
+			return
+		case F.TOGGLESEX:
+			SEX of profile_NOT (SEX of profile)
+			sexify(SEX of profile)
+			longdescribe(SEX of profile->sms,fms)
+			return
+		case F.SENDEMON:
+		case F.SSENDEMON:
+			transmit(P1 of obj,0,K.DTD,sm)
+			endcase
+		case F.HURT:
+			if skiptonext ls 0 endcase
+			if peace error("Fighting is currently forbidden.")
+			unless RELAXED\/us(me) if WIZARD of profile error("I'm sure you don't mean it...")
+			test PTYPE of objct=S.PLAYER then
+			$(	let pnum=P1 of objct and weapon=0 ls rcl ls #400000->instrmnt, 0
+				if pnum=player.no error("Don't do it, kid! Things will look better in the morning, honest!")
+				if fight!pnum error("You're not allowed to do that to :p while fighting :s",
+					objname, SEX of LH from player.names!pnum ->"her", "him")
+				send(pnum, 0, K.IHHU, (sm<<18)bitor weapon)
+				out("You start to :s :P with :s :r", verbname,player.names!pnum,
+					sm<10->"extra",sm<30->"real","tremendous", 12)
+				test weapon then Out(" using your :s.*C*L",insname)
+				or outs(".*C*L")
+			$) or
+			$(	if fight!player.no error("You're not allowed to  do that to the :s in the middle*C*L of a fight", objname)
+				unless DESTROYED of o1 gr 0 error("You can't :S that!", verbname)
+				quitflg_false
+				if MOTN of obj FIGHTS of MOTN of obj bitor_player.bit
+				fight!player.no_o1
+				broadcast(K.IFM,who.copy, objname)
+				send(player.no, 0, K.ISAHM, sm)
+				out("You start to :s the :s with :s power", verbname, objname, sm<10->"little extra",sm<30->"real","tremendous")
+				if instrmnt out(" using your :s", insname)
+				outs("!*C*L")
+			$)
+			retaliated_true
+			endcase
+		case F.EMOTION:
+			if skiptonext ls 0 endcase
+			test PTYPE of objct=S.PLAYER then
+			$(	let pnum, blk, sc, scr,pr,prf,nam,pnam=
+					P1 of objct, ?, sm, SCORE of profile,player.names!pnum,LH from pr,PNAME of prf, PNAME of profile
+				if pnum=player.no error("Narcissism gets you nowhere these days, flower.")
+				unless us(pnam)\/(!pnam>>1)=(!"gail">>1) if us(nam) unless invisible(prf) error("You are too lowly a being to :s :p.",verbname,pr)
+				if BZK/\BERSERK of profile error("Berserkers, such as yourself, are unable to perform such an act!*C*L")
+				if BZK/\BERSERK of prf error("You can't :s a berserker!", verbname)
+				if scr ls SCORE of prf sc_0
+				if scr ls sc sc_scr
+				setscore(-sc)
+				blk_getmblock()
+				blk!3, blk!4_!verbname, 1!verbname
+				send(pnum, blk, K.IHSE, (E.MULT*sc)/E.DIV)
+				sendall(who.copy bitand ~(1<<pnum), K.IHKS, false, false, pr, !verbname, 1!verbname)
+				flush()
+			$) or Error()
+			endcase
+		case F.INCSEND:
+			if P4 of o1 < P5 of o1 setprop(o1,(P4 of o1)+1)
+		case F.SEND:	case F.SENDEFFECT:
+		$(	let ptoob,whoto,thisrm=LH of o1,0,?
+			function_function=F.SENDEFFECT
+			thisrm_function -> sm, LH of sm
+			for i=0 to HASHSIZE
+			$(	let nd=index!i
+				while nd do
+				$(	let rm, ob = LH of nd, ROBJT of rm
+					while ob do
+					$(	if ptoob=PTYPE of ob
+						$(	test function then whoto bitor_WHO!rm or
+							$(	broadcast(K.TTH,WHO!rm,thisrm,true)
+								if (ATTRIB of thisrm) bitand A.DEATH
+								$(	let o1=ROBJT of rm
+									while o1 do	//walk list already walking via ob...
+									$(	if DESTROYED of o1 gr 0
+											destroy(o1,0)
+										o1 of_LINK
+									$)
+								$)
+							$)
+							break
+						$)
+						ob of_LINK
+					$)
+					nd of_LINK
+				$)
+			$)
+			if whoto sendall(whoto,K.LOUD,false,false,thisrm)
+			endcase
+		$)
+		case F.ZONK:
+			unless WIZARD of profile stamina of profile_-1
+			longdescribe(sms)
+			checkout()
+			endcase
+		case F.DEAD:
+			$(	let nam=PNAME of profile
+				for i=0 to 35 if fight!i /\ i ne player.no
+				$(	let block=getmblock()
+					block!3_!nam
+					block!4_1!nam
+					send(i,block,K.IHD,(player.level()+1)*DEADPTS/2)
+					fight!i_false
+				$)
+			$)
+			stop.fighting()
+			longdescribe(sms)
+			unless WIZARD of profile ne 0 test spectacular then
+			$(	drop.everything()
+				STAMINA of profile_STAMINA of profile<20 -> 10, (STAMINA of profile)-10
+			$) or
+			$(	if sms<0 longdescribe(-sms)
+				quit()
+			$)
+			endcase
+		case F.EXPSET:
+			setexp(o1)
+		case F.SET: //Set
+			setprop(o1,sm)
+			endcase
+		case F.RESETDEST:
+			DESTROYED of o1_sm
+			endcase
+		case F.IFPROPINC:
+			if P4 of o1 < P5 of o1 setprop(o1,(P4 of o1)+1)
+			endcase
+		case F.EXP:
+			setscore(extra(sm))
+			flush()
+			endcase
+		case F.LOSEEXP:
+			setscore(-sm)
+			endcase
+		case F.LOSESTAMINA:
+			unless WIZARD of profile STAMINA of profile-_sm
+			longdescribe(fms)
+			checkout()
+		case F.IFOBJCOUNT:
+			return
+		case F.TOGGLE: //Toggle
+			setprop(o1,(p5 of o1)-(p4 of o1))
+			longdescribe(P4 of o1->sms, fms)
+			return
+		case F.SETFLOAT:
+			FIXED of o1_false
+			if P4 of o1 <P5 of o1 setprop(o1,(P4 of o1)+1)	//so as to let you see 'em too
+			endcase
+		case F.STAMINA:
+		case F.STAMINADESTROY:
+			$(	let s, smax=(STAMINA of profile)+sm, STAMINAMAX of profile
+				if s>smax s_smax
+				STAMINA of profile_s
+			$)
+			if function=F.STAMINA endcase
+		case F.SETDESTROY:
+		case F.IFPROPDESTROY:
+		case F.UNLESSPROPDESTROY:
+		case F.DESTROY:
+			if DESTROYED of o1 ls 0 endcase
+			destroy(o1,function = F.DESTROY->sms,fms,D8 of vb->false,Numbargs()=skiptonext)
+			return
+		case F.INJURE:
+			if DESTROYED of o1 le 0 endcase
+			DESTROYED of o1-_sm
+			if DESTROYED of o1 le 0 destroy(o1,0)
+			endcase
+		case F.CREATE:
+			unless DESTROYED of o1 ls 0 endcase
+			DESTROYED of o1_false
+			longdescribe(sms)
+			return
+		case F.FORROT:
+			setprop(o1,((P4 of o1)+1) rem ((P5 of o1)+1))
+			longdescribe(P4 of o1->sms,fms)
+			return
+		case F.BACKROT:
+			setprop(o1,((P4 of o1)-1) rem ((P5 of o1)+1))
+			longdescribe(P4 of o1->sms, fms)
+			return
+		case F.TRANSHERE:
+		$(	let obno, nd=PTYPE of o1, ?
+			longdescribe((valof
+			$(	for i=0 to HASHSIZE
+				$(	nd_index!i
+					while nd
+					$(	let rm, ob, oob=LH of nd,?,?
+						lockup(@ob,@oob,rm)
+						unless rm=room\/((ATTRIB of rm bitand (A.DEATH bitor A.HIDEAWAY))/\(WIZARD of profile=0))
+						while ob do
+						$(	if PTYPE of ob=obno/\DESTROYED of ob ge 0
+							$(	LINK of oob_LINK of ob
+								unlock()
+								lockdown(room,ob)
+								broadcast(K.SHBD,who!room,ob,true)
+								resultis true
+							$)
+							oob_ob
+							ob of_LINK
+						$)
+						unlock()
+						nd of_LINK
+					$)
+				$)
+				resultis false
+			$)) -> sms, fms)
+			return
+		$)
+		case F.EXPINC:
+			setexp(o1)
+			unless P4 of o1<P5 of o1 endcase
+			setprop(o1,(P4 of o1)+1,sms)
+			return
+		case F.IFZERO:
+			longdescribe(P4 of o1->fms,sms)
+			return
+		default:	endcase	//hope this catches the rest...
+	$)
+	longdescribe(fms)
+$)
+and action.ser(obj,ocl,skipnext,formobile)=valof
+$(	let class,res,type=?,?,?
+	unless obj resultis false
+	type_PTYPE of obj
+	if ocl=#777777 resultis type=S.PLAYER->obj, 0
+	unless type=S.CLASS\/type=S.OBJECT resultis false
+	if ocl=#777775 resultis obj=fake->false, true
+	test type=S.CLASS then class_DREC of obj or class_D2 of (DREC of obj)
+	unless ocl=#777776 \/ ocl=class resultis false
+	test type=S.CLASS then res_(formobile->here.class,here.or.toting.class)(class)
+	or res_(formobile->here, here.or.toting)(D1 of (DREC of obj))
+	unless res\/skipnext out("I see no :s!*C*L",PNAME of obj)<>jump(mainloop)
+	resultis res
+$)
+and spcheck() be if spectacular unless maint Error("Not during a spectacular!")
+and checkforced() be if justforced Error("You can't be forced to do that!")

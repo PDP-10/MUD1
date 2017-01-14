@@ -1,0 +1,674 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+
+let saywhere(num,i) be
+$(	let rm=CROOM of LH from player.names!i
+	if num out(":n ",num)
+	out("carried by :p in the room described as ",player.names!i)
+	if WIZARD of profile out("(:6) ",!rm)
+	test (A.DEATH bitand ATTRIB of rm)/\(WIZARD of profile)=0 then outs("Land of the Dead.*C*L") or desc.short(rm)
+$)
+and sayroom(num,rm,lvfound) be	//get nm from obj sometime?
+$(	if num out(":n ",num)
+	out("in the room described as ")
+	if WIZARD of profile out("(:6) ",!rm)<>!lvfound_true
+	desc.short(rm)
+	unless LENGTH of (dmpbuf+((TITLE of rm) rem WDSPERBUF+1)) outz($az"Land of the Dead")
+	!lvfound_true
+$)
+ 
+and lookinside(nd,l,cn)=valof
+test CONTENTS of nd ne 0 /\ (WIZARD of profile ne 0 \/ DESTROYED of nd ge 0) then
+$(	let n=CONTS of CONTENTS of nd and found=false and num=0
+	while n do
+	$(	if lookinside(n, l, cn) found_true
+		if cn(l,n)/\(WIZARD of profile=1\/DESTROYED of n ge 0) num+_1
+		n of_LINK
+	$)
+	if found out(":s the :s ",MOTN of nd->"carried by","inside",PNAME of nd)
+	if num
+	$(	if found outz($az"and ")
+		out(":n :s the :s ",num,MOTN of nd->"carried by","inside",PNAME of nd)
+		found_true
+	$)
+	resultis found
+$) or resultis false
+and inventory(list,level,looking) be test list then	//don't use outz in here or sayinsides
+$(	let nd,nm,l=list,?,0
+	while nd do
+	$(	nm_PNAME of nd
+		l_LENGTH of nm
+		test ccnt+l+1>72 then
+		$(	outs("*C*L")
+			for i=1 to level outs("    ")
+			out(":s*S", nm)
+		$) or out(":s*S",nm)
+		nd of_LINK
+	$)
+	nd_list	//could just use list
+	while nd do
+	$(	if holds(nd) outz($az"*C*L")<>sayinsides(nd, level+1, PNAME of nd, numbargs()=3)
+		setit(nd)
+		nd of_LINK
+	$)
+$) or outs("nothing")
+and holds(obj)=valof
+$(	let insides=CONTENTS of obj
+	unless insides /\ (DISGUISED of insides=0 \/ WIZARD of profile=1) resultis false
+	resultis insides
+$)
+and sayinsides(obj,level, nm, looking) be
+$(	let insides=holds(obj)
+	unless insides return
+	ccnt_0
+	for i=1 to level outs("    ")
+	out("The :s :s ", nm,MOTN of obj->"is carrying","contains")
+	test ((TRANSPARENT of insides ne 0 \/ looking)/\P4 of obj=0) \/ WIZARD of profile=1 then inventory(CONTS of insides, level)
+		or out(CONTS of insides ->"something", "nothing")
+$)
+and holding(obj)=valof
+$(	let nd=carry
+	while nd do test obj=nd then resultis true or nd of_LINK
+	resultis false
+$)
+and gett() be
+$(	let obj,nd,oldnd=D1 of (DREC of objct),?,?
+	unless WIZARD of profile=1 \/ here(obj) then
+		error("I see no :s", objname)
+	lockup(@nd,@oldnd)
+	until LH of nd=obj /\(WIZARD of profile=1 \/ (DESTROYED of nd ge 0)) do
+	$(	oldnd_nd
+		nd of_LINK
+		unless nd unlock()<>Error("It's not :chere.",place(room)=room->'*0','t')
+	$)
+	if FIXED of nd\/NOGET of nd test WIZARD of profile=1/\(RELAXED\/us(me))/\(spectacular=0\/maint) then	//should combine fixed & noget selectors
+		unless us(me) outz($az"I hope you know what you're doing...*C*L") or
+	$(	unlock()
+		error("Don't be ridiculous!")
+	$)
+	if full.up()
+	$(	unlock()
+		error("You can't carry more than :n objects.", max.obj())
+	$)
+	if WEIGHT of nd+CARRY.COUNT of profile>max.wt()/\(WIZARD of profile)=0 then
+	$(	unlock()
+		error(CARRY.COUNT of profile ->"It is too much extra weight","It is too heavy for you to carry alone")
+	$)
+	LINK of oldnd_LINK of nd
+	stopmoving(nd)
+	unlock()
+	CARRY.COUNT of profile+:WEIGHT of nd
+	OBJ.CARRIED of profile+:1
+	if DESTROYED of nd ls 0 DESTROYED of nd_false
+	pushlist(lvcarry,nd)
+	ROBJT of profile_carry
+	adjustup(nd)
+	inform(nd,K.IGOT)
+	out(":u taken.*C*L", objname)
+	setit(nd)
+$)
+and get.class() be
+$(	let cl,nd,oldnd,got.one,got.not=P1 of objct,?,?,false,false
+	unless WIZARD of profile=1\/here.class(cl) error("I don't see any :s", objname)
+	lockup(@nd,@oldnd)
+	while nd do
+	$(	if classmatch(cl,nd)/\(
+		((FIXED of nd=0)/\(NOGET of nd=0))\/
+		(WIZARD of profile=1/\(RELAXED\/us(me))/\(spectacular=0\/maint))\/valof
+		$(	got.not_true
+			resultis false
+		$)) then
+		$(	got.one_1
+			if WEIGHT of nd+carry.count of profile>max.wt()/\(WIZARD of profile)=0 then
+			$(	out(CARRY.COUNT of profile->"Too much extra weight to take :s*C*L",":s too heavy for you to take*C*L",PNAME of nd)
+				break
+			$)
+			if full.up()
+			$(	out("Too many objects carried to take :s*C*L",PNAME of nd)
+				break
+			$)
+			tidy(oldnd,nd,@got.one)
+			nd_oldnd
+		$)
+		oldnd_nd
+		nd of_LINK
+	$)
+	unlock()
+	if not got.one
+	$(	unless got.one out(got.not->"Don't be ridiculous!*C*L","I don't see any :s*C*L", objname)
+		jump(mainloop)
+	$)
+	ROBJT of profile_carry
+$)
+and tidy(oldnd,nd,got.one) be
+$(	out(":u taken.*C*L",PNAME of nd)
+	setit(nd)
+	!got.one_true
+	if DESTROYED of nd ls 0 DESTROYED of nd_false
+	LINK of oldnd_LINK of nd
+	CARRY.COUNT of profile+:WEIGHT of nd
+	OBJ.CARRIED of profile+:1
+	stopmoving(nd)
+	pushlist(lvcarry,nd)
+	adjustup(nd)
+	inform(nd,K.IGOT)
+$)
+and full.up()=(max.obj()<=OBJ.CARRIED of profile)/\(WIZARD of profile)=0
+and max.wt()=MAXWEIGHT*(STRENGTH of profile)+(WT.EXTRA of profile)
+and max.obj()=(DEXTERITY of profile)/10+2+(OBJ.EXTRA of profile)
+and get.rid.of(o1,mess) be
+$(	let nd,oldnd=carry,lvcarry
+	while nd do
+	$(	let t=therein(nd, o1, true)
+		if t
+		$(	if t=1
+			$(	let.go.of(nd)		//nasty if got by 2 demons at once...
+				longdescribe(mess)
+			$)
+			break
+		$)
+		oldnd_nd
+		nd of_LINK
+	$)
+	killmonster(o1)
+$)
+and let.go.of(obj) be
+$(	let nd, oldnd, secnd=carry, lvcarry, ?
+	while nd do test obj=nd then break or oldnd_nd<>nd of_LINK
+	unless nd return
+	drop.ser.ser(nd,oldnd)
+	pushlist(room+4,nd)
+	ROBJT of profile_carry
+$)
+and drop.ser(nd,oldnd,rm) be
+$(	out(":u dropped.*C*L",PNAME of nd)
+	setit(nd)
+	if A.SANCTUARY bitand ATTRIB of rm setexp(nd,true)
+	drop.ser.ser(nd,oldnd)
+	if (A.HIDEAWAY bitand ATTRIB of rm)/\(MOTN of nd) destroy(nd,0)
+$)
+and drop.ser.ser(nd,oldnd) be
+$(	LINK of oldnd_LINK of nd
+	CARRY.COUNT of profile-:WEIGHT of nd
+	OBJ.CARRIED of profile-:1
+	adjustdown(nd)
+	inform(nd,K.IDROPT)
+$)
+and drop(rm) be
+$(	let obj,nd,oldnd=D1 of (DREC of objct),carry,lvcarry
+	unless numbargs() rm_place(room)
+	unless toting(obj) then error("You aren't carrying it!")
+	until LH of nd=obj do
+	$(	oldnd_nd
+		nd of_LINK
+	$)
+	drop.move(@rm)
+	drop.ser(nd,oldnd,rm)
+	lockdown(rm,nd)
+	broadcast(K.SHBD,who!rm,nd)
+	ROBJT of profile_carry
+$)
+and drop.delay(nd,oldnd,rm,indx,demonum) be		//what,where,with
+$(	let block=getmblock()
+	drop.move(@rm)
+	drop.ser(nd,oldnd,rm)
+	copy(indx,block+DOF,DEMONSIZE)
+	E.TIME of block+_Random(D.OFFSET of indx)
+	E.PLONK of block_true
+	block!(DEMONSIZE+DOF+1)_nd<<18 bitor rm
+	jar(@delock)
+	!block_(demons+(DEMONSIZE+DOF)*demonum)<<18 bitor gdemons
+	gdemons_block
+	unjar(@delock)
+	ROBJT of profile_carry
+$)
+and plonk(demon) be
+$(	let wd,nd,rm=demon!(DEMONSIZE+1),LH from wd, RH from wd
+	lockdown(rm,nd)
+	broadcast(K.SHBD,WHO!rm,nd,true)
+$)	
+and get.all() be
+$(	let nd,oldnd,gotone=?,?, false
+	lockup(@nd,@oldnd)
+	while nd do
+	$(	unless FIXED of nd \/ NOGET of nd tidy(oldnd,nd,@gotone)<>nd_oldnd
+		oldnd_nd
+		nd of_LINK
+	$)
+	unlock()
+	ROBJT of profile_carry
+	unless gotone error("Nothing taken.")
+$)
+//NB for next 2 procs: if the person who changes the object's property isn't
+//carrying it, could end up with a different carrying allowance to what should.
+and adjustup(nd) be if P4 of nd=0/\WEIGHT of nd>WTHRESHOLD/\MOTN of nd ne 0
+$(	let VAL = WEIGHT of nd -WTHRESHOLD
+	OBJ.EXTRA of profile+_(val/WTHRESHOLD)+1
+	WT.EXTRA of profile+_val
+$)
+and adjustdown(nd) be if P4 of nd=0/\WEIGHT of nd>WTHRESHOLD/\MOTN of nd ne 0
+$(	let val=WEIGHT of nd-WTHRESHOLD
+	OBJ.EXTRA of profile-_(val/WTHRESHOLD)+1
+	WT.EXTRA of profile-_val
+$)
+and drop.move(lvrm) be
+$(	let rm=!lvrm
+	if (A.SANCTUARY bitand ATTRIB of rm) /\
+		(A.DMOVE bitand ATTRIB of rm) then !lvrm_DMOVE of rm
+$)
+and drop.everything(tell.them) be
+$(	let obj,rm=unlink(lvcarry),?
+	rm_WIZARD of profile=0/\(A.DEATH bitand ATTRIB of room)->oldroom,place(room)
+	rm_WIZARD of profile=0/\(A.DMOVE bitand ATTRIB of rm)-> DMOVE of rm, rm
+	drop.move(@rm)
+	unless obj return
+	$(	if numbargs() Out(":u dropped.*C*L", PNAME of obj)
+		broadcast(K.SHBD,who!rm,obj)
+		inform(obj,K.IDROPT)
+		lockdown(rm,obj)
+		obj_unlink(lvcarry)
+	$)	repeatwhile obj
+	ROBJT of profile_carry
+	CARRY.COUNT of profile_0
+	OBJ.CARRIED of profile_0
+	OBJ.EXTRA of profile_0
+	WT.EXTRA of profile_0
+$)
+and drop.class(rm) be
+$(	let cl,nd,oldnd,dropped.one=P1 of objct,carry,lvcarry,false
+	unless toting.class(cl) error("You aren't carrying any :s.", objname)
+	unless numbargs() rm_place(room)
+	drop.move(@rm)
+	while nd do
+	$(	if P1 of nd=cl \/(cl=1 /\ P4 of nd=SCOREPROP of nd/\valof
+			$(	let res=VALUE of nd
+				$[	$HRRE	1,	res	$]
+			$) ge 0 ) then
+		test PTYPE of nd=LH from kept 
+		then Out(":U kept.*C*L", PNAME of nd) or
+		$(	drop.ser(nd,oldnd,rm)
+			lockdown(rm,nd)
+			broadcast(K.SHBD,who!rm,nd)
+			nd_oldnd
+			dropped.one_true
+		$)
+		oldnd_nd
+		nd of_LINK
+	$)
+	ROBJT of profile_carry
+	unless dropped.one error("You're keeping all the :s you have.", objname)
+$)
+and insert(given) be
+$(	let class,obj, nd, oldnd, ins, bag, insides,sel,gotone=
+		PTYPE of objct=S.CLASS, class->P1 of objct, D1 of DREC of objct,carry,lvcarry,D1 of DREC of instrmnt, ?, ?, class->classmatch,objmatch,false
+	bag_here.or.toting(ins)
+	unless bag error("I see no :s!", insname)
+	unless numbargs() given_MOTN of bag
+	unless (class->toting.class, toting)(obj)
+		error("You have to be carrying the :s to :s it :s anything.",  objname, verbname,given->"to","in")
+	insides_CONTENTS of bag
+	unless insides error("You can't :s it :s!", verbname,given->"to that","in there")
+	$(	until sel(obj,nd)\/nd=0
+		$(	oldnd_nd
+			nd of_LINK
+		$)
+		unless nd test gotone then return or error("You aren't carrying any :s.", objname)
+		if nd=bag error("You can't :s something :s itself!", verbname,given->"to","inside")
+		if (WTUSED of insides)+(WEIGHT of nd)>MAXWT of insides /\(WIZARD of profile)=0
+			error(given->"The :s can't carry it.","There's not enough room!", insname)
+		LINK of oldnd_LINK of nd	//possible deadlock here...
+		WTUSED of insides+_WEIGHT of nd
+		WEIGHT of bag+_WEIGHT of nd
+		unless toting(ins) CARRY.COUNT of profile-_WEIGHT of nd
+		OBJ.CARRIED of profile-_1
+		ROBJT of profile_carry
+		pushlist(insides,nd)
+		inform(nd, given->K.IGIV,K.IINS)
+		if given infrm(nd,bag,K.MGOT)
+		adjustdown(nd)
+		out(":p now :s the :s.*C*L", PNAME of nd,given->"carried by","inside", insname)
+		unless class setit(bag)<>return
+		gotone_true
+		nd_LINK of oldnd
+	$) repeat
+$)
+and remove() be
+$(	let class,obj,nd,oldnd,ins,bag,insides,sel,gotone,mover=
+		PTYPE of objct=S.CLASS,class->P1 of objct,D1 of DREC of objct,
+		?,?,D1 of DREC of instrmnt, here.or.toting(ins), CONTENTS of bag,
+		class->classmatch,objmatch,false,MOTN of bag
+	unless insides error("The :s :s anything!", insname,mover->"isn't carrying","doesn't contain")
+	nd_CONTS of insides
+	oldnd_insides
+	$(	until sel(obj,nd)\/nd=0
+		$(	oldnd_nd
+			nd of_LINK
+		$)
+		unless nd test gotone then return or error("The :s :s any :s.", insname, mover->"isn't carrying","doesn't contain", objname)
+		if full.up()
+		$(	out("You can't carry more than :n discrete objects.*C*L", max.obj())
+			test gotone then return or jump(mainloop)
+		$)
+		unless toting(ins)
+		$(	if (WEIGHT of nd)+(CARRY.COUNT of profile)>max.wt()/\(WIZARD of profile)=0
+			$(	out(CARRY.COUNT of profile->"it is too much extra weight*C*L", "it is too heavy for you to carry alone")
+				test gotone then return or jump(mainloop)
+			$)
+			CARRY.COUNT of profile+_WEIGHT of nd
+		$)
+		LINK of oldnd_LINK of nd
+		WTUSED of insides-_WEIGHT of nd
+		WEIGHT of bag-_WEIGHT of nd
+		OBJ.CARRIED of profile+_1
+		pushlist(lvcarry, nd)
+		ROBJT of profile_carry
+		adjustup(nd)
+		if mover infrm(nd,bag,K.MDROPT)
+		inform(nd, mover->K.ITAK,K.IREM)
+		out(":p :s from :s.*C*L", PNAME of nd,mover->"stolen","removed",PNAME of bag)
+		setit(nd)
+		unless class return
+		gotone_true
+		nd_LINK of oldnd
+	$) repeat
+$)
+and empty() be
+$(	let obj, ins,bag,insides,holding,rm=?,D1 of DREC of objct,here.or.toting(ins),CONTENTS of bag,toting(ins),place(room)
+	unless insides error("The :s isn't a container.", objname)
+	obj_unlink(insides)
+	unless obj error("The :s is already empty!", objname)
+	while obj do
+	$(	out(":u dropped.*C*L", PNAME of obj)
+		setit(obj)
+		if A.SANCTUARY bitand ATTRIB of rm setexp(obj,true)
+		WTUSED of insides-_WEIGHT of obj
+		WEIGHT of bag-_WEIGHT of obj
+		if holding CARRY.COUNT of profile-_WEIGHT of obj
+		lockdown(rm,obj)
+		inform(obj,K.IREM)
+		inform(obj,K.IDROPT)
+		obj_unlink(insides)
+	$)
+	adjustdown(bag)
+	out("The :s now :s nothing.*C*L", objname,MOTN of bag->"carries","contains")
+$)
+and lockup(lvnd,lvoldnd,rm) be
+$(	unless numbargs()=3 rm_place(room)
+	!lvoldnd_rm+4
+	lock(door+rm)
+	!lvnd_ROBJT of rm
+$)
+and lockdown(rm, nd) be
+$(	lock(door+rm)
+	pushlist(rm+4,nd)
+	if MOTN of nd then
+	$(	!(MOTN of nd)_rm
+		if A.HIDEAWAY bitand ATTRIB of rm unless WIZARD of profile=1/\numbargs() ne 3
+			destroy(nd,0)
+	$)
+	unlock()
+$)
+and describe(room,long) be
+$(	let bit,ty, lvrdoor=?,brief, door+room
+	if numbargs()<2 long_false
+	unless long gr 0\/ visible() then
+	error(blind->"You can't see anything, you're blind.","The room is too dark to see anything.")
+	if WIZARD of profile=1/\(brief ne -1\/long)
+	$(	out("Room :6*C*L",!room)
+		if(A.HIDEAWAY bitand ATTRIB of room) then out("(Hideaway)*C*L")
+		if(A.HIDE bitand ATTRIB of room) out("(Hide)*C*L")
+		if(A.DEATH bitand ATTRIB of room) out("(Death)*C*L")
+		if(A.SILENT bitand ATTRIB of room) out("(Silent)*C*L")
+	$)
+	desc.short(room)
+	if long=true \/ (A.DEATH bitand ATTRIB of room) dscribe(ROOMWD of room, roomput)<>ty_true	//the =true is needed...
+	unless ty=-1\/(ty=0/\been.in(RNUMB of room)) dscribe(ROOMWD of room, roomput)
+	if (A.DEATH bitand ATTRIB of room)/\(WIZARD of profile)=0 then
+	$(	let nd=?
+		lock(lvrdoor)
+		nd_ROBJT of room
+		while nd do
+		$(	unless P4 of nd >= P5 of nd setprop(nd, P4 of nd+1)
+			nd of_LINK
+		$)
+		unlock()
+		test spectacular then
+		$(	drop.everything()
+			STAMINA of profile_STAMINA of profile<20->10, (STAMINA of profile)-10
+			special(SF.SLEEP)
+		$) or quit()
+	$)
+	if (A.HIDE bitand ATTRIB of room)/\(WIZARD of profile)=0 then return
+	unless (A.HIDEAWAY bitand ATTRIB of room)/\(WIZARD of profile)=0 then
+	$(	lock(lvrdoor)
+		describe.obj(ROBJT of room, long)
+		unlock()
+	$)
+	for i=0 to 35 do unless invisible(i)
+	$(	bit_1<<i
+		if (bit bitand who!room)/\(long gr 0\/i\=player.no) then
+		$(	let tt=player.names!i
+			out(":p is here,:s carrying :i*C*L",tt, ASLEEP of LH from tt->" asleep,", "",ROBJT of (LH from tt))
+		$)
+	$)
+$)
+and longdescribe(rm, dd, nocrlf) be
+$(	let input=?
+	if LH from rm=#777777 then
+	$(	broadcast(K.OHDS, WHO!room, -rm, true)
+		return
+	$)
+	test numbargs() ne 2 then
+		test rm then
+			test (selector 1:rm rem 36:rm/36) of text then
+				rm_sb(rm)
+				or dscribe((rm rem 2->LH, RH) from txtvec!(rm/2),textput, numbargs()=3)<>return
+			or return
+		or if dd ne #777777 dscribe(dd,objput)<>return
+	input_dofile(DISC,!rm,"dba",MAINTA,label(ak),0,2,lookup,rda,sterr,closefile)
+	readch(input,@dd,true)
+	nocrlf_numbargs()=3->'*C',-1
+	until dd='*E'\/dd=nocrlf do
+	$(	outch(dd)
+		readch(input,@dd,true)
+	$)
+	close(input)
+ak:	outz($az"*C*L")
+$)
+and desc.short(rm) be dscribe(TITLE of rm, roomput)
+and dscribe(num, stream, nocrlf) be
+$(	let block=num/WDSPERBUF+1
+	unless stream=laststream /\ block=lastblock
+	$(	useti(stream, block)
+		inuuo(stream, cbl)
+		laststream_stream
+		lastblock_block
+	$)
+	num_dmpbuf+(num rem WDSPERBUF)
+	if numbargs()=3/\nocrlf
+	$(	let s=selector 7:36:num
+		$[	
+neckst:			$ildb	ac,	s
+			$jumpe	ac,	dun
+			$caie	ac,	'*C'
+			$jrst		neckst
+			$setz	ac,	0
+			$dpb	ac,	s
+dun:
+		$]
+	$)
+	outz(num,stream=comput)
+$)
+and describe.obj(obj, long) be
+$(	let rand,cprop,sprop=?,?,?
+	while obj do
+	$(	if obj ne long
+		$(	rand,cprop_RANDM of obj,P4 of obj
+			if rand cprop_random(1+(P5 of obj))<>setprop(obj,cprop)
+			sprop_selector 18:18*(cprop rem 2):cprop/2+OBJECTSIZE+1
+			if WIZARD of profile=1/\(brief ne -1\/long)
+			$(	out(":s - ", PNAME of obj)
+				unless sprop of obj outz($az"*C*L")
+			$)
+			if WIZARD of profile=1
+				if DESTROYED of obj ls 0 outz($az"(Destroyed) - ")
+			unless (DESTROYED of obj ls 0 /\(WIZARD of profile)=0)\/sprop of obj=0
+			$(	let sp,sxb=SPROP of obj,?
+				if sp=#777777 sxb_sixbit(PNAME of obj)
+				setit(obj)
+				longdescribe(@sxb,sp)
+				sayinsides(obj, 1, PNAME of obj, false)
+				if holds(obj) outz($az"*C*L")
+			$)
+		$)
+		obj of_LINK
+	$)
+$)
+and destroy(o1,mess,noprint) be
+$(	let msg=Abs(mess)
+	DESTROYED of o1_true
+	for i=0 to 35 if player.names!i
+	$(	let nd=ROBJT of (LH from player.names!i)
+		while nd do
+		$(	if therein(nd, o1,false)
+			$(	test i=player.no then get.rid.of(o1,msg) or
+					transmit(i,0,K.GRO,(msg<<18)\/o1)
+				return
+			$)
+			nd of_LINK
+		$)
+	$)
+	if numbargs()=3 unless noprint longdescribe(mess)
+	killmonster(o1)
+$)
+and therein(nd, o1,dropit) = valof
+$(	let insides,n,oldn=CONTENTS of nd,?,?
+	if nd=o1 resultis 1
+	unless insides resultis false
+	n_CONTS of insides
+	oldn_insides			//relies on CONTS=LINK
+	while n do
+	$(	let there=therein(n, o1)
+		if there
+		$(	if there=1/\dropit
+			$(	LINK of oldn_LINK of n		//could get away with oldn as insides
+				CARRY.COUNT of profile-_WEIGHT of n
+				WTUSED of insides-_WEIGHT of n
+				WEIGHT of nd-_WEIGHT of n
+				killmonster(n)
+				pushlist(room+4,n)
+			$)
+			resultis true
+		$)
+		oldn_n
+		n of_LINK
+	$)
+	resultis false
+$)
+and is.or.was.here(obj,nd)=valof
+$(	while nd do test obj=LH of nd then
+	$(	test ((A.HIDEAWAY bitand ATTRIB of room) ne 0)/\(FIXED of nd=0) then resultis false
+		or resultis nd
+	$) or
+	$(	let o=open(nd, obj, objmatch,false)
+		if o resultis o
+		nd of_LINK
+	$)
+	resultis false
+$)
+and open(nd, obj, match,oppen)=valof
+$(	let bag, insides=CONTENTS of nd, ?
+	unless bag ne 0/\(oppen\/(OPENED of bag ne 0 /\ P4 of nd=0)) resultis false
+	insides_CONTS of bag
+	while insides do
+	$(	let o=?
+		if match(obj,insides) resultis insides
+		o_open(insides, obj, match,oppen)
+		if o resultis o
+		insides of_LINK
+	$)
+	resultis false
+$)
+and here(obj, nd)=valof
+$(	if (A.HIDEAWAY bitand ATTRIB of room)/\(WIZARD of profile)=0 then resultis false
+	lock(lvrdoor)
+	unless numbargs() = 2 nd_ROBJT of room
+	while nd do test obj=LH of nd /\(WIZARD of profile=1 \/ (DESTROYED of nd ge 0)) then
+	$(	unlock()
+		resultis nd
+	$) or nd of_LINK
+	unlock()
+	resultis false
+$)
+and toting(obj, nd)=have(obj, numbargs()=2->nd, carry, objmatch)
+and toting.class(obj)=have(obj, carry, classmatch)
+and have(obj, nd, match)=valof
+$(	while nd do test match(obj,nd) then resultis nd or nd of_LINK
+	resultis false
+$)
+and here.class(obj)=valof
+$(	let nd=?
+	if (A.HIDEAWAY bitand ATTRIB of room)/\(WIZARD of profile)=0 then resultis false
+	lock(lvrdoor)
+	nd_ROBJT of room
+	while nd test classmatch(obj,nd) then
+	$(	unlock()
+		resultis nd
+	$) or nd of_LINK
+	unlock()
+	resultis false
+$)
+and carrying.class(obj,oppen,nd)=got(obj, classmatch,oppen,nd)
+and carrying(obj,oppen,nd)=got(obj, objmatch,oppen,nd)
+and got(obj, match,oppen,nd)=valof
+$(	while nd do test match(obj,nd) then resultis nd or
+	$(	let o=open(nd, obj, match,oppen)
+		if o resultis o
+		nd of_LINK
+	$)
+	resultis false
+$)
+and object()=valof
+$(	let tipe,orm=PTYPE of objct,room
+	unless tipe=S.CLASS\/tipe=S.OBJECT Error("You can't :s that!", verbname)
+	room_place(room)
+	tipe_tipe=S.CLASS->valof
+	$(	let v=here.or.toting.class(P1 of objct)
+		unless v resultis 0
+		resultis PTYPE of v
+	$), (D1 of DREC of objct)
+	if tipe tipe_here.or.toting(tipe)
+	room_orm
+	unless tipe error("I see no :s!", objname)
+	resultis tipe
+$)		
+and objmatch(obj, nd)=obj=PTYPE of nd
+and classmatch(obj,nd)=
+(obj=P1 of nd \/(obj=1 /\ P4 of nd=SCOREPROP of nd/\valof
+			$(	let res=VALUE of nd
+				$[	$hrre	1,	res	$]
+			$) ge 0 ))/\(WIZARD of profile=1 \/ (DESTROYED of nd ge 0))
+and here.or.toting.class(obj)=around(obj, here.class, toting.class)
+and here.or.toting(obj)=around(obj, here, toting)
+and around(obj, heretest, totingtest)=valof test holdfirst then
+$(	let res=totingtest(obj)
+	unless res res_heretest(obj)
+	resultis res
+$) or
+$(	let res=heretest(obj)
+	unless res res_totingtest(obj)
+	resultis res
+$)

@@ -1,0 +1,632 @@
+$nolist
+ 
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.  No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+external //Statics common to all
+$(	cmndbuf			//buffer for current command
+	ctcflg			//Fourth word of interrupt block.
+	hibflg			//Hibernate flags.
+	quitflg 		//Set true if ^C gets u out.
+	rec			//pointer to dmpbuf record
+	lastdr			//Last door LOCKed.
+	ccnt			//character count
+	savedp			//saved a persona?
+	pain			//number of unnecessary ^C's typed
+	hsppn			//his ppn...
+	strtab			//Table of random messages.
+	fight			//Table of people u r fighting.
+	who.copy		//Who's in the room last.
+	lvmdoor 		//Address of message freelist door.
+	lvqdoor 		//Address of our queue door.
+	lvrdoor 		//Address of current room door.
+	lvqueue 		//Address of our queue entry.
+	lvcarry 		//Address of carrying freelist.
+	name			//Our name 15 and 16 words of profile.
+	oldscore		//Old score..!
+	savescore		//Score at last save.!
+	profile 		//Our player profile so far.
+	player.no	:pno	//Our player number.
+	player.bit	:pbit	//The bit corresonding to player.no.
+	ppn			//Players's ppn.
+	him			//last male mentioned
+	her			//last female mentioned
+	them			//last player mentioned
+	there			//Last room mentioned
+	me			//my player name
+	roomput			//SCB for .RM file
+	textput			//SCB for .TM file
+	objput			//SCB for .OM file
+	comput			//SCB for .CM file
+	perput			//SCB for .PM file
+	mapput			//SCB for .MM file
+	laststream		//last SCB used
+	lastblock		//last block in the last stream
+	peen			//RH of player's PPn
+	jobno			//Player's job.
+	ttyno			//Player's tty udx.
+	ctlno			//Controlling job, if any.
+	cccnt			//^C chuckout count
+	room			//Current room.
+	oldroom 		//Last room we were alive in!
+	carry			//The carry freelist.
+	verb			//Last valid verb.
+	objct			//Last valid object or player.
+	instrmnt		//Last valid intrument.
+	dmpbuf			//dump mode buffer.
+	cbl			//argument block for the above.
+	rep2		:pno	//player number for resetting
+	low1			//quit if this or less free sys jobs
+	low2			//let in if more than this free sys jobs
+	linebuffer		//Line buffer for read.line and getch
+	chcnt			//Characters left.
+	nextch			//L-Value of next character.
+	logstr			//Non zero indicates logging enabled.
+	bstr			//Bug stream.
+	level			//The scores on the doors
+	snooping		//If not snooping then you're snooping...
+	snoopedon		//Who's snooping on you
+	snoopbuffer		//No. of characters in snoop buffer
+	scanch			//The last character read.
+	scan.info		//The last word read.
+	name.string		//A string.
+	fake.string		//Space for another string.
+	mbuffer			//Buffer for quote mode.
+	mainloop		//Contains the mainloop.
+	prompted		//Whether you've prompted.
+	somethingarrived	//Whether some creature just arrived
+	firstsnoop		//if this is the first snoop line or not
+	lineflg			//True if typed a line.
+	fake			//Fake node.
+	bcplrm			//bcpl version of a 6bit room
+	lastdir			//The last direction you went
+	autowho			//auto-who seconds count (spectacularing)
+	autoint			//how long to wait txixt autowho's
+	kept			//kept object
+	events			//events due to demons
+	leading			//true if not following
+	pwcnt			//no. of times you've said "password"
+	followers		//People following
+	frontman		//true if not assisted
+	joined			//people joined to you
+	animal			//animal you're following
+	snobj			//object you're snooping on
+	brief			//whether in brief mode or not...
+	lastmoments		//whether closing soon or not
+	verbname		//To make printing errors easier
+	objname			//ditto
+	insname			//ditto
+	fodsville		//was I just fodded?
+	pretend			//Pretending not playing?
+	holdfirst		//A hack into the actions...
+	it			//name of last thing mentioned
+	flipping		//flipping between characters
+	fodded			//Whether you've fodded anyone yet
+	mins
+	hrs
+	days
+	res6			//for no.-to-6bit result
+	at			//reversed object and instrument
+	ps.word			//user's persona password
+	conversing		//in conversation mode?
+	deaf			//\
+	dumb			// \
+	blind			// / has this ailment afflicted me?
+	paralysed		///
+	olog			//save place for logstr
+	osnop			//save place for snoopedon
+	savescr			//your score when you last saved
+	justforced		//true if you've just been forced
+$)
+ 
+external //Routines
+$(	encrypt
+	get.cmnd
+	load.block
+	searchrec			//Does a certain persona exist?
+	visible
+	invisible
+	desc.short	:	dshort
+	luminous
+	swapobjins
+	announcechange
+	adjustdown	:	adown
+	get.rid.of
+	parse.command
+	execute.command
+	full.up
+	adjustup	:	aup
+	bashfull
+	break.off
+	dud
+	stopmoving
+	inform
+	killmonster
+	sb
+	assign
+	ATTACH
+	BUG
+	CHECKOUT
+	CH.SENDLEVEL
+	deassign
+	DESTROY
+	DETACH
+	DETCH
+	DISENABLE
+	DROP
+	DSCRIBE
+	EMPTY
+	ENABLE		:	enbl
+	ENABLED		:	enbld
+	EXORCISE
+	EXTRA
+	FLUSH
+	GETNUM
+	GETT
+	GETTRUE
+	HERE
+	INSERT
+	LOCKDOWN
+	LOCKUP
+	LOOKINSIDE
+	NEXTNUM
+	OBJMATCH
+	OPEN
+	PERSON
+	PLACE
+	PLAYING
+	PURGE
+	REMOVE
+	SAVE
+	SAYINSIDES
+	SAYROOM
+	SAYWHERE
+	SCANNER
+	SENDALL
+	SENDLEVEL
+	SETEXP
+	SETIT
+	SETPROP
+	SUSPEND
+	TIDY
+	TOTING		:	tot
+	TRANSMIT
+	UNFOLLOW
+	UNSNOOP
+	DROP.CLASS
+	DROP.DELAY
+	GET.ALL
+	GET.CLASS
+	HERE.CLASS
+	HERE.OR.TOTING	:	h.o.t
+	HERE.OR.TOTING.CLASS	:	h.o.tc
+	OBJECT
+	MOVE.SER
+	TAB12
+	TOTING.CLASS	:	totc
+	retaliated
+	player.level	:	plalev
+	drop.everything
+	setscore
+	check.stuff
+	infrm
+	holding
+	fightmess
+	plonk
+	occupied
+	reinstate
+	instate
+	start.leading
+	lose.followers
+	carrying.class	:	carrc
+	carrying	:	carr
+	is.or.was.here
+	longdescribe
+	max.obj
+	max.wt
+	broadcast
+	doownthing
+	lose.joiners
+	classmatch
+	stop.fighting
+	interact
+	wake.up
+	can.wake
+	new.stamina
+	error
+	private
+	public
+	moveobject
+	special
+	normalise
+	dormant
+	alive
+	check.gone	:	cgone
+	handledemons
+	swap
+	move
+	action
+	read.message
+	initialise		//Initialisation stuff.
+	send			//from MUD rather than MUDLIB
+	hidden			//ditto
+	us			//hardwired maintainer names
+	newpersona		//set up a new persona
+	sexify			//adjust str, dex and sta for sex
+	jar			//a sort of lock
+	realwiz			//verifies wiz's by looking in a file
+	rationalise		//put characteristics within right limits
+	unjar			//a sort of unlock!
+	fake.node		//Needed in initialisation...
+	ud.time			//Universal date-time
+	ctrap			//control-c toggle
+	load.data		//Load data would you believe.
+	resetgame		//renames the .exe file
+	readusername	:rnm	//read the user name up to 9 chars.
+	createprofile	:cpr	//Create a user profile from file or new.
+	writeprofile	:wpr	//Write out a user profile.
+	setbit		:sbt	//Set player bit in current room.
+	unsetbit	:usb	//Unset bit in current room.
+	access			//Can I play now?
+	boost			//add 10 to my attributes
+	unboost			//take 10 off my attributes!
+	seq			//String equality.
+	random			//Random numbers.
+	lock			//Loack doors.
+	unlock			//Unlock doors.
+	maint			//Am I the maintainer?
+	checksnoop		//For when being snooped on
+	unlink			//First off a list.
+	read.ch 		//Same as readch bit quit if control C.
+	hibernate		//Hibernate for a sec or until a line ready.
+	crechar 		//Create a characteristic.
+	deleterec	:delrec	//Delete a persona from .pm file
+	saverec			//Save a persona in .pm file
+	getmblock		//Get a message block.
+	freemblock		//Free a message block.
+	pushlist		//Push onto list.
+	forcetty		//Push string into input buffer of tty.
+	clearvec		//Clear a vector.
+	fixd			//Same as FIX using machine code fix not luuos.
+	floatd			//Ditto above but for FLOAT.
+	been.in			//been in this room before or not?
+	locked			//Whether game is wizard locked
+	outstr			//Stick one of n messages randomly.
+	find.word	:fwrd	//Find a word in dictionary.
+	find.player	:fply	//Find a player.
+	find.room	:frm	//Find a room.
+	quit			//Quit from t' game.
+	describe		//A room and contents.
+	copy			//Move contents of vectors about.
+	read.line	:rline	//Read line.
+	getch			//get next character.
+	linebreak		//True if character.
+	reset			//Reset linebuffer stuff.
+	wait.for.input		//What it says.
+	inventory		//Take an inventory.
+	timeok			//Now is an acceptable playing time
+$)
+/*
+	The following part of the GETfile is distilled from various BCPL
+	library get files. Only those procedures declared as external here
+	will be found in MUDLIB. Beware using standard library modules
+	with this file. If you want to use BCPLIB.REL then don't load
+	MUDLIB.
+*/
+MANIFEST
+$(	LH		=	BYTE 18:18
+	RH		=	BYTE 18:0
+	TIMECHK		=	10000	//give 4 seconds for MUD to load
+	WHOLEDAY	=	86400000	//Whole day in milliseconds
+	DELAY		=	120000	//before you get timed out
+	TOOLOW		=	4	//<= this no. of jobs left and you're chucked out
+	BITLOW		=	TOOLOW+2	//no. of jobs left before lets you in
+$)
+ 
+EXTERNAL
+$(	start
+$)
+ 
+EXTERNAL	"%"
+$(	newvec
+	free
+	freevec 	:	free
+	outo
+	writeo		:	wro
+	outs
+	writes		:	wrs
+	writesecs	:	wrsx
+	outno
+	writeno 	:	wrno
+	outoct		:	outo
+	writeoct	:	wro
+	out
+	write
+	outch
+	writech 	:	wrch
+	inno
+	readno		:	rno
+	rdno
+	inch
+	readch		:	rch
+	rdch
+	close
+	tty
+	input
+	output
+	label
+	jump
+	numbargs
+	packstring
+	unpackstring
+	run
+	ccl
+	callnm
+	batch
+	daytime
+	udaytime
+	ran
+	ranseed
+	bufull
+	eof
+	errstatus
+	dofile
+	createtmp
+	enter
+	closefile	:	clsfl
+	rda
+	rdb
+	rddmp
+	wrb
+	wrdmp
+	ioerror 	:	ioerr
+	sterr		:	strmr
+	storeerror
+	inuuo
+	useti
+	outz
+	writez		:	wrz
+	out6
+	write6		:	wr6
+	out8
+	write8		:	wr8
+	outdate
+	writedate	:	wrdat
+	outtime
+	writetime	:	wrtim
+	iowd
+	iomessage	:	iomsg
+	sixbit
+	echo
+	noecho
+	appendfile
+	words
+	lookup
+	lookup.enter	:	luent
+$)
+ 
+EXTERNAL	"%%"
+$(	stackbase
+$)
+ 
+EXTERNAL	"."
+$(	er
+	fn
+	sl
+	sy
+	bcpl.
+	fl
+	bcpl		:	".bcpl"
+	zero
+$)
+ 
+EXTERNAL	"."
+$(	//Job data area symbols
+	JBUUO;		JB41;		JBERR;		JBREL
+	JBBLT;		JBDDT;		JBCN6;		JBPFI
+	JBHRL;		JBSYM;		JBUSY;		JBSA
+	JBFF;		JBREN;		JBAPR;		JBCNI
+	JBTPC;		JBOPC;		JBCHN;		JBCOR
+	JBINT;		JBOPS;		JBCST;		JBVER
+	JBDA;		JBHSA;		JBH41;		JBHCR
+	JBHRN;		JBHVR;		JBHNM;		JBNSM
+	JBHDA
+$)
+//BCPL library error codes
+ 
+MANIFEST
+$(	//subsystem codes
+	IO		=	#010000 	//I/O system
+	ST		=	#020000 	//free storage system
+	USER		=	#700000 	//reserved for user
+	ERR.BIG 	=	ST+4		//biggest system code
+	//I/O error codes
+	ERR.NOCHANNEL	=	IO+1
+	ERR.NODEV	=	IO+2
+	ERR.NOFILE	=	IO+3
+	ERR.RENAME	=	IO+4
+	ERR.STATUS	=	IO+5
+	ERR.EOF 	=	IO+6
+	ERR.BADMODE	=	IO+7
+	ERR.DIRECTION	=	IO+8
+	ERR.FINDTMP	=	IO+9
+	ERR.CREATETMP	=	IO+10
+	ERR.REWIND	=	IO+11
+	ERR.REWFILE	=	IO+12
+	ERR.IO.BIG	=	IO+12
+	//Storage error codes
+	ERR.FREEBAD	=	ST+1
+	ERR.NEWVEC	=	ST+2
+	ERR.NEWFAIL	=	ST+3
+	ERR.NEWPAGE	=	ST+4
+	ERR.ST.BIG	=	ST+4
+$)
+ 
+EXTERNAL	"%"
+$(	ERR		//Holds latest system error code (all systems)
+	SCB		//Holds stream on which latest I/O error occured
+$)
+ 
+MANIFEST
+$(	AC		=	1
+	B		=	2
+	C		=	3
+	D		=	4
+	E		=	5
+	F		=	6
+	G		=	7
+	H		=	8
+	I		=	9
+	J		=	10
+	K		=	11
+	T		=	12
+	P		=	14
+	SCBREG		=	3
+	ONE		=	13
+	COVER		=	11
+	PDL		=	15
+$)
+ 
+//Layout of a stream-control block
+MANIFEST
+$(
+SC.FLAGS=SELECTOR 36:0:0			// FLAG WORD
+SC.MONITORSTREAM=SELECTOR 1:35:0		// B0 - SET IN A MONITOR STREAM
+SC.SIZE=SELECTOR 6:12:0 			// B18-23 SIZE OF THIS SCB
+SC.SCB=SELECTOR 1:0:0				// B35 - ALWAYS SET IN AN SCB
+WSC.FLAGS=0					// FLAG WORD
+SC.READER=SELECTOR 36:0:1			// READ ROUTINE FOR THIS STREAM
+WSC.READER=1
+SC.WRITER=SELECTOR 36:0:2			// WRITE ROUTINE
+WSC.WRITER=2
+SC.CLOSER=SELECTOR 36:0:3			// CLOSE ROUTINE
+WSC.CLOSER=3
+SC.ERROR=SELECTOR 36:0:4			// ERROR PARAMETER
+WSC.ERROR=4
+SC.PUTSTACK=SELECTOR 18:18:5			// STACK OF CHARACTERS PUT BACK INTO A READ STREAM
+SC.OLDREAD=SELECTOR 18:0:5			// SAVED ORIGINAL READ ROUTINE ON PUTBACK'D STREAM
+WSC.PUTBACK=5
+SC.USER6=SELECTOR 36:0:6			//Ought to use for helping not doing usetis unnecessarily
+WSC.USER6=6
+SC.USER7=SELECTOR 36:0:7
+WSC.USER7=7
+SC.USER10=SELECTOR 36:0:#10
+WSC.USER10=#10
+SC.STATUS=SELECTOR 36:0:#11			//  MONITOR OPEN BLOCK
+WSC.STATUS=#11
+SC.DEV=SELECTOR 36:0:#12
+WSC.DEV=#12
+SC.OBUFHDR=SELECTOR 18:18:#13
+SC.IBUFHDR=SELECTOR 18:0:#13
+WSC.BUFHDR=#13
+SC.IBUF=SELECTOR 18:0:#14			// INPUT BUFFER HEADER FOR MONITOR
+WSC.IBUF=#14
+SC.IBYTE=SELECTOR 36:0:#15
+SC.IWD=SELECTOR 18:0:#15
+WSC.IBYTE=#15
+SC.ICOUNT=SELECTOR 36:0:#16
+WSC.ICOUNT=#16
+// 17 - RESERVED
+// 20 - RESERVED
+// 21 - RESERVED
+SC.OBUF=SELECTOR 18:0:#22			// OUTPUT BUFFER HEADER FOR MONITOR
+WSC.OBUF=#22
+SC.OBYTE=SELECTOR 36:0:#23
+SC.OWD=SELECTOR 18:0:#23
+WSC.OBYTE=#23
+SC.OCOUNT=SELECTOR 36:0:#24
+WSC.OCOUNT=#24
+// 25 - RESERVED
+// 26 - RESERVED
+// 27 - RESERVED
+SC.CHANNEL=SELECTOR 4:23:#30			// CHANNEL WORD ( CHANNEL IN AC FIELD - REST 0 )
+WSC.CHANNEL=#30
+SC.IN=SELECTOR 36:0:#31 			// IN CHANNEL,0 ORDER
+WSC.IN=#31
+SC.OUT=SELECTOR 36:0:#32			// OUT CHANNEL,0 ORDER
+WSC.OUT=#32
+SC.USETI=SELECTOR 36:0:#33			// USETI CHANNEL,@3(#16)
+WSC.USETI=#33
+SC.USETO=SELECTOR 36:0:#34			// USETO CHANNEL,@3(#16)
+WSC.USETO=#34
+SC.STATZ=SELECTOR 36:0:#35
+WSC.STATZ=#35
+SC.APPENDCL=SELECTOR 36:0:#36
+WSC.APPENDCL=#36
+SC.COUNT=SELECTOR 36:0:#37			// LOOKUP BLOCK WORD COUNT
+WSC.COUNT=#37
+SC.PPN=SELECTOR 36:0:#40
+SC.PROJ=SELECTOR 18:18:#40
+SC.PROG=SELECTOR 18:0:#40
+WSC.PPN=#40
+SC.FILENAME=SELECTOR 36:0:#41			// MONITOR LOOKUP/ENTER/RENAME BLOCK
+WSC.FILENAME=#41
+SC.MONERROR=SELECTOR 18:0:#42
+SC.EXT=SELECTOR 18:18:#42
+SC.HIDATE=SELECTOR 3:15:#42			// HIGH ORDER 3 BITS OF CREATE DATE
+SC.ACCESSDATE=SELECTOR 15:0:#42
+WSC.EXTWORD=#42
+SC.PROTECTION=SELECTOR 9:27:#43
+SC.MODE=SELECTOR 4:23:#43
+SC.TIME=SELECTOR 11:12:#43
+SC.CREATEDATE=SELECTOR 12:0:#43
+WSC.TIMEDATE=#43
+SC.WORDS=SELECTOR 36:0:#44
+WSC.WORDS=#44
+SC.VMAJOR=SELECTOR 9:12:#45
+SC.VMINOR=SELECTOR 6:18:#45
+SC.VEDIT=SELECTOR 18:0:#45
+SC.VWHO=SELECTOR 3:33:#45
+SC.VERSION=SELECTOR 36:0:#45
+WSC.VERSION=#45
+SC.PATH=SELECTOR 36:0:#46
+WSC.PATH=#46		//PATH BLOCK IS 8 WORDS LONG
+SC.DEFAULT.SIZE=#55
+SC.TMPNAME=SELECTOR 36:0:#11			// TMPCOR SCB ASSIGNMENTS
+WSC.TMPNAME=#11
+SC.TMPBYTEP=SELECTOR 36:0:#12
+SC.TMPWORD=SELECTOR 18:0:#12
+WSC.TMPBYTEP=#12
+SC.TMPLIMIT=SELECTOR 36:0:#13
+WSC.TMPLIMIT=#13
+SC.TMPCOR.SIZE=#14
+$)
+ 
+EXTERNAL	"%"
+$(	SCBSIZE
+$)
+ 
+//Bit definitions
+MANIFEST
+$(
+B0 =#400000000000;	B1 =#200000000000;	B2 =#100000000000
+B3 =#040000000000;	B4 =#020000000000;	B5 =#010000000000
+B6 =#004000000000;	B7 =#002000000000;	B8 =#001000000000
+B9 =#000400000000;	B10=#000200000000;	B11=#000100000000
+B12=#000040000000;	B13=#000020000000;	B14=#000010000000
+B15=#000004000000;	B16=#000002000000;	B17=#000001000000
+B18=#000000400000;	B19=#000000200000;	B20=#000000100000
+B21=#000000040000;	B22=#000000020000;	B23=#000000010000
+B24=#000000004000;	B25=#000000002000;	B26=#000000001000
+B27=#000000000400;	B28=#000000000200;	B29=#000000000100
+B30=#000000000040;	B31=#000000000020;	B32=#000000000010
+B33=#000000000004;	B34=#000000000002;	B35=#000000000001
+$)
+ 
+EXTERNAL
+$(	DISC
+	MAINTA
+$)	//for MBOOTS to put stuff in...
+ 
+$list
+ 

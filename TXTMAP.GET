@@ -1,0 +1,15 @@
+*maps
+12
+0/M/		clear screen
+|/-%/		vertical line
+-/ ,/		horizontal line
+3/-'/		lower left corner
+4/ */		upper left corner
+5/ ./		upper right corner
+6/-#/		lower right corner
+7/-!/		cross between | and -
+8/#l/		symbol for a door
+[/O2/		dim on
+]/O0/		dim off
+</-'/		LH of right-justified tree
+>/("/		RH of right-justified tree

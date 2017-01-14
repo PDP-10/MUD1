@@ -1,0 +1,32 @@
+0	$null	none	none	-1
+1	$poison	none	none	60
+3	$poison1	none	none	30
+4	$smash	none	none	-1	always
+6	$provoke	whichever	none	-1
+16	$poison2	none	none	30
+23	$cure	none	none	-1	always
+28	$brewing	none	none	15-30	global
+29	$pouring	none	none	300-600	global
+30	$calm	none	none	600-1500	global	enabled
+31	$brewing1	none	none	-1	global
+32	$pouring1	none	none	-1	global
+33	$winter	none	none	-1	global
+34	$snow	none	none	-1	global
+35	$snow1	none	none	-1	global
+36	$snow2	none	none	300-1200	global
+37	$snow3	none	none	-1	global
+38	$snow4	none	none	300-1200	global
+39	$snow	none	none	15-30	global
+40	$snake	none	none	-1
+41	$summer	none	none	-1	global
+42	$summer1	none	none	-1	global
+49	$dead	none	none	-1
+50	$change	none	none	-1
+52	$deaf	none	none	-1
+53	$blind	none	none	-1
+54	$paralyse	none	none	-1
+55	$dumb	none	none	-1
+56	$flush	none	none	-1
+57	$cured	none	none	-1
+58	$alter	none	none	5
+59	$firework	none	none	5

@@ -1,0 +1,413 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let save() be
+$(	let testsaved=?
+	perput_dofile(disc,ps6,$6".pm",mainta,label(eh),#17,1,lookup.enter,rdb,wrb,closefile)
+	assign()
+	testsaved_saverec(profile+14)
+	deassign()
+	close(perput)
+	if testsaved
+	$(	out("*C*L:P saved.*C*L", me)
+		savedp+_1
+	$)
+	return
+eh:	error("Someone accessing the profile file - :P not saved! Try again.", me)
+$)
+and purge() be
+$(	let psw,going,numrecs,bcnt=ps.word,true,?,3
+	if fight!player.no error("You can't :s in the middle of a fight!",verbname)
+	unsetbit()
+	perput_dofile(disc,ps6,$6".pm",mainta,label(eh),#17,1,lookup.enter,rdb,wrb,closefile)
+	dormant()
+	assign()
+	test seq(objname,"that") then
+	$(	load.block(perput,1)		//Load in the first block for filelength
+		numrecs_(FLEN of dmpbuf-2*WDSPERBUF)/RECLENGTH
+		load.block(perput,bcnt)
+		rec_dmpbuf
+	$) or
+	$(	searchrec(objname)
+		numrecs_rec -> 1, 0
+		rec_rec rem 128+dmpbuf	//Dmpbuf contains record after searchrec.
+	$)
+	deassign()
+	for i=1 to numrecs
+	$(	if us(me) psw_PSWD of rec
+		if PSWD of rec=psw/\WRD1 of rec then		//Deleted record if name zero
+		$(	out("*L*S*C*LName: :U*T[**,:8]*C*LStrength: :N*TStamina (max): :N*TDexterity: :N*TSex: :s*C*L",
+				rec+2,PN of rec,STRN of rec,STMX of rec,DXTY of rec,rec!1 bitand 1 -> "female", "male")
+			out("Games: :N*TScore: :N.*C*L", GAMES of rec, SCRE of rec)
+			unless valof
+			$(	unless WIZARD of profile resultis true
+				out("*L*S*C*LSave, delete or finish? ")
+				$[	$clrbfi
+					$inchrw		ac
+					$clrbfi
+					$trz	ac,	'*S'
+					$cain	ac,	'S'
+					$jrst		save
+					$cain	ac,	'D'
+					$jrst		delete
+					$cain	ac,	'F'
+					$jrst		finsh
+					$clrbfi
+					$outstr		$az"S"
+					$jrst		saver
+finsh:					$setzm		going
+					$(	unless ESSEX
+						$[	$outstr		$az"F"
+						$]
+					$)
+					$outstr		$az"inish*C*L"
+					$jrst		tr
+save:					$(	unless ESSEX
+						$[	$outstr		$az"S"
+						$]
+					$)
+saver:					$outstr		$az"ave*C*L"
+tr:					$(	resultis true	$)
+delete:					$(	unless ESSEX
+						$[	$outstr		$az"D"
+						$]
+					$)
+					$outstr		$az"elete*C*L"
+					$(	resultis false	$)
+				$]
+			$) then 
+			$(	let str,prevrec=vec 1,rec
+				!str_2!rec
+				1!str_3!rec
+				assign()
+				deleterec(str)
+				deassign()
+				load.block(perput,bcnt)		//Deleterec screws up dmpbuf
+				rec_prevrec		//and rec
+				out("*C*L:u deleted.*C*L",str)
+			$)
+		$)
+		unless going break	//Finished.
+		if (rec-dmpbuf)>128
+		$(	rec-_128
+			assign()
+			bcnt+_1
+			load.block(perput,bcnt)
+			deassign()
+		$)
+		rec +_ RECLENGTH
+	$)
+		close(perput)
+		laststream_-1
+		setbit()
+		flush()
+		alive()
+		return
+eh:	Outs("*C*LSomeone is using the persona file, try again later, sorry.*C*L")
+	alive()
+	setbit()
+$)
+and bug() be
+$(	let day,tim,ch,wot=?,?,?,verbname
+	for i=0 to 35 do if fight!i error("You don't have time to :s during a fight!", wot)
+	private()
+	bstr_appendfile("all","letter","box",MAINTA,label(errlab))
+	day_valof $[ $DATE	 AC,	  0	      $]
+	tim_valof $[ $MSTIME	   AC,	    0	      $]
+	write(bstr,"*D*C*LFrom:: :p [:8,:8] on :d at :t*C*LSubject:: :s :s.*C*L",me,LH from ppn,RH from ppn,day,tim,@mudnam, wot)
+	unsetbit()
+	write(tty,"Please type in your :s. Finish it with an ESCape*C*L",wot)
+	reset()
+	verb_0
+	$(	check.stuff()
+		ch_getch()
+		until linebreak(ch) do
+		$(	writech(bstr,ch)
+			ch_getch()
+		$)
+		unless ch='*L' writech(bstr,'*C')
+		writech(bstr,'*L')
+		if ch='*$' break
+	$)	repeat
+	close(bstr)
+	bstr_0
+	public()
+	out("*C*LYour :s has been recorded. Thankyou!*C*L", wot)
+	setbit()
+	return
+errlab: writes(tty,"Problem with bug file ")
+	public()
+	iomessage()
+$)
+and attach() be
+$(	let oldname, real, oldp.no=player.names!player.no,false,player.no
+	unless (RELAXED\/us(me)\/us(objname))/\(flipping\/WIZARD of profile=1) error()
+	if !objname=!"gail" then !objname_!"glai"
+	if LENGTH of objname gr NAMELENGTH
+		error("Maximum length of name allowed is :N", NAMELENGTH)
+	if (find.word(objname) ne 0) \/ (objct ne fake)
+		error("I can't call you :s.",objname)
+	if player.no=P1 of objct error("There's no point in attaching to yourself...")
+	if us(objname) unless maint error("Not to :U you don't!", objname)
+	test PTYPE of objct=S.PLAYER then
+	$(	unless JBNUM of LH from player.names!(P1 of objct)=jobno
+		if us(objname) \/ us(me)=0
+			error("You can't attach to someone else's persona")
+		break.off()
+		bashfull()
+		dormant()
+		player.no_p1 of objct
+		player.bit_1<<player.no
+		INVIS of profile_false
+		profile_LH from player.names!player.no
+		room_CROOM of profile
+		carry_ROBJT of profile
+		outz($az"If you leave the game, they'll get your password...*C*L")
+	$) or
+	$(	perput_dofile($6"all",ps6,$6".pm",mainta,label(hmph),#17,1,lookup,rdb,wrb,closefile)
+		quitflg_true
+		assign()
+		searchrec(objname)
+		deassign()
+		close(perput)
+		if rec
+		$(	let pw=PSWD of (rec rem 128+dmpbuf)
+			rec_rec rem 128+dmpbuf
+			quitflg_true
+			if BZK unless us(me) if BERSERKMASK bitand (WIZD of rec) error("Not to a berserker, I'm afraid!")
+			unless us(me) /\ us(objname)=0 if (pw /\ ps.word ne pw)
+			$(	let opret=pretend
+				outs("*C*LWhat's the password for this persona?*C*L")
+				noecho()
+				private()
+				pretend_true
+				$[	$clrbfi	$]
+				check.stuff()
+				scanner()
+				pretend_opret
+				echo()
+				public()
+				opret_PNAME of scan.info
+				unless pw=encrypt(opret) error("Wrong!")
+			  $)
+			real_true
+		$)
+		unsnoop(true)
+		bashfull()
+		break.off()
+		dormant()
+		quitflg_false
+		lock(@inidr)
+		if player>=35 unlock()<>quitflg_true<>Error("Too many players - try again later")
+		player+_1
+		player.no_plynum!player
+		unlock()
+		player.bit_1<<player.no
+		INVIS of profile_false
+		profile_getmblock()
+		quitflg_1
+		SENDER of profile,LINK of profile_player.no,0
+		info of profile,PNAME of profile_player.bit,profile+14
+		profile!14_!objname
+		profile!15_1!objname
+		ATTED of profile_true
+		test real then
+		$(	SCORE of profile_SCRE of rec
+			STRENGTH of profile _STRN of rec
+			DEXTERITY of profile _DXTY of rec
+			STAMINA of profile _STNA of rec
+			GAMES.PLAYED of profile _GAMES of rec
+			STAMINAMAX of profile _STMX of rec
+			STATES of profile _WIZD of rec
+			SEX of profile _WRD1 of rec
+		$) or newpersona(objname)
+		quitflg_true
+		JBNUM of profile_jobno
+		jobnos!player.no_jobno
+		player.names!player.no_(profile<<18)bitor(profile+14)
+		room_LH of find.room($6"start")
+		CROOM of profile_room
+	$)
+	me_PNAME of profile
+	out("Detaching from :P.*C*L",oldname)
+	oldroom_room
+	who.copy_who!room
+	carry_robjt of profile
+	lvrdoor_room+door
+	lvqueue_queue+player.no
+	lvqdoor_queue.doors+player.no
+	flipping_true
+	if us(objname) WIZARD of profile_true
+	unless PTYPE of objct setbit()
+	out("Attaching to :P.*C*L",player.names!player.no)
+	verb,objct_0,fake.node("that")
+	deaf,blind,dumb,paralysed_false,false,false,false
+	laststream_-1
+	describe(room)
+	alive()
+	sendall(~(1<<oldp.no), K.IHA, false, true, oldp.no)
+	jump(mainloop)
+hmph:	Error("Someone else is using the persona file at the moment - try again later.")
+$)
+and detach() be
+$(	unless (RELAXED\/us(me))/\(WIZARD of profile=1\/flipping) error()
+	out("Detaching from :P.*C*LType CONT to continue.*C*L",player.names!player.no)
+	unsnoop(true)
+	bashfull()
+	break.off()
+	dormant()
+	$[	$exit	1,	0
+	$]
+	flush()
+	describe(room)
+	alive()
+	jump(mainloop)
+$)
+and exorcise(pno) be
+$(	let jalready, block, myroom, mypb, mypno, myprofile, myold, mycarry, n1, n2, pts =
+		numbargs(), ?, room, player.bit, player.no, profile, oldroom, carry, ?, ?, ?
+	unless jalready
+	$(	unless objct=fake error(":p isn't a name.", objname)
+		person(objct)
+		pno_P1 of objct
+		unless (RELAXED\/us(me))/\WIZARD of profile error("*C*LNo can do, old :s.", SEX of profile -> "girl", "son")
+		if player.no=pno error("*C*LYou can't exorcise yourself! You're not dead!")
+	$)
+	unless jalready jar(@deldr)
+	if active!pno=-1
+	$(	unless jalready unjar(@deldr)
+		return
+	$)
+	player.no_pno
+	active!player.no_-1
+	unless jalready unjar(@deldr)
+	player.bit_1<<player.no
+	profile_LH from (player.names!player.no)
+	room_CROOM of profile
+	oldroom_room
+	carry_ROBJT of profile
+	player.names!player.no_0
+	unsetbit()
+	drop.everything()
+	$(	jar(queue.doors+player.no)
+		block_unlink(queue+player.no)
+		unjar(queue.doors+player.no)
+		unless block break
+		freemblock(block)
+	$) repeat
+	jar(@inidr)
+	plynum!player_player.no
+	player-_1
+	unjar(@inidr)
+	n1_PNAME of profile
+	n2_1!n1
+	n1_!n1
+	pts_(player.level()+1)*FLEELOSS
+	freemblock(profile)
+	room, player.bit, player.no, profile, oldroom, carry_myroom, mypb, mypno, myprofile, myold, mycarry
+	unless jalready out(":p is no more.*C*L", objname)
+	sendall(true,K.SHBE,true,false,pno,n1,n2,pts)
+	them_getmblock()
+	them!3,them!4, them!5_n1,n2,pts
+	send(player.no,them,K.SHBE,pno)
+	him, her, them_false, false, false
+	verb,objct_0,fake.node("that")
+$)
+and quit(nextgame, nextrm) be
+$(	let block, logs,dest = ?, logstr,who.copy
+	for i=0 to 35 do if fight!i return	//Check if still fighting anyone
+	quitflg_false				//Stop control C letting u out.
+	for i=0 to 35 if wizard of LH from player.names!i dest bitor_1<<i
+	unless us(me) \/ (A.HIDE bitand ATTRIB of room)
+		sendall(dest,K.IHPO,false,false,profile!14,profile!15)
+	jar(@deldr)
+	check.gone()
+	active!player.no_-1
+	unjar(@deldr)
+	break.off()				//stop follows and helps
+	player.names!player.no_0		//Remove him from the list of players
+	unsetbit()				//Remove him from the current room
+	unsnoop(true)
+	bashfull()
+	drop.everything()			//What it says
+	$(	lock(lvqdoor)			//Lock the queue door
+		block_unlink(lvqueue)		//Unlink a block from the queue
+		unlock()			//Open the door
+		unless block break		//We finished only when no more blocks
+		freemblock(block)		//Stick it back on the freelist
+	$)	repeat
+	longdescribe_dud
+	while events
+	$(	let demon=events+DOF
+		if D.ALWAYS of demon
+		$(	verb, objct, instrmnt_D.VERB of demon, D.OBJECT of demon, D.INSTRUMENT of demon
+			instate()
+			action(true)
+		$)
+		events of_LINK
+	$)
+	unless numbargs() nextgame_false
+	if true le nextgame le false do
+	$(	let t, d, scr =
+		valof $[	$mstime	1,	0	$]-daytime,
+		(ud.time()-udaytime)>>18, (SCORE of profile)-oldscore
+		if t le 0 t+_WHOLEDAY
+		t/_1000
+		rhours+_t		//don't really care too much if it's interrupted!
+		writez(tty,$az"*C*LDuration of game =")
+		if d write(tty," :N day:S",d, d=1->"","s")
+		writesecs(tty,t)
+		writes(tty,".*C*L")
+		if d writez(tty, "*C*LMy god! What dedication!")
+		if scr ge 1 write(tty,"You scored :N point:S this session:s.*C*L",
+			scr,scr=1->"","s", STAMINA of profile le 0->" before you died","")
+if essex /\ scr ge 6888
+$(	let op=?
+	op_appendfile($6"dsk",$6"prolog",$6"prl",MPPN,label(rattts))
+	write(op,":P leaving :s gaining :N points from :N to :N*C*L",
+		me, @mudnam, scr, oldscore, SCORE of profile)
+	close(op)
+rattts:
+$)
+	$)
+	if logstr close(logstr)			//If logging close log file.
+	logstr_0				//Stop dump mode I/O causing ill uuo.
+	if bstr close(bstr)<>bstr_0
+	writeprofile(nextgame)
+	lock(@inidr)				//Lock initialisation door
+	plynum!player_player.no		//Re-cycle the player no.
+	player-:1				//Decrement player-stack pointer
+	unless \player locked_false		//last one out unlocks game
+	unlock()				//Now unlock the door
+	test numbargs() then test \nextgame then
+	$(	output_createtmp(sixbit(nextgame),label(nochain))
+//dofile(disc,nextgame,"tmp",0,label(nochain),0,2,enter,rda,wrb,closefile)
+		outch('*^A')
+		out(PNAME of profile)
+		test logs then outch('*B') or outch('*^C')
+		out(":n*$:n*$:n*$:n*$:n",valof $[ $mstime 1, 0 $],daytime,sixbit(nextrm),ps.word,oldscore)
+		close(output)
+	$) or
+	$(	freemblock(profile)
+		run($6"sys",$6"logout",$6"exe",0)
+	$) or
+	$(
+nochain:	freemblock(profile)
+		finish
+	$)
+	freemblock(profile)
+	run(disc,nextgame,$6"exe",mainta,0)
+$)

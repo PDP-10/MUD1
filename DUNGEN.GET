@@ -1,0 +1,885 @@
+$nolist
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.  No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+ 
+MANIFEST
+$(
+//Environment manifests
+	ESSEX		=	true		//Essex University specials
+	LOADCHK		=	FALSE		//want to check if m/c is overloaded?
+	RELAXED		=	true		//want wiz's to have unrestricted powers?
+	BOASTNAME	=	true		//Shall we say who wrote this?
+	TTYWIDTH	=	79		//how wide is the terminal?
+	WIZVWIZ		=	false		//true if you don't want wiz's to be able to fight each other
+	YOULLBESORRY	=	true		//shall MUD record all entries/exits to game in MUD.LOG?
+	BZK		=	FALSE		//true if you allow berserkers
+	CORELOW		=	false		//do routines need to be cut 'cos of low core?
+	OTHERS		=	false		//true if there are other arch's
+	MPPN		=	#2600002776//#322500000001	//where to look for log files
+//other important manifests
+	WORD		=	SELECTOR	36: 0: 0
+	LENGTH		=	SELECTOR	 7:29: 0
+	FIRSTCH		=	SELECTOR	 7:22: 0
+//Room descriptor.
+/*
+	+-------------------------------+
+	!      Sixbit room name		!
+	+---------------+---------------+
+	!   LEAVE	!  TITLE	!
+	+---------------+---------------+
+	!	   DOOR			!
+	+-------------------------------+
+	!	  ATTRIB		!
+	+---------------+---------------+
+	!   TRAVEL	!    ROBJT	!
+	+---------------+---------------+
+	!	     WHO		!
+	+---------------+---------------+
+	!   RNUMB	!    FORCED	!
+	+---------------+---------------+
+	!    DMOVE	!     ROOMWD	!
+	+---------------+---------------+
+	!    MAPWD	!  (UNUSED)	!
+	+---------------+---------------+
+*/
+	TITLE		=	RH+1
+	LEAVE		=	LH+1
+	DOOR		=	2
+	ATTRIB		=	WORD+3
+	ROBJT		=	RH+4
+	TRAVEL		=	LH+4
+	WHO		=	5
+	RNUMB		=	LH+6
+	FORCED		=	RH+6
+	DMOVE		=	LH+7
+	ROOMWD		=	RH+7
+	MAPWD		=	LH+8
+	ROOMSIZE	=	8
+ 
+	BCHEAD		=	LH
+	INVADE		=	RH
+	LEAVESIZE	=	0
+//Object descriptor.
+/*
+	+---------------+---------------+
+	!   (PTYPE)	!   (LINK)	!
+	+---------------+---------------+
+	!   (P1)	!    (PNAME)	!
+	+---------------+---------------+
+	!   MOTN	!   CONTENTS	!
+	+---------------+---------------+
+	!	    DESTROYED		!
+	+---------------+---------------+
+	!	  RSIGBF!SCPRP! P4 ! P5	!	//random,nosummon,noit,noget,bright,fixed
+	+---------------+---------------+
+	!     VALUE	!    WEIGHT	!
+	+---------------+---------------+
+*/
+	P2		=	RH+2
+	P3		=	LH+2
+	INFO		=	WORD+2		//P2 + P3
+	CONTENTS	=	RH+2
+	MOTN		=	LH+2
+	DESTROYED	=	WORD+3
+//	Object number,,Link to next object
+//	Object class,,Print name of object
+//	motion record if a mobile,,contents if a bag
+//	P5 is Maximum prop value, P4 is Current prop value
+	FPROP		=	LH+4	//all the fixed props
+	RANDM		=	selector 1:23:4
+	NOSUMMON	=	selector 1:22:4
+	NOIT		=	selector 1:21:4
+	NOGET		=	selector 1:20:4
+	BRIGHT		=	selector 1:19:4
+	FIXED		=	selector 1:18:4
+	SCOREPROP	=	selector 6:12:4
+	P4		=	selector 6:6:4
+	P5		=	selector 6:0:4
+	VALUE		=	LH+5
+	WEIGHT		=	RH+5
+	OBJECTSIZE	=	5
+/*	object format in vocab. section
+	<name> [ <speed> <instincts> <actions> ]? <where> <where>* <cprop> <mprop> <sprop> <stamina>?
+	[ bright | noget | noit | [ contains <maxwt> ] | disguised | opened | transparent ]?
+
+	cprop<0 means destroyed, mprop<0 means random prop
+*/
+//Dictionary node.
+/*
+	+---------------+---------------+
+	!1!2!   PTYPE	!     LINK	!	//1=SAVED, 2=SYN
+	+---------------+---------------+
+	!      P1	!     PNAME	!
+	+---------------+---------------+
+*/
+//Declaration record
+/*	+---------------+---------------+
+	!	D1	!	Link	!
+	+---------------+---------------+
+	!	D3	!	D2	!
+	+---------------+---------------+
+	!	D5	!	D4	!
+	+---------------+---------------+
+	!	D7	!	D6	!
+	+---------------+---------------+
+	!	D9	!	D8	!
+	+---------------+---------------+
+*/
+	PTYPE		=	selector 16:18:0
+	SYN		=	selector 1:34:0
+	SAVED		=	selector 1:35:0
+	LINK		=	RH
+	PNAME		=	RH+1
+	P1		=	LH+1
+	DREC		=	LH+1
+	DICTNODESIZE	=	3
+	RESERVEDSIZE	=	2
+	NODESIZE	=	1
+	D1		=	LH
+	D2		=	RH+1
+	D3		=	LH+1
+	D4		=	RH+2
+	D5		=	LH+2
+	D6		=	RH+3
+	D7		=	LH+3
+	D8		=	RH+4
+	D9		=	LH+4	//can always use 9 bits for some of these
+	DRSIZE		=	4
+	ODRSIZE		=	3
+	DDRSIZE		=	1
+//Demon node
+/*
+	+---------------+---------------+
+	(  E.DEMONUM	:    LINK	)
+	+---------------+---------------+
+	(     SHORT	:  (unused)	)
+	+---------------+---------------+
+	!    D.VERB	!     D.TIME	!
+	+---------------+---------------+
+	!    D.OBJECT	!  D.INSTRUMENT	!
+	+---------------+---------------+
+	!   D.OFFSET	!	    SPGA!	A=always, G=global, P=Plonk, S=Suspended
+	+---------------+---------------+	(P & S for system use)
+*/
+	DOF		=	2
+	DEMONSIZE	=	2
+	D.VERB		=	LH
+	D.TIME		=	RH;	E.TIME=D.TIME+DOF
+	D.OBJECT	=	LH+1
+	D.INSTRUMENT	=	RH+1
+	D.ALWAYS	=	selector 1:0:2
+	D.GLOBAL	=	selector 1:1:2
+	D.PLONK		=	selector 1:2:2;	E.PLONK=D.PLONK+DOF
+	D.SUSPENDED	=	selector 1:3:2;	E.SUSPENDED=D.SUSPENDED+DOF
+	D.ATTRIBUTES	=	RH+2
+	D.OFFSET	=	LH+2
+	E.DEMONUM	=	LH
+//Message block.
+/*
+	+---------------+---------------+
+	!    SENDER	!   (LINK)	!
+	+---------------+---------------+
+	!     SHORT	!    FUNC	!
+	+-------------------------------+
+	!	     (INFO)		!
+	+-------------------------------+
+	!				!
+	!				!
+*/
+	SENDER		=	LH
+	SHORT		=	LH+1
+	FUNC		=	RH+1
+	//Function codes.
+	K.IWKU		=	1		//I want to kill you.
+	K.IACPT 	=	2		//I accept.
+	K.IMDD		=	3		//I'm definitely dead.
+	K.ISAM		=	4		//I swung and missed.
+	K.ISAH		=	5		//I swung and hit.
+	K.TEXT		=	6		//A text message.
+	K.SNOP		=	7		//I want to snoop.
+	K.MAKE		=	8		//Do this!
+	K.ITTE		=	9		//I tried to enter
+	K.DIST		=	10		//Text message from "A distance"
+	K.IWSU		=	11		//I want to steal from you
+	K.INCI		=	12		//I'm not carrying it
+	K.IFYO		=	13		//I found you out
+	K.YSFM		=	14		//You stole from me
+	K.WAF		=	15		//We are fighting
+	K.IWTF		=	16		//I want to follow
+	K.IHHU		=	17		//I have hit you
+	K.STTE		=	18		//Something tried to enter
+	K.ISFY		=	19		//I've stopped following you
+	K.IWJY		=	20		//I want to join you
+	K.ISJY		=	21		//I've stopped following you
+	K.SJM		=	22		//Stop joining me
+	K.IFM		=	23		//I'm fighting a monster
+	K.ISAHM 	=	24		//I swung and hit monster
+	K.ISAMM 	=	25		//I swung and missed monster
+	K.IWGU		=	26		//I want to give to you
+	K.BGON		=	27		//Begone!
+	K.ITHM		=	28		//It's too heavy for me
+	K.SNPA		=	29		//Snoop packet
+	K.IWSS		=	30		//I want to stop snooping
+	K.SSNO		=	31		//Stop snooping
+	K.BELW		=	32		//Bellow!
+	K.IFFY		=	33		//I fled from you
+	K.TYVM		=	34		//Thank you very much!
+	K.SFM		=	35		//Stop following me
+	K.YFIM		=	36		//You're following I moved
+	K.SJL		=	37		//Something just left
+	K.SJA		=	38		//Something just arrived
+	K.SFO		=	39		//Something fighting object
+	K.OHD		=	40		//Object has died
+	K.IGOT		=	41		//I got object
+	K.IDROPT	=	42		//I dropped object
+	K.TTH		=	43		//Trans to here
+	K.IINS		=	44		//I inserted
+	K.IREM		=	45		//I removed
+	K.SHBD		=	46		//Something has been dropped
+	K.MESS		=	47		//Message
+	K.MGOT		=	48		//Monster got object
+	K.MDROPT	=	49		//Monster dropped object
+	K.TSEX		=	50		//Toggle Sex!
+	K.OHM		=	51		//Object has moved
+	K.MFM		=	52		//Monster fighting me!
+	K.WU		=	53		//Wake up!
+	K.LOUD		=	54		//Loud noise...
+	K.ZZZ		=	55		//Fall asleep
+	K.IAA		=	56		//I'm already asleep
+	K.IHFA		=	57		//I have fallen asleep
+	K.IMOF		=	58		//I'm in the middle of a fight!
+	K.IHWU		=	59		//I have woken up
+	K.GRO		=	60		//Get rid of
+	K.FOD		=	61		//Finger of death!
+	K.INH		=	62		//I'm new here
+	K.IGIV		=	63		//I've given an object
+	K.ITAK		=	64		//I've taken an object
+	K.ISCY		=	65		//I shall contact you
+	K.OHDS		=	66		//Object has done something
+	K.WM		=	67		//Wizard mode
+	K.YCSM		=	68		//You cannot summon me
+	K.SHBE		=	69		//Someone has been exorcised
+	K.IHPO		=	70		//I have passed on
+	K.SPEC		=	71		//Spectacular!
+	K.DTD		=	72		//Do this demon
+	K.TOLD		=	73		//Told you the message (not said it)
+	K.IHD		=	74		//I have died
+	K.IHSE		=	75		//I have shown emotion
+	K.IHKS		=	76		//I have kissed someone
+	K.PIM		=	77		//Proof it's me
+	K.GOWM		=	78		//Get out of wizard mode
+	K.IHR		=	79		//I have retaliated
+	K.IHCL		=	80		//I have changed level
+	K.LAUGH		=	81		//Laugh..!
+	K.SHBF		=	82		//Someone has been forced
+	K.IHBF		=	83		//I have been forced
+	K.IHA		=	84		//I have attached
+ 
+//Mobile objects' information nodes
+/*
+	+---------------+---------------+
+	!  PREVROOM	!   CURROOM	!
+	+---------------+---------------+
+	!    MOVECOUNT 	!     MOTION	!
+	+---------------+---------------+
+	!	      FIGHTS		!
+	+---------------+---------------+
+	!	     SNOOPERS		!
+	+---------------+---------------+
+	!	     CHASERS		!
+	+---------------+---------------+
+	!  INSTINCTS	!   ACTIONS	!
+	+---------------+---------------+
+*/
+	MOTIONSIZE	=	5
+	CURROOM		=	RH
+	PREVROOM	=	LH
+	MOVECOUNT	=	LH+1
+	MOTION		=	RH+1
+	FIGHTS		=	WORD+2
+	SNOOPERS	=	WORD+3
+	CHASERS		=	WORD+4
+	INSTINCTS	=	LH+5
+	ACTIONS		=	RH+5
+ 
+//Containers information nodes
+/*
+	+---------------+---------------+
+	!	     ODT!     CONTS	!	//O=opened,D=disguised,T=transparent
+	+---------------+---------------+
+	!    MAXWT	!     WTUSED	!
+	+---------------+---------------+
+*/
+	CONTSIZE	=	1
+	TRANSPARENT	=	selector 1:18:0
+	DISGUISED	=	selector 1:19:0
+	OPENED		=	selector 1:20:0
+	CONTS		=	RH
+	MAXWT		=	LH+1
+	WTUSED		=	RH+1
+ 
+//Player profile.
+/*
+	+---------------+---------------+
+	!  (SENDER)	!   (LINK)	!
+	+---------------+---------------+
+	!     unused	!   (PNAME)	!	//when full, use unused as a list - non-shareable stuff can be statics
+	+---------------+---------------+
+	!      (INFO)	player.bit	!
+	+-------------------------------+
+	!	STATES			!
+	+---------------+---------------+
+	!    (JBNUM)	!   (ROBJT)	!
+	+-------+-------+---------------+
+	! O.C	! O.E	!  CARRY.COUNT	!	//O.C=OBJ.CARRIED, O.E=OBJ.EXTRA
+	+-------+-------+---------------+
+	!	   SCORE		!
+	+-------------------------------+
+	!	    STRENGTH		!
+	+-------------------------------+
+	!	    STAMINA		!
+	+-------------------------------+
+	!	    DEXTERITY		!
+	+-------------------------------+
+	!	  GAMES.PLAYED		!
+	+-------------------------------+
+	!	    STAMINAMAX		!
+	+-------------------------------+
+	!	CROOM			!
+	+---------------+---------------+
+	!    (unused)   !  WT.EXTRA	!
+	+---------------+---------------+
+	!  6  !  M  !  y  !  n	!  a  !?!		// ? means sex (1=fem, 0=mal)
+	+-------------------------------+
+	!  m  !  e  !	  !	!     !?!		// ? means dormancy (1=asleep, 0=awake)
+	+-------------------------------+
+*/
+	STATES		=	WORD+3
+	WIZARD		=	selector 1:0:3
+	OPR		=	selector 1:1:3
+	BERSERK		=	selector 1:2:3	;	BERSERKMASK=#4
+	SNOOPBIT	=	selector 1:3:3
+	ATTED		=	selector 1:4:3
+	BREEF		=	selector 1:5:3
+	INVIS		=	selector 1:6:3	;	NOTINVIS=#777777777677
+	IGNORE		=	selector 1:7:3
+	ISWIZ		=	selector 1:8:3	;	WIZMASK=1<<8
+	JBNUM		=	LH+4
+	CARRY.COUNT	=	RH+5
+	OBJ.CARRIED	=	selector 9:18:5
+	OBJ.EXTRA	=	SELECTOR 9:27:5
+	SCORE		=	WORD+6
+	STRENGTH	=	WORD+7
+	STAMINA 	=	WORD+8
+	DEXTERITY	=	WORD+9
+	GAMES.PLAYED	=	WORD+10
+	CROOM		=	WORD+12
+	WT.EXTRA	=	RH+13
+	STAMINAMAX	=	WORD+11
+	SEX		=	SELECTOR 1:0:14
+	ASLEEP		=	SEX+1
+//Various other selectors.
+	RNAME		=	WORD+1		//For a dictionary node.
+	CONDTYPE	=	LH+1		//For the travel table.
+	CONDVAL 	=	RH+1		//For the travel table.
+	STIME		=	selector 9:27:0	//For start time
+	FTIME		=	selector 9:18:0	//For finish time
+//Constants (numbers not selectors)
+	CCTRIP		=	30		//^C's to get out divided by 10
+	HUNG		=	200		//hung count!
+	HASHSIZE	=	127		//Size of hash table.
+	MAXWEIGHT	=	1000		//Max weight is 1000g/strength pt
+	EXP.STEP	=	400		//Number doubled per experience level
+	DEADPTS		=	75		//Base score for killing people
+	FLEELOSS	=	50		//pts/level lost when fleeing
+	BOOSTEP		=	10		//Amount added to attributes when go up a level
+	MAX.LEVEL	=	9		//1 less than maximum level!
+	TIMEOUT		=	5		//no. of minutes to get out after closing time
+	NAMELENGTH	=	9		//Max length of player name.
+	STRINGSIZE	=	127		//Max length of string.
+	CHPERWORD	=	5		//Characters per word.
+	PACKEDSTRING	=	STRINGSIZE/CHPERWORD+1
+	BERSERKMAX	=	200		//Maximum str/stamina for berserkers
+	LHMASK		=	#777777000000	//Left hand mask
+	RHMASK		=	#777777 	//Right hand mask
+	DUMPSIZE	=	10		//Size of dumplist.
+	WTHRESHOLD	=	20000		//Weight threshold
+	SNOOPROMPT	=	'|'		//Snoop prompt so know snooping
+	INTERVAL	=	60		//default seconds between auto-who
+	RNGE		=	20		//range within which diagnosed stamina lies
+	SDIV		=	18		//sleep divisor, 18 is ~10 secs
+	F.DMGE1 	=	2		//Divides the original damage.
+	F.DMGE2 	=	4		//Ditto above, differing times.
+	F.ENCMB		=	2000		//Encumberance affects chance to hit (bigger number is more chance)
+	E.DIV		=	3		//people shown emotion get
+	E.MULT		=	2		// mult/div times amount person showing it loses
+	GUESTPN		=	#2653		//PPn of guests from outside
+//this next lot should be selectors REALLY...
+	A.LIGHT 	=	#1		//Room attributes.
+	A.WATER 	=	#2		//Water is here.
+	A.OIL		=	#4		//Oil is here.
+	A.DEATH 	=	#10		//This room kills you!
+	A.SANCTUARY	=	#20		//Score points for objects here
+	A.HIDEAWAY	=	#40		//Can't see objects here!
+	A.SMALL 	=	#100		//Only 1 person can fit
+	A.CHAIN		=	#200		//run another MUD
+	A.HIDE		=	#400		//People in here can't be seen from outside
+	A.DMOVE		=	#1000		//die, and objects move to this room
+	A.NOLOOK	=	#2000		//can't look into this room from another
+	A.SILENT	=	#4000		//silent to loud noises.
+	A.START		=	#10000		//Starting room.
+//Tokens
+	S.ROOMS 	=	1		//Said *Rooms.
+	S.VOCAB 	=	S.ROOMS+1	//or *Vocabulary.
+	S.TRAVEL	=	S.VOCAB+1	//or *Travel.
+	S.OBJECT	=	S.TRAVEL+1	//*Objects or *Object.
+	S.LEVELS	=	S.OBJECT+1	//*Levels.
+	S.DEMONS	=	S.LEVELS+1	//or *Demons.
+	S.MAP		=	S.DEMONS+1	//or *Map or *Maps
+	S.HOURS		=	S.MAP+1		//or *Hours
+	S.COMBAT	=	S.HOURS+1	//or *Combat
+	S.PERSONA	=	S.COMBAT+1	//or *Persona
+	S.TEXT		=	S.PERSONA+1	//or *Text.
+	S.EOF		=	S.TEXT+1
+	S.NAME		=	S.EOF+1
+	S.NUMBER	=	S.NAME+1
+	S.MOTION	=	S.NUMBER+1
+	S.ACTION	=	S.MOTION+1
+	S.FASTATN	=	S.ACTION+1
+	S.LEVEL		=	S.FASTATN+1
+	S.SPECIAL	=	S.LEVEL+1
+	S.BRIGHT	=	S.SPECIAL+1
+	S.UNCONVERSE	=	S.BRIGHT+1
+	S.SYN		=	S.UNCONVERSE+1
+	S.RAND		=	S.SYN+1
+	S.AFUNC 	=	S.RAND+1
+	S.SFUNC 	=	S.AFUNC+1
+	S.TCOND 	=	S.SFUNC+1
+	S.WITH		=	S.TCOND+1
+	S.CONT		=	S.WITH+1
+	S.FORCED	=	S.CONT+1
+	S.NOISE 	=	S.FORCED+1
+	S.PLAYER	=	S.NOISE+1
+	S.MUDNAM	=	S.PLAYER+1
+	S.DOTNAME	=	S.MUDNAM+1
+	S.DIFF		=	S.DOTNAME+1
+	S.DD		=	S.DIFF+1
+	S.THERE		=	S.DD+1
+	S.IT		=	S.THERE+1
+	S.HIM		=	S.IT+1
+	S.HER		=	S.HIM+1
+	S.THEM		=	S.HER+1
+	S.ME		=	S.THEM+1
+	S.TRANSPARENT	=	S.ME+1
+	S.NOGET		=	S.TRANSPARENT+1
+	S.DISGUISED	=	S.NOGET+1
+	S.OPENED	=	S.DISGUISED+1
+	S.NOIT		=	S.OPENED+1
+	S.NOSUMMON	=	S.NOIT+1
+	S.ATTR		=	S.NOSUMMON+1
+	S.CONTAINS	=	S.ATTR+1
+	S.MALE		=	S.CONTAINS+1
+	S.FEMALE	=	S.MALE+1
+	S.ALWAYS	=	S.FEMALE+1
+	S.GLOBAL	=	S.ALWAYS+1
+	S.WHICHEVER	=	S.GLOBAL+1
+	S.ALL		=	S.WHICHEVER+1
+	S.CLASS 	=	S.ALL+1
+	S.ENABLED	=	S.CLASS+1
+	S.AT		=	S.ENABLED+1
+	S.NONE		=	S.AT+1
+	S.PERSON	=	S.NONE+1
+	S.SOMETHING	=	S.PERSON+1
+	S.ANYTHING	=	S.SOMETHING+1
+//Interact function codes
+	I.KILL		=	1
+	I.TELL		=	2
+	I.MAKE		=	3
+	I.STEAL 	=	4
+	I.FOLLOW	=	5
+	I.LOSE		=	6
+	I.JOIN		=	7
+	I.REFUSE	=	8
+	I.GIVE		=	9
+	I.SNOOP		=	10
+	I.WAKE		=	11
+	I.CHANGE	=	12
+	I.SUMMON	=	13
+	I.SLEEP		=	14
+	I.FOD		=	15
+//Special verb function codes.
+	SF.TELL 	=	1
+	SF.SAY		=	2
+	SF.GET		=	3
+	SF.DROP 	=	4
+	SF.KILL 	=	5
+	SF.QUIT 	=	6
+	SF.SCRE 	=	7
+	SF.LOOK 	=	8
+	SF.QOTE 	=	9		//Not really a verb but (")
+	SF.LOG		=	10
+	SF.INVN 	=	11
+	SF.DBUG 	=	12
+	SF.FRCE 	=	13
+	SF.GO		=	14
+	SF.BUG		=	15
+	SF.WHO		=	16
+	SF.CTRAP	=	17
+	SF.ACTION	=	18
+	SF.SHOUT	=	19
+	SF.BACK		=	20
+	SF.FOLLOW	=	21
+	SF.LOSE 	=	22
+	SF.JOIN 	=	23
+	SF.REFUSE	=	24
+	SF.UNKEEP	=	25
+	SF.SET		=	26
+	SF.SPECLOG	=	27
+	SF.SNOOP	=	28
+	SF.UNSNOOP	=	29
+	SF.P		=	30
+	SF.DIRECT	=	31
+	SF.WHERE	=	32
+	SF.BRIEF	=	33
+	SF.FLEE		=	34
+	SF.EXORCISE	=	35
+	SF.FREEZE	=	36
+	SF.UNFREEZE	=	37
+	SF.MOBILE	=	38
+	SF.HASTE	=	39
+	SF.SLEEP	=	40
+	SF.WAKE		=	41
+	SF.CHANGE	=	42
+	SF.ENCHANT	=	43
+	SF.RESURRECT	=	44
+	SF.KEEP		=	45
+	SF.SUMMON	=	46
+	SF.ATTACH	=	47
+	SF.DETACH	=	48
+	SF.INSERT	=	49
+	SF.REMOVE	=	50
+	SF.PRONOUNS	=	51
+	SF.EMPTY	=	52
+	SF.FOD		=	53
+	SF.BEGONE	=	54
+	SF.PROVOKE	=	55
+	SF.PURGE	=	56
+	SF.SAVE		=	57
+	SF.FLUSH	=	58		//this is just same as action fn. flush
+	SF.BYE		=	59
+	SF.TIME		=	60
+	SF.CRASH	=	61
+	SF.MAP		=	62
+	SF.EXITS	=	63
+	SF.PEACE	=	64
+	SF.WAR		=	65
+	SF.HOURS	=	66
+	SF.NEWHOURS	=	67
+	SF.SPECTACULAR	=	68
+	SF.AUTOWHO	=	69
+	SF.QUICKWHO	=	70
+	SF.RESET	=	71
+	SF.ROOMS	=	72
+	SF.BERSERK	=	73
+	SF.WEIGH	=	74
+	SF.VERBOSE	=	75
+	SF.SGO		=	76
+	SF.PASSWORD	=	77
+	SF.NOPASSWORD	=	78
+	SF.STAMINA	=	79
+	SF.HUMBLE	=	80
+	SF.PROOF	=	81
+	SF.CONVERSE	=	82
+	SF.DIAGNOSE	=	83
+	SF.DEAFEN	=	84
+	SF.BLIND	=	85
+	SF.PARALYSE	=	86
+	SF.DUMB		=	87
+	SF.CURE		=	88
+	SF.SGET		=	89
+	SF.VALUE	=	90
+	SF.INVIS	=	91
+	SF.VIS		=	92
+	SF.SHELVE	=	93
+	SF.UNSHELVE	=	94
+	SF.UNVEIL	=	95
+	SF.DEMO		=	96
+	SF.LAUGH	=	97
+	SF.IGNORE	=	98
+	SF.POLICE	=	99
+ 
+//Function types for verbs (cf. 1.5 address computer!)
+	F.INC		=	1
+	F.DEC		=	F.INC+1
+	F.NULL		=	F.DEC+1
+	F.FLUSH		=	F.NULL+1
+	F.MOVE		=	F.FLUSH+1
+	F.TRANS 	=	F.MOVE+1
+	F.SET		=	F.TRANS+1
+	F.TOGGLE	=	F.SET+1
+	F.FIX		=	F.TOGGLE+1
+	F.FLOAT 	=	F.FIX+1
+	F.DESTROY	=	F.FLOAT+1
+	F.CREATE	=	F.DESTROY+1
+	F.FORROT	=	F.CREATE+1
+	F.BACKROT	=	F.FORROT+1
+	F.EXPINC	=	F.BACKROT+1
+	F.EXPSET	=	F.EXPINC+1
+	F.HOLDFIRST	=	F.EXPSET+1
+	F.HOLDLAST	=	F.HOLDFIRST+1
+	F.FLIPAT	=	F.HOLDLAST+1
+	F.IFOBJCOUNT	=	F.FLIPAT+1
+	F.IFPROP	=	F.IFOBJCOUNT+1
+	F.IFPROPINC	=	F.IFPROP+1
+	F.IFPROPDEC	=	F.IFPROPINC+1
+	F.IFPROPDESTROY	=	F.IFPROPDEC+1
+	F.UNLESSPROPDESTROY	=	F.IFPROPDESTROY+1
+	F.IFRPROP	=	F.UNLESSPROPDESTROY+1
+	F.IFRLEVEL	=	F.IFRPROP+1
+	F.UNLESSRLEVEL	=	F.IFRLEVEL+1
+	F.NOIFR		=	F.UNLESSRLEVEL+1
+	F.IFR		=	F.NOIFR+1
+	F.IFBERSERK	=	F.IFR+1
+	F.UNLESSBERSERK	=	F.IFBERSERK+1
+	F.IFWIZ		=	F.UNLESSBERSERK+1
+	F.UNLESSWIZ	=	F.IFWIZ+1
+	F.IFSMALL	=	F.UNLESSWIZ+1
+	F.UNLESSSMALL	=	F.IFSMALL+1
+	F.IFDEAF	=	F.UNLESSSMALL+1
+	F.IFBLIND	=	F.IFDEAF+1
+	F.IFPARALYSED	=	F.IFBLIND+1
+	F.IFDUMB	=	F.IFPARALYSED+1
+	F.UNLESSPROP	=	F.IFDUMB+1
+	F.IFZERO	=	F.UNLESSPROP+1
+	F.IFDISENABLE	=	F.IFZERO+1
+	F.UNLESSDISENABLE	=	F.IFDISENABLE+1
+	F.IFENABLED	=	F.UNLESSDISENABLE+1
+	F.UNLESSENABLED	=	F.IFENABLED+1
+	F.TESTSEX	=	F.UNLESSENABLED+1
+	F.UNLESSIN	=	F.TESTSEX+1
+	F.UNLESSOBJIS	=	F.UNLESSIN+1
+	F.IFOBJIS	=	F.UNLESSOBJIS+1
+	F.UNLESSINSIS	=	F.IFOBJIS+1
+	F.IFINSIS	=	F.UNLESSINSIS+1
+	F.UNLESSOBJPLAYER	=	F.IFINSIS+1
+	F.IFOBJPLAYER	=	F.UNLESSOBJPLAYER+1
+	F.UNLESSOBJCONTAINS	=	F.IFOBJPLAYER+1
+	F.IFOBJCONTAINS	=	F.UNLESSOBJCONTAINS+1
+	F.TESTSMALL	=	F.IFOBJCONTAINS+1
+	F.TRANSWHERE	=	F.TESTSMALL+1
+	F.IFIN		=	F.TRANSWHERE+1
+	F.EXP		=	F.IFIN+1
+	F.STAMINA	=	F.EXP+1
+	F.RESETDEST	=	F.STAMINA+1
+	F.STAMINADESTROY=	F.RESETDEST+1
+	F.LOSEEXP	=	F.STAMINADESTROY+1
+	F.LOSESTAMINA	=	F.LOSEEXP+1
+	F.INJURE	=	F.LOSESTAMINA+1
+	F.SUSPEND	=	F.INJURE+1
+	F.DELAYMOVE	=	F.SUSPEND+1
+	F.WRITEIN	=	F.DELAYMOVE+1
+	F.ENABLE	=	F.WRITEIN+1
+	F.DISENABLE	=	F.ENABLE+1
+	F.UNLESSGOT	=	F.DISENABLE+1
+	F.IFGOT		=	F.UNLESSGOT+1
+	F.UNLESSHAVE	=	F.IFGOT+1
+	F.IFHAVE	=	F.UNLESSHAVE+1
+	F.IFLEVEL	=	F.IFHAVE+1
+	F.IFSELF	=	F.IFLEVEL+1
+	F.UNLESSLEVEL	=	F.IFSELF+1
+	F.IFPLAYING	=	F.UNLESSLEVEL+1
+	F.UNLESSPLAYING	=	F.IFPLAYING+1
+	F.IFLIGHT	=	F.UNLESSPLAYING+1
+	F.IFSEX		=	F.IFLIGHT+1
+	F.IFINVIS	=	F.IFSEX+1
+	F.IFILL		=	F.IFINVIS+1
+	F.UNLESSILL	=	F.IFILL+1
+	F.IFASLEEP	=	F.UNLESSILL+1
+	F.IFRSTAS	=	F.IFASLEEP+1
+	F.UNLESSRSTAS	=	F.IFRSTAS+1
+	F.UNLESSWEIGHS	=	F.UNLESSRSTAS+1
+	F.IFWEIGHS	=	F.UNLESSWEIGHS+1
+	F.UNLESSDEAD	=	F.IFWEIGHS+1
+	F.IFDEAD	=	F.UNLESSDEAD+1
+	F.UNLESSDESTROYED	=	F.IFDEAD+1
+	F.IFDESTROYED	=	F.UNLESSDESTROYED+1
+	F.UNLESSSNOOPING	=	F.IFDESTROYED+1
+	F.IFSNOOPING	=	F.UNLESSSNOOPING+1
+	F.IFFIGHTING	=	F.IFSNOOPING+1
+	F.UNLESSFIGHTING	=	F.IFFIGHTING+1
+	F.HURT		=	F.UNLESSFIGHTING+1
+	F.RETALIATE	=	F.HURT+1
+	F.SENDEMON	=	F.RETALIATE+1
+	F.SSENDEMON	=	F.SENDEMON+1
+	F.EMOTION	=	F.SSENDEMON+1
+	F.ZONK		=	F.EMOTION+1
+	F.DEAD		=	F.ZONK+1
+	F.SEND		=	F.DEAD+1
+	F.SENDEFFECT	=	F.SEND+1
+	F.SENDMESS	=	F.SENDEFFECT+1
+	F.SENDLEVEL	=	F.SENDMESS+1
+	F.INCSEND	=	F.SENDLEVEL+1
+	F.IFHERE	=	F.INCSEND+1
+	F.IFHERETRANS	=	F.IFHERE+1
+	F.UNLESSHERE	=	F.IFHERETRANS+1
+	F.SETSEX	=	F.UNLESSHERE+1
+	F.TOGGLESEX	=	F.SETSEX+1
+	F.TRANSHERE	=	F.TOGGLESEX+1
+	F.DESTROYTOGGLESEX	=	F.TRANSHERE+1
+//From here onwards the functions are double ie do both indicated things
+	F.INCDESTROY	=	F.DESTROYTOGGLESEX+1
+	F.DESTROYTRANS	=	F.INCDESTROY+1
+	F.FLOATDESTROY	=	F.DESTROYTRANS+1
+	F.DECDESTROY	=	F.FLOATDESTROY+1
+	F.DESTROYDEC	=	F.DECDESTROY+1		//Nothing personal Digital Electronics C.!
+	F.DECIFZERO	=	F.DESTROYDEC+1
+	F.SWAP		=	F.DECIFZERO+1
+	F.IFINC 	=	F.SWAP+1
+	F.UNLESSINC	=	F.IFINC+1
+	F.EXPDESTROY	=	F.UNLESSINC+1
+	F.EXPMOVE	=	F.EXPDESTROY+1
+	F.INCMOVE	=	F.EXPMOVE+1
+	F.DESTROYDESTROY	=	F.INCMOVE+1
+	F.DESTROYSET	=	F.DESTROYDESTROY+1
+	F.SETDESTROY	=	F.DESTROYSET+1
+	F.SETFLOAT	=	F.SETDESTROY+1
+	F.DESTROYINC	=	F.SETFLOAT+1
+	F.DESTROYCREATE	=	F.DESTROYINC+1
+	F.DECINC	=	F.DESTROYCREATE+1
+	F.INCDEC	=	F.DECINC+1
+ 
+	B.START		=	0
+	B.IHIT		=	B.START+1
+	B.THEYMISS	=	B.IHIT+1
+	B.IMISS		=	B.THEYMISS+1
+	B.THEYHIT	=	B.IMISS+1
+	B.IMDEAD	=	B.THEYHIT+1
+	B.IMOK		=	B.IMDEAD+1
+	B.IHITBACK	=	B.IMOK+1
+	B.IMISSAGAIN	=	B.IHITBACK+1
+	B.VICTORY	=	B.IMISSAGAIN+1
+ 
+	FULLBUFSIZE	=	639
+	BUFFERS		=	(FULLBUFSIZE+1)/5*2
+	WDSPERBUF	=	128
+/*	+-------------------------------+
+	!	     POINTR		!
+	+---------------+---------------+
+	!	PN	!     GAMES	!
+	+---------------+---------------+
+	!	      WRD1		!
+	+---------------+---------------+
+	!	      WRD2		!
+	+---------------+---------------+
+	!	      SCRE		!
+	+---------------+---------------+
+	! STRN	! DXTY	! STNA	! STMX	!
+	+---------------+---------------+
+	!	      LSTM		!
+	+---------------+---------------+
+	!	      WIZD		!
+	+---------------+---------------+
+	!	      PSWD		!
+	+---------------+---------------+
+	!	      UNUSED		!
+	+---------------+---------------+
+	!	      UNUSED		!
+	+---------------+---------------+
+	!	      UNUSED		!
+	+---------------+---------------+
+*/
+	POINTR		:	WORD
+	RECLENGTH	:	12
+	PN		:	LH+1
+	GAMES		:	RH+1
+	WRD1		:	WORD+2
+	WRD2		:	WORD+3
+	SCRE		:	WORD+4
+	STRN		:	selector 9: 27: 5
+	DXTY		:	selector 9: 18: 5
+	STNA		:	selector 9: 9: 5
+	STMX		:	selector 9: 0: 5
+	LSTM		:	WORD+6
+	WIZD		:	WORD+7
+	PSWD		:	WORD+8
+	DEL		:	254+WORD
+	FLEN		:	255+WORD
+	LASTREC		:	2*WDSPERBUF-RECLENGTH
+$)
+
+EXTERNAL
+$(	//Locations (as opposed to routines)
+	INDEX
+	DICTIONARY
+	STLIST
+	MAX.ROOM.NO
+	MAX.MESSAGE.NO
+	MAX.DEMON.NO
+	TEXT
+	DEMONS
+	TXTVEC
+	MOVERS
+	MVLOCK
+	DELOCK
+	MELTED
+	PEACE
+	FREE.SPACE
+	MALE
+	FEMALE
+	STARTLOC
+	ENDLOC
+	BACKWORD	:	BACKWD
+	TVERB
+	DATE
+	RDATE
+	RHOURS
+	TIMES
+	TIME
+	MUDNAM
+	MUD6
+	PS6
+	INIDR
+	PLAYER
+	PLYNUM
+	JOBNOS
+	KIPS
+	TABS
+	SHELF
+	GDEMONS		:	GDEMON		//GEVENTS would have been better
+	QUEUE		:	MQUEUE
+	PLAYER.NAMES	:	PNAMES
+	QUEUE.DOORS	:	QDOORS
+	PERSONA.DOOR	:	PDOOR
+	MESSAGE.DOOR	:	MDOOR
+	NAME.DOOR	:	NDOOR
+	REP1		:	PNAMES
+	ESXWD
+	MOTVEC
+	CODES
+	NAPCT
+	SUPERS
+	demo
+	randirs		:	randir
+	SHORTMESS
+	LONGMESS
+	MAGIC
+	SPECTACULAR	:	SPECT
+	nowiz
+	randoms		:	rndms
+	firsttime	:	ftime
+	deldr
+	active
+$)
+$list
+ 

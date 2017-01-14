@@ -1,0 +1,1732 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.  No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "bcl:acs"
+get "bcl:rfs"
+get "bcl:iolib"
+get "dungen"
+get "bcl:bits"
+get "bcl:kernel"
+get "bcl:jobdat"
+ 
+$ldtext "/runame:dbase"
+ 
+manifest
+$(	MSLEN		=	127
+	SCRSIZ		=	WDSPERBUF
+$)
+ 
+STATIC
+$(	procs		=	vec S.TEXT
+	name.string	=	vec 26
+	res		=	vec HASHSIZE
+	cbl		=	vec 1
+	roomput		=	false
+	textput		=	false
+	objput		=	false
+	mapput		=	false
+	comput		=	false
+	cmndput		=	false
+	getput		=	0
+	nextroom	=	0
+	nexttext	=	0
+	nextcombat	=	0
+	nextobj		=	1	//a hack...
+	nextmap		=	1	//ditto
+	nextcmnd	=	1	//ditto again!
+	filename	=	?
+	scanch		=	0
+	mvec		=	vec 36
+	scan.info	=	0
+	roomlist	=	?
+	forward.ref	=	0
+	rmfwdref	=	0
+	list		=	(table	#777777)
+	reserved	=	(TABLE
+				"richard",	-1,		0,	0,
+				"roy",	-1,		0,	0,
+				"ronan",	-1,		0,	0,
+				"brian",	-1,		0,	0,
+				"debugger",	-1,		0,	0,
+				"rooms",	S.ROOMS,	0,	0,
+				"vocabulary",	S.VOCAB,	0,	0,
+				"travel",	S.TRAVEL,	0,	0,
+				"objects",	S.OBJECT,	0,	0,
+				"object",	S.OBJECT,	0,	0,
+				"maps",		S.MAP,		0,	0,
+				"map",		S.MAP,		0,	0,
+				"hours",	S.HOURS,	0,	0,
+				"combat",	S.COMBAT,	0,	0,
+				"persona",	S.PERSONA,	0,	0,
+				"text", 	S.TEXT, 	0,	0,
+				"levels",	S.LEVELS,	0,	0,
+				"demons",	S.DEMONS,	0,	0,
+				"demon",	S.DEMONS,	0,	0,
+				"name", 	S.MUDNAM,	0,	0,
+				"light",	S.ATTR, 	0,	B35,
+				"water",	S.ATTR, 	0,	B34,
+				"oil",		S.ATTR, 	0,	B33,
+				"death",	S.ATTR, 	0,	B32,
+				"sanctuary",	S.ATTR, 	0,	B31,
+				"hideaway",	S.ATTR, 	0,	B30,
+				"small",	S.ATTR, 	0,	B29,
+				"chain",	S.ATTR,		0,	B28,
+				"hide",		S.ATTR,		0,	B27,
+				"dmove",	S.ATTR,		0,	B26,
+				"nolook",	S.ATTR,		0,	B25,
+				"silent",	S.ATTR,		0,	B24,
+				"startrm",	S.ATTR,		0,	B23,
+				"motion",	S.MOTION,	0,	0,
+				"action",	S.ACTION,	0,	0,
+				"fastatn",	S.FASTATN,	0,	0,
+				"male",		S.MALE,		0,	0,
+				"female",	S.FEMALE,	0,	0,
+				"class",	S.CLASS,	0,	0,
+				"bright",	S.BRIGHT,	0,	0,
+				"noget",	S.NOGET,	0,	0,
+				"contains",	S.CONTAINS,	0,	0,
+				"transparent",	S.TRANSPARENT,	0,	0,
+				"opened",	S.OPENED,	0,	0,
+				"noit",		S.NOIT,		0,	0,
+				"nosummon",	S.NOSUMMON,	0,	0,
+				"always",	S.ALWAYS,	0,	0,
+				"global",	S.GLOBAL,	0,	0,
+				"enabled",	S.ENABLED,	0,	0,
+				"disguised",	S.DISGUISED,	0,	0,
+				"syn",		S.SYN,		0,	0,
+				"synonym",	S.SYN,		0,	0,
+				"noise",	S.NOISE,	0,	0,
+				"conj",		S.CONT,		0,	0,
+				"fprep",	S.WITH,		0,	0,
+				"bprep",	S.AT,		0,	0,
+				"quant",	S.ALL,		0,	0,
+				"pron",		S.IT,		0,	0,
+				"mpron",	S.HIM,		0,	0,
+				"fpron",	S.HER,		0,	0,
+				"ppron",	S.THEM,		0,	0,
+				"place",	S.THERE,	0,	0,
+				"self",		S.ME,		0,	0,
+				"inst",		S.WHICHEVER,	0,	0,
+				"universal",	S.SPECIAL,	0,	0,
+				"noclass",	S.NONE,		0,	0,
+				"persn",	S.PERSON,	#777777,	0,
+				"sthing",	S.SOMETHING,	#777776,	0,
+				"athing",	S.ANYTHING,	#777775,	0,
+				".tell",	S.SFUNC,	SF.TELL,	0,
+				".say", 	S.SFUNC,	SF.SAY, 	0,
+				".get", 	S.SFUNC,	SF.GET, 	0,
+				".drop",	S.SFUNC,	SF.DROP,	0,
+				".kill",	S.SFUNC,	SF.KILL,	0,
+				".quit",	S.SFUNC,	SF.QUIT,	0,
+				".score",	S.SFUNC,	SF.SCRE,	0,
+				".look",	S.SFUNC,	SF.LOOK,	0,
+				".log", 	S.SFUNC,	SF.LOG, 0,
+				".inven",	S.SFUNC,	SF.INVN,0,
+				".debug",	S.SFUNC,	SF.DBUG,0,
+				".make",	S.SFUNC,	SF.FRCE,	0,
+				".summon",	S.SFUNC,	SF.SUMMON,	0,
+				".fod",		S.SFUNC,	SF.FOD,	0,
+				".go",		S.SFUNC,	SF.GO,	0,
+				".sget",	S.SFUNC,	SF.SGET,	0,
+				".sgo",		S.SFUNC,	SF.SGO,	0,
+				".back",	S.SFUNC,	SF.BACK,	0,
+				".bug", 	S.SFUNC,	SF.BUG, 0,
+				".who", 	S.SFUNC,	SF.WHO, 0,
+				".autowho",	S.SFUNC,	SF.AUTOWHO,	0,
+				".quickwho",	S.SFUNC,	SF.QUICKWHO,	0,
+				".reset",	S.SFUNC,	SF.RESET,	0,
+				".rooms",	S.SFUNC,	SF.ROOMS,	0,
+				".berserk",	S.SFUNC,	SF.BERSERK,	0,
+				".weigh",	S.SFUNC,	SF.WEIGH,	0,
+				".value",	S.SFUNC,	SF.VALUE,	0,
+				".ctrap",	S.SFUNC,	SF.CTRAP,	0,
+				".follow",	S.SFUNC,	SF.FOLLOW,	0,
+				".lose",	S.SFUNC,	SF.LOSE,	0,
+				".begone",	S.SFUNC,	SF.BEGONE,	0,
+				".demo",	S.SFUNC,	SF.DEMO,	0,
+				".laugh",	S.SFUNC,	SF.LAUGH,	0,
+				".provoke",	S.SFUNC,	SF.PROVOKE,	0,
+				".purge",	S.SFUNC,	SF.PURGE,	0,
+				".save",	S.SFUNC,	SF.SAVE,	0,
+				".assist",	S.SFUNC,	SF.JOIN,	0,
+				".refuse",	S.SFUNC,	SF.REFUSE,	0,
+				".set",		S.SFUNC,	SF.SET,		0,
+				".password",	S.SFUNC,	SF.PASSWORD,	0,
+				".snoop",	S.SFUNC,	SF.SNOOP,	0,
+				".p",		S.SFUNC,	SF.P,		0,
+				".unveil",	S.SFUNC,	SF.UNVEIL,	0,
+				".unsnoop",	S.SFUNC,	SF.UNSNOOP,	0,
+				".direct",	S.SFUNC,	SF.DIRECT,	0,
+				".where",	S.SFUNC,	SF.WHERE,	0,
+				".brief",	S.SFUNC,	SF.BRIEF,	0,
+				".ignore",	S.SFUNC,	SF.IGNORE,	0,
+				".verbose",	S.SFUNC,	SF.VERBOSE,	0,
+				".flee",	S.SFUNC,	SF.FLEE,	0,
+				".diagnose",	S.SFUNC,	SF.DIAGNOSE,	0,
+				".blind",	S.SFUNC,	SF.blind,	0,
+				".deafen",	S.SFUNC,	SF.deafen,	0,
+				".dumb",	S.SFUNC,	SF.dumb,	0,
+				".paralyse",	S.SFUNC,	SF.paralyse,	0,
+				".cure",	S.SFUNC,	SF.cure,	0,
+				".exorcise",	S.SFUNC,	SF.EXORCISE,	0,
+				".freeze",	S.SFUNC,	SF.FREEZE,	0,
+				".unfreeze",	S.SFUNC,	SF.UNFREEZE,	0,
+				".mobile",	S.SFUNC,	SF.MOBILE,	0,
+				".humble",	S.SFUNC,	SF.HUMBLE,	0,
+				".proof",	S.SFUNC,	SF.PROOF,	0,
+				".shelve",	S.SFUNC,	SF.SHELVE,	0,
+				".unshelve",	S.SFUNC,	SF.UNSHELVE,	0,
+				".invis",	S.SFUNC,	SF.INVIS,	0,
+				".vis",		S.SFUNC,	SF.VIS,		0,
+				".peace",	S.SFUNC,	SF.PEACE,	0,
+				".war",		S.SFUNC,	SF.WAR,		0,
+				".haste",	S.SFUNC,	SF.HASTE,	0,
+				".stamina",	S.SFUNC,	SF.STAMINA,	0,
+				".sleep",	S.SFUNC,	SF.SLEEP,	0,
+				".flush",	S.SFUNC,	SF.FLUSH,	0,
+				".wake",	S.SFUNC,	SF.WAKE,	0,
+				".change",	S.SFUNC,	SF.CHANGE,	0,
+				".enchant",	S.SFUNC,	SF.ENCHANT,	0,
+				".police",	S.SFUNC,	SF.POLICE,	0,
+				".resurrect",	S.SFUNC,	SF.RESURRECT,	0,
+				".keep",	S.SFUNC,	SF.KEEP,	0,
+				".unkeep",	S.SFUNC,	SF.UNKEEP,	0,
+				".attach",	S.SFUNC,	SF.ATTACH,	0,
+				".detach",	S.SFUNC,	SF.DETACH,	0,
+				".insert",	S.SFUNC,	SF.INSERT,	0,
+				".remove",	S.SFUNC,	SF.REMOVE,	0,
+				".pronouns",	S.SFUNC,	SF.PRONOUNS,	0,
+				".hours",	S.SFUNC,	SF.HOURS,	0,
+				".newhours",	S.SFUNC,	SF.NEWHOURS,	0,
+				".spectacular",	S.SFUNC,	SF.SPECTACULAR,	0,
+				".empty",	S.SFUNC,	SF.EMPTY,	0,
+				".bye",		S.SFUNC,	SF.BYE,		0,
+				".time",	S.SFUNC,	SF.TIME,	0,
+				".crash",	S.SFUNC,	SF.CRASH,	0,
+				".map",		S.SFUNC,	SF.MAP,		0,
+				".exits",	S.SFUNC,	SF.EXITS,	0,
+				".converse",	S.SFUNC,	SF.CONVERSE,	0,
+				"inc",		S.AFUNC,	F.INC,	0,
+				"dec",		S.AFUNC,	F.DEC,	0,
+				"null", 	S.AFUNC,	F.NULL, 0,
+				"move", 	S.AFUNC,	F.MOVE, 0,
+				"trans",	S.AFUNC,	F.TRANS,0,
+				"set",		S.AFUNC,	F.SET,	0,
+				"resetdest",	S.AFUNC,	F.RESETDEST, 	0,
+				"toggle",	S.AFUNC,	F.TOGGLE,	0,
+				"fix",		S.AFUNC,	F.FIX,	0,
+				"float",	S.AFUNC,	F.FLOAT,0,
+				"destroy",	S.AFUNC,	F.DESTROY,	0,
+				"create",	S.AFUNC,	F.CREATE,	0,
+				"forrot",	S.AFUNC,	F.FORROT,	0,
+				"backrot",	S.AFUNC,	F.BACKROT,	0,
+				"expinc",	S.AFUNC,	F.EXPINC,	0,
+				"expset",	S.AFUNC,	F.EXPSET,	0,
+				"holdfirst",	S.AFUNC,	F.HOLDFIRST,	0,
+				"holdlast",	S.AFUNC,	F.HOLDLAST,	0,
+				"flipat",	S.AFUNC,	F.FLIPAT,	0,
+				"retal",	S.AFUNC,	F.RETALIATE,	0,
+				"ifzero",	S.AFUNC,	F.IFZERO,	0,
+				"testsex",	S.AFUNC,	F.TESTSEX,	0,
+				"ifobjcount",	S.AFUNC,	F.IFOBJCOUNT,	0,
+				"ifprop",	S.AFUNC,	F.IFPROP,	0,
+				"ifpropinc",	S.AFUNC,	F.IFPROPINC,	0,
+				"ifpropdec",	S.AFUNC,	F.IFPROPDEC,	0,
+				"ifrprop",	S.AFUNC,	F.IFRPROP,	0,
+				"ifrlevel",	S.AFUNC,	F.IFRLEVEL,	0,
+				"ifr",		S.AFUNC,	F.IFR,		0,
+				"noifr",	S.AFUNC,	F.NOIFR,	0,
+				"ifberserk",	S.AFUNC,	F.IFBERSERK,	0,
+				"unlessberserk",	S.AFUNC,	F.UNLESSBERSERK,	0,
+				"ifwiz",	S.AFUNC,	F.IFWIZ,	0,
+				"ifill",	S.AFUNC,	F.IFILL,	0,
+				"unlessill",	S.AFUNC,	F.unlessILL,	0,
+				"ifdeaf",	S.AFUNC,	F.IFDEAF,	0,
+				"ifblind",	S.AFUNC,	F.IFblind,	0,
+				"ifparalysed",	S.AFUNC,	F.IFparalysed,	0,
+				"ifdumb",	S.AFUNC,	F.IFdumb,	0,
+				"unlesswiz",	S.AFUNC,	F.UNLESSWIZ,	0,
+				"unlessrlevel",	S.AFUNC,	F.UNLESSRLEVEL,	0,
+				"flush",	S.AFUNC,	F.FLUSH,	0,
+				"unlessprop",	S.AFUNC,	F.UNLESSPROP,	0,
+				"incdestroy",	S.AFUNC,	F.INCDESTROY,	0,
+				"destroytrans", S.AFUNC,	F.DESTROYTRANS, 0,
+				"floatdestroy", S.AFUNC,	F.FLOATDESTROY, 0,
+				"decdestroy",	S.AFUNC,	F.DECDESTROY,	0,
+				"destroydec",	S.AFUNC,	F.DESTROYDEC,	0,
+				"decifzero",	S.AFUNC,	F.DECIFZERO,	0,
+				"swap", 	S.AFUNC,	F.SWAP, 	0,
+				"unlessin",	S.AFUNC,	F.UNLESSIN,	0,
+				"unlessobjis",	S.AFUNC,	F.UNLESSOBJIS,	0,
+				"ifobjis",	S.AFUNC,	F.IFOBJIS,	0,
+				"unlessinsis",	S.AFUNC,	F.UNLESSINSIS,	0,
+				"ifinsis",	S.AFUNC,	F.IFINSIS,	0,
+				"unlessobjplayer",	S.AFUNC,	F.UNLESSOBJPLAYER,	0,
+				"ifobjplayer",	S.AFUNC,	F.IFOBJPLAYER,	0,
+				"ifsmall",	S.AFUNC,	F.IFSMALL,	0,
+				"unlesssmall",	S.AFUNC,	F.UNLESSSMALL,	0,
+				"testsmall",	S.AFUNC,	F.TESTSMALL,	0,
+				"transwhere",	S.AFUNC,	F.TRANSWHERE,	0,
+				"ifin", 	S.AFUNC,	F.IFIN, 	0,
+				"exp",		S.AFUNC,	F.EXP,		0,
+				"stamina",	S.AFUNC,	F.STAMINA,	0,
+				"staminadestroy",	S.AFUNC,	F.STAMINADESTROY,	0,
+				"loseexp",	S.AFUNC,	F.LOSEEXP,	0,
+				"losestamina",	S.AFUNC,	F.LOSESTAMINA,	0,
+				"injure",	S.AFUNC,	F.INJURE,	0,
+				"writein",	S.AFUNC,	F.WRITEIN,	0,
+				"enable",	S.AFUNC,	F.ENABLE,	0,
+				"suspend",	S.AFUNC,	F.SUSPEND,	0,
+				"delaymove",	S.AFUNC,	F.DELAYMOVE,	0,
+				"disenable",	S.AFUNC,	F.DISENABLE,	0,
+				"unlessdisenable",	S.AFUNC,	F.UNLESSDISENABLE,	0,
+				"ifdisenable",	S.AFUNC,	F.IFDISENABLE,	0,
+				"ifenabled",	S.AFUNC,	F.IFENABLED,	0,
+				"unlessenabled",	S.AFUNC,	F.UNLESSENABLED,	0,
+				"unlessgot",	S.AFUNC,	F.UNLESSGOT,	0,
+				"ifgot",	S.AFUNC,	F.IFGOT,	0,
+				"ifdead",	S.AFUNC,	F.IFDEAD,	0,
+				"unlessdestroyed",	S.AFUNC,	F.UNLESSDESTROYED,	0,
+				"ifdestroyed",	S.AFUNC,	F.IFDESTROYED,	0,
+				"ifsnooping",	S.AFUNC,	F.IFSNOOPING,	0,
+				"unlesssnooping",	S.AFUNC,	F.UNLESSSNOOPING,	0,
+				"iffighting",	S.AFUNC,	F.IFFIGHTING,	0,
+				"unlessfighting",	S.AFUNC,	F.UNLESSFIGHTING,	0,
+				"ifpropdestroy",	S.AFUNC,	F.IFPROPDESTROY,	0,
+				"unlesspropdestroy",	S.AFUNC,	F.UNLESSPROPDESTROY,	0,
+				"unlessdead",	S.AFUNC,	F.UNLESSDEAD,	0,
+				"ifweighs",	S.AFUNC,	F.IFWEIGHS,	0,
+				"unlessweighs",	S.AFUNC,	F.UNLESSWEIGHS,	0,
+				"ifhave",	S.AFUNC,	F.IFHAVE,	0,
+				"unlesshave",	S.AFUNC,	F.UNLESSHAVE,	0,
+				"ifobjcontains",	S.AFUNC,	F.IFOBJCONTAINS,	0,
+				"unlessobjcontains",	S.AFUNC,	F.UNLESSOBJCONTAINS,	0,
+				"iflevel",	S.AFUNC,	F.IFLEVEL,	0,
+				"unlesslevel",	S.AFUNC,	F.UNLESSLEVEL,	0,
+				"ifplaying",	S.AFUNC,	F.IFPLAYING,	0,
+				"unlessplaying", S.AFUNC,	F.UNLESSPLAYING,	0,
+				"ifself",	S.AFUNC,	F.IFSELF,	0,
+				"destroydestroy", S.AFUNC,	F.DESTROYDESTROY,	0,
+				"ifinc",	S.AFUNC,	F.IFINC,	0,
+				"unlessinc",	S.AFUNC,	F.UNLESSINC,	0,
+				"expdestroy",	S.AFUNC,	F.EXPDESTROY,	0,
+				"expmove",	S.AFUNC,	F.EXPMOVE,	0,
+				"incmove",	S.AFUNC,	F.INCMOVE,	0,
+				"destroyinc",	S.AFUNC,	F.DESTROYINC,	0,
+				"transhere",	S.AFUNC,	F.TRANSHERE,	0,
+				"iflight",	S.AFUNC,	F.IFLIGHT,	0,
+				"ifsex",	S.AFUNC,	F.IFSEX,	0,
+				"ifinvis",	S.AFUNC,	F.IFINVIS,	0,
+				"ifasleep",	S.AFUNC,	F.IFASLEEP,	0,
+				"ifrstas",	S.AFUNC,	F.IFRSTAS,	0,
+				"unlessrstas",	S.AFUNC,	F.UNLESSRSTAS,	0,
+				"emotion",	S.AFUNC,	F.EMOTION,	0,
+				"zonk",		S.AFUNC,	F.ZONK,		0,
+				"dead",		S.AFUNC,	F.DEAD,		0,
+				"send",		S.AFUNC,	F.SEND,		0,
+				"sendeffect",	S.AFUNC,	F.SENDEFFECT,	0,
+				"sendmess",	S.AFUNC,	F.SENDMESS,	0,
+				"sendlevel",	S.AFUNC,	F.SENDLEVEL,	0,
+				"hurt",		S.AFUNC,	F.HURT,		0,
+				"sendemon",	S.AFUNC,	F.SENDEMON,	0,
+				"ssendemon",	S.AFUNC,	F.SSENDEMON,	0,
+				"incdec",	S.AFUNC,	F.INCDEC,	0,
+				"decinc",	S.AFUNC,	F.DECINC,	0,
+				"incsend",	S.AFUNC,	F.INCSEND,	0,
+				"ifhere",	S.AFUNC,	F.IFHERE,	0,
+				"ifheretrans",	S.AFUNC,	F.IFHERETRANS,	0,
+				"unlesshere",	S.AFUNC,	F.UNLESSHERE,	0,
+				"setsex",	S.AFUNC,	F.SETSEX,	0,
+				"togglesex",	S.AFUNC,	F.TOGGLESEX,	0,
+				"destroytogglesex",	S.AFUNC,	F.DESTROYTOGGLESEX,	0,
+				"destroycreate",	S.AFUNC,	F.DESTROYCREATE,	0,
+				"destroyset",	S.AFUNC,	F.DESTROYSET,	0,
+				"setdestroy",	S.AFUNC,	F.SETDESTROY,	0,
+				"setfloat",	S.AFUNC,	F.SETFLOAT,	0,
+				"n",		S.TCOND,	0,	0,
+				"none", 	S.TCOND,	0,	0,
+				"e",		S.TCOND,	-1,	0,
+				"empty",	S.TCOND,	-1,	0,
+				"f",		S.FORCED,	0,	0,
+				"forced",	S.FORCED,	0,	0,
+				"d",		S.DIFF, 	0,	0,
+				"different",	S.DIFF, 	0,	0,
+				"dd",		S.DD,		0,	0,
+				-1)
+//Flags
+	class		=	0
+	mtion		=	0
+	object		=	0
+	roomflg 	=	0
+	vocabflg	=	0
+	travelflg	=	0
+	objectflg	=	0
+	mapflg		=	0
+	hrflg		=	0
+	cmflg		=	0
+	psflg		=	0
+	textflg 	=	0
+	levelsflg	=	0
+	demonsflg	=	0
+	fast		=	0
+$)
+ 
+let start() be
+$(	let scan,save=?,?
+	initialise()
+	$(	scan:=scanner()
+		switchon scan into
+		$(	case S.ROOMS ... S.TEXT:
+				save:=free.space
+				out("*C*L:S ",scan.info)
+				(scan!procs)()
+				out("used :N",free.space-save)
+				endcase
+			case S.EOF:
+				date:=valof $[ $DATE	  AC,	   0	      $]
+				time:=valof $[ $MSTIME	    AC,      0	      $]
+				break
+			case S.MUDNAM:
+				unless scanner()=S.NAME error("illegal name for dungeon")
+				for i=0 to 26 do (@mudnam)!i:=scan.info!i
+				mudnam bitand:=#776777777777
+				for i=1 to 6 do
+				$(	let letter=(selector 7:29-((7*i) rem 35):i/5)
+					mud6:=(mud6<<6)+(letter of (@mudnam)->(((letter of (@mudnam)) bitand \#40)-#40),0)
+				$)
+				unless mud6 = filename error("Name in **name section :6 not same as .txt file :6*C*L", mud6, filename)
+				endcase
+			default:
+				error("Unknown database section :s",scan.info)
+		$)
+	$)	repeat
+	finalise()
+$)
+and load.rooms() be
+$(	let room,attribute,start.list,count=?,?,0,0
+	checkflag(@roomflg,"Duplicate rooms sections")
+	unless scanner()=S.NUMBER error("No size given in rooms section")
+	max.room.no:=scan.info
+	index:=highvec(HASHSIZE)
+	unless fast writes(tty, "*C*L0")
+	for i=1 to max.room.no do
+	$(	unless scanner()=S.NAME error("Not enough room names")
+		unless fast write(tty,"*C:n",i)
+		room:=find.room(scan.info,true)
+		LH of room:=highvec(ROOMSIZE)
+		init.room(LH of room,RNAME of room)
+		room:=LH of room
+		RNUMB of room:=i
+		while scanch='*T' do
+		$(	unless scanner()=S.NAME error("No name read")
+			attribute:=checklook.up(scan.info,S.ATTR,"Unknown attribute read :s")
+			ATTRIB of room bitor_INFO of attribute
+			if INFO of attribute=A.START
+			$(	let temp=newvec(0)
+				RH of temp_start.list
+				LH of temp_room
+				start.list_temp
+			$)
+			if INFO of attribute=A.CHAIN
+			$(	let leavec = highvec(LEAVESIZE)
+				unless scanner()=S.NAME error("nothing to chain to in [:6]",!room)
+				INVADE of leavec _ copy(name.string)
+				unless scanner()=S.NAME error("no room to chain to in [:6]",!room)
+				BCHEAD of leavec _ copy(name.string)
+				LEAVE of room_leavec
+			$)
+			if INFO of attribute=A.DMOVE
+			$(	let nd,sv,len=?,?,?
+				unless scanner()=S.NAME error("no room to dmove things to in [:6]",!room)
+				len_LENGTH of scan.info/5
+				nd_newvec(len+1)
+				sv_nd+1
+				for i=0 to len sv!i_scan.info!i
+				LH of nd_room
+				LINK of nd_rmfwdref
+				rmfwdref_nd
+			$)
+		$)
+		startlinech()
+		TITLE of room_nextroom
+		if scanch='*T' transfer.dsk(@nextroom, roomput, TITLE, room,true)
+		ROOMWD of room_nextroom
+		transfer.dsk(@nextroom, roomput)
+	$)
+	while rmfwdref do
+	$(	let rm,linker=find.room(rmfwdref+1),LINK of rmfwdref
+		unless rm error("forward reference for DMOVE in [:6] not satisfied",LH of rmfwdref)
+		DMOVE of LH of rmfwdref_LH of rm
+		free(rmfwdref)
+		rmfwdref_linker
+	$)
+	stlist,count_highvec(0),0
+	while start.list
+	$(	let temp=start.list
+		count+_1
+		!highvec(0)_LH of start.list
+		start.list of_ RH
+		free(temp)
+	$)
+	!stlist_count		//Number of random starts stored first
+	unless count error("No START locations defined")
+	unless fast writes(tty," = last room number*C*L")
+$)
+ 
+and load.vocab() be
+$(	let word,type,word1,temp,oldword=0,0,0,0,?
+	checkflag(@vocabflg,"Duplicate vocabulary section")
+	startlinech()	scan.info:=0
+	$(	unless scanch='*T' then
+		$(	unless scanner()=S.NAME error("No vocabulary type")
+			type:=look.up(scan.info)
+		$)
+		unless type test scan.info then error("Unknown vocabulary type [:s]",scan.info)
+		or error("No vocabulary type given at start of section")
+		unless scanner(true)=S.NAME error("No vocabulary word")
+		oldword_(PTYPE of type=S.ACTION) -> find.word(scan.info,S.FASTATN), 0	//Check it's a fast action verb.
+		word:=oldword -> oldword, find.word(scan.info,PTYPE of type,true)
+		switchon PTYPE of type into
+		$(	case S.MOTION:
+				mtion+:1
+				mvec!mtion_PNAME of word
+				DREC of word:=mtion
+				(byte 1:mtion) from backword_FIRSTCH of scan.info ne '$'
+			case S.NOISE:
+			case S.CONT:
+			case S.WITH:
+			case S.AT:
+			case S.ALL:
+			case S.IT:
+			case S.HIM:
+			case S.HER:
+			case S.THEM:
+			case S.THERE:
+			case S.ME:
+			case S.WHICHEVER:
+				endcase
+			case S.NONE:
+				PTYPE of word_S.CLASS
+				endcase
+			case S.PERSON:
+			case S.SOMETHING:
+			case S.ANYTHING:
+				DREC of word_P1 of type
+				endcase
+			case S.CLASS:
+				class+:1
+				DREC of word:=class
+				endcase
+			case S.SYN:
+				scanner(true)
+				word1:=checkfind.word(scan.info,0,"Unknown synonym given [:s]")
+				PTYPE of word:=PTYPE of word1
+				DREC of word_valof
+				$(	switchon PTYPE of word into
+					$(	case S.OBJECT:
+						$(	let drc,sptr=DREC of word1,newvec(0)
+							LINK of sptr_D7 of drc
+							D7 of drc_sptr
+							LH of sptr_word
+							resultis -1
+						$)
+						case S.ACTION: case S.FASTATN:
+							SYN of word_true
+							if SYN of word1 word1 of_ DREC	//Each synonym points to the actual verb
+							resultis word1
+						default:
+							resultis DREC of word1
+					$)
+				$)
+				endcase
+			case S.OBJECT:
+				object+:1
+				temp:=appenddr(word,newvec(ODRSIZE))
+				D1 of temp:=object
+				scanner()
+				word1:=checkfind.word(scan.info,S.CLASS,"Word after object not a class [:s]")
+				D2 of temp:=DREC of word1
+				unless scanner()=S.NUMBER error("No weight for object [:s]",PNAME of object)
+				D3 of temp:=scan.info
+				unless scanner()=S.NUMBER error("No value for object [:s]",PNAME of object)
+				D4 of temp:=scan.info
+				D7 of temp_0
+				endcase
+			case S.FASTATN:
+				if find.word(PNAME of word,S.ACTION) error("Action already defined as a slow action [:s].",PNAME of word)
+				SAVED of word_true	//Don't need to save it to disc.
+				endcase
+			case S.ACTION:
+				SYN of word_false	//not an action synonym.
+				temp:=appenddr(word,PTYPE of word=S.ACTION->newvec(DRSIZE),highvec(DRSIZE))
+				for i=0 to DRSIZE temp!i_0
+				test scanner()=S.DOTNAME then
+				$(	word1:=checklook.up(scan.info,S.SFUNC,"unknown Special function [:s]")
+					D7 of temp:=P1 of word1
+					scanner()
+				$) or D7 of temp:=SF.ACTION
+				word1:=checkfind.word(scan.info,S.CLASS,"word not a class [:s]")
+				D1 of temp:=DREC of word1
+				test scanner() = S.NUMBER then D2 of temp_scan.info + #400000 or
+				$(	word1:=checkfind.word(scan.info,S.CLASS,"Word not a class [:s]")
+					D2 of temp:=DREC of word1
+				$)
+				scanner()
+				word1:=checklook.up(scan.info,S.AFUNC,"Unknown action function [:s]")
+				D3 of temp:=P1 of word1
+				unless scanner() = S.NAME then error("object expected after action function")
+				test seq(scan.info,"null") \/ seq(scan.info, "first") then D6 of temp:=0 or
+				test seq(scan.info,"second") then D6 of temp_-1 or
+				$(	let note=newvec(1)
+					D6 of temp_checkfind.word(scan.info, S.OBJECT, "Unknown object after function [:s]")
+					!note_forward.ref
+					1!note_temp
+					forward.ref_RH from note
+				$)
+				if scanner()=S.NAME then
+				$(	word1:=checkfind.room(scan.info,"Unknown room specified [:s]")
+					test LH of word1 then scan.info_word1 or
+					$(	scan.info:=highvec(0)
+						randomise(0, LH, scan.info)
+					$)
+				$)
+				D4 of temp:=scan.info
+				if scanner()=S.NAME then
+				$(	word1:=checkfind.room(scan.info,"Unknown room specified [:s]")
+					test LH of word1 then scan.info_word1 or
+					$(	scan.info:=highvec(0)
+						randomise(0, LH, scan.info)
+					$)
+				$)
+				D5 of temp:=scan.info
+				D9 of temp_-1
+				while scanch='*T' nextch()
+				if '0' le scanch le '9' \/ scanch='-'\/scanch='+' then
+				$(	unless scanch='-'
+					$(	scanner()
+						D8 of temp_scan.info
+						while scanch='*T' nextch()
+					$)
+					if scanch='-'
+					$(	nextch()
+						scanner()
+						D9 of temp_scan.info
+					$)
+				$)
+				endcase
+		$)
+		startlinech()
+		if scanch=';' startlinech(true)
+	$)	repeatuntil scanch='**'
+$)
+and isaction(word) = word->PTYPE of word=S.ACTION\/PTYPE of word=S.FASTATN,false
+and load.travel() be
+$(	let room,cond,condwrd,newrm,word,type,t=?,?,?,?,?,?,?
+	unless roomflg/\vocabflg error("Needs predefined vocabulary and rooms")
+	checkflag(@travelflg,"Duplicate travel table")
+	unless fast writes(tty, "*C*L0")
+	unless scanner()=S.NAME error("travel word expected")
+	tverb_checkfind.word(scan.info, S.ACTION, "unknown travel action [:s]")
+	for i=1 to max.room.no do
+	$(	let ptr, tptr=0, @ptr
+		unless fast write(tty,"*C:n",i)
+		unless scanner()=S.NAME error("Can't read room name")
+		room:=LH of checkfind.room(scan.info,"Unknown room [:s]")
+		TRAVEL of room:=free.space
+		$(	let notted=0
+			while scanch='*T' nextch()
+			if scanch='~' nextch()<>notted_6
+			t:=scanner()
+			switchon t into
+			$(	case S.NAME:
+					cond:=look.up(scan.info)
+					test cond then switchon PTYPE of cond into
+					$(	case S.TCOND:
+							condwrd:=P1 of cond
+							endcase
+						case S.FORCED:
+							unless scanner()=S.NAME error("Cannot read room name")
+							newrm:=checkfind.room(scan.info,"Room after forced not known [:s]")
+							FORCED of room:=LH of newrm
+							startlinech()
+							loop
+						case S.DIFF:
+							condwrd_4<<18
+							endcase
+						case S.DD:
+							condwrd_(10<<18)+valof
+							$(	t_scanner()
+								unless t=S.NUMBER error("number expected after DD condition")
+								resultis scan.info
+							$)
+							endcase
+						default:
+							error("Illegal condition specified [:s]",scan.info)
+					$) or
+					$(	cond:=find.word(scan.info,S.CLASS)
+						unless cond cond:=checkfind.word(scan.info,S.OBJECT,"Unknown condition [:s]")
+						test PTYPE of cond=S.CLASS then condwrd:=((1+notted)<<18)+DREC of cond or
+						$(	cond:=DREC of cond
+							condwrd:=((2+notted)<<18)+D1 of cond
+						$)
+					$)
+					endcase
+				case S.NUMBER:
+					condwrd:=((scan.info<0->9,3)<<18)+abs(scan.info)
+					endcase
+				default:
+					error("Illegal condition [:s]",scan.info)
+			$)
+			unless t=S.NUMBER then
+			test scanner()=S.NAME then
+			$(	newrm:=LH of checkfind.room(scan.info,"Destination not a room [:s]")
+				t_newrm
+			$) or
+			$(	newrm_scan.info
+				LH from condwrd+_4
+				t_true
+			$)
+			word_0
+			while scanch='*T' do
+			$(	switchon scanner() into
+				$(
+				case S.NAME:
+					word bitor_1<<(DREC of checkfind.word(scan.info,S.MOTION,"Word not a motion [:s]"))
+				case S.RAND:
+					endcase
+				default:
+					error("Can't read motion word")
+				$)
+				unless t
+				$(	let nd=Newvec(1)
+					LINK of tptr_nd
+					tptr_nd
+					!nd_free.space<<18
+					1!nd_roomlist
+					roomlist_0
+				$)
+			$)
+			getcore(2)
+			!free.space:=(word<<18)\/newrm
+			1!free.space:=condwrd
+			free.space+:2
+			startlinech()
+		$)	repeatwhile scanch='*T'
+		getcore(1)
+		!free.space:=-1
+		free.space+:1
+		while ptr
+		$(	let temp=LINK of ptr
+			roomlist_ptr!1
+			randomise(0, RH, LH of ptr)
+			free(ptr)
+			ptr_temp
+		$)
+	$)
+	randirs_translate(randirs)
+	unless fast writes(tty," = last travel number*C*L")
+$)
+and translate(ptr)=ptr->valof
+$(	let r, r1, ptr1=highvec(1), r+1, ptr+1
+	LH of r_LH of ptr
+	LH of r1_LH of ptr1
+	RH of r1_translatelist(RH of ptr1)
+	RH of r_translate(RH of ptr)
+	resultis r
+$), 0
+and translatelist(ptr)=ptr->valof
+$(	let r=highvec(0)
+	LH of r_LH of ptr
+	RH of r_translatelist(RH of ptr)
+	resultis r
+$), 0
+and load.maps() be				//Doesn't have to be maps - any picture will do
+$(	let mapcnt,cdesize=0,?
+	unless roomflg error("needs predefined rooms")
+	checkflag(@mapflg,"duplicate maps section")
+	unless fast Writes(tty, "*C*L0")
+	unless scanner()=S.NUMBER Error("Number of codes defined expected")
+	cdesize_scan.info
+	codes_highvec(cdesize)
+	nextch() repeatuntil scanch='*L'
+	for i=0 to cdesize codes!i_valof
+	$(	let key, delim, b, count, sel=
+			nextch(),nextch(),vec MSLEN/5,0,selector 7:36:b
+		nextch()
+		until scanch=delim | count=MSLEN-1 | scanch='*E'
+		$(	$[	$move	1,	scanch
+				$Idpb	1,	sel
+				$aos		count
+			$]
+			nextch()
+		$)
+		unless scanch=delim error("max length of delimited strings=:n",MSLEN)
+		until scanch='*L' nextch()
+		count/_5
+		highvec(count)
+		$[	$setz	2,	0
+			$idpb	2,	sel
+			$hrl	1,	key
+			$hrrzi	3,	0(1)
+			$hrl	2,	b
+			$hrri	2,	0(3)
+			$add	3,	count
+			$blt	2,	0(3)
+		$]
+	$)
+	nextch()
+	until scanch='**'
+	$(	let rm, sel, byt, count,ch,lettercount,room=
+			vec SCRSIZ,selector 7:36:rm, byte 7:36, SCRSIZ*5,?,?,?
+		mapcnt+_1
+		unless fast write(tty,"*C:n",mapcnt)
+		unless scanner()=S.NAME Error("room name expected")
+		room_LH of checkfind.room(scan.info,"unknown room [:s]")
+		nextch() repeatuntil scanch='*L'
+		ch, scanch_nextch(),nextch()
+		test ch='%' then
+		$(	ch_scanch
+			unless scanner()=S.NAME error("room name expected after %")
+			scan.info_LH of checkfind.room(scan.info,"unknown room [:s] after %")
+			MAPWD of room_MAPWD of scan.info
+		$) or
+		$(	MAPWD of room_nextmap
+			until scanch=ch
+			$(	let coded=false
+				for i=0 to cdesize if LH from codes!i=scanch
+				$[	$setom		coded
+					$move	2,	codes
+					$add	2,	i
+					$move	2,	0(2)
+					$hll	2,	byt
+come:					$ildb	1,	2
+					$jumpe	1,	gone
+					$idpb	1,	sel
+					$sose		count
+					$jrst		come
+					$(	too.big()
+					$)
+gone:				$]
+					unless coded
+				$[	$move	1,	scanch
+					$idpb	1,	sel
+					$sose		count
+					$jrst		past
+					$(	too.big()
+					$)
+past:				$]
+				nextch()
+			$)
+			$[	$setz	1,	0
+				$idpb	1,	sel
+			$]
+			ch_nextch() repeatuntil ch='*L'
+			ch_nextch()
+			lettercount_SCRSIZ*5-count
+			if ~mapput
+			$(	writez(mapput, rm)
+				writech(mapput, '*0')
+				for i=2 to 5-(lettercount rem 5) writech(mapput, '*P')
+			$)
+			nextmap+_lettercount/5+1
+		$)
+	$)
+	unless fast writes(tty, " = last map number*C*L")
+$)
+and too.big() be Error("too many characters in map - max is :n", SCRSIZ*5)
+and load.hours() be
+$(	checkflag(@hrflg, "duplicate hours section")
+	for i=0 to 6 times!i_0
+	until scanch='**'
+	$(	let nd, oldday, day=highvec(0),?,?
+		unless scanner()=S.NUMBER error("day number expected")
+		oldday, day_times+(scan.info+4) rem 7, !oldday
+		unless scanner()=S.NUMBER error("start time expected")
+		unless 0 le scan.info le 24 error("start time :n should be between 0 & 24", scan.info)
+		STIME of nd_scan.info
+		unless scanner()=S.NUMBER Error("finish time expected")
+		unless 0 le scan.info le 24 error("finish time :n should be between 0 & 24", scan.info)
+		unless scan.info gr STIME of nd error("time window error: :n >= :n", scan.info, STIME of nd)
+		FTIME of nd_scan.info
+		while day/\scan.info<FTIME of day
+		$(	oldday_day
+			day of_LINK
+		$)
+		LINK of nd_day
+		LINK of oldday_nd
+		startlinech()
+	$)
+$)
+
+and load.combat() be
+$(	let t=?
+	checkflag(@cmflg, "duplicate combat section")
+	for i=0 to 23	//should use manifests really, but shared with dbadat
+	$(	unless scanner()=S.NUMBER error("No. of table entries expected")
+		t_highvec(scan.info/2)
+		tabs!i_t
+		LH of t_scan.info
+		startlinech()
+		for j=1 to scan.info
+		$(	(j rem 2->RH, LH) from t!(j/2)_nextcombat
+			transfer.dsk(@nextcombat, comput, 0, 0, false)
+		$)
+	$)
+	unless scanch='**' error("Need 24 entries in combat section, no more")
+$)
+
+and load.persona() be
+$(	checkflag(@psflg, "duplicate persona section")
+	unless scanner()=S.NAME error("illegal name for persona file")
+	for i=1 to LENGTH of scan.info
+	$(	(byte 6:36-6*i) from ps6_(selector 7:29-((7*i) rem 35):i/5) of scan.info
+		if i=6 break
+	$)
+$)
+
+and load.objects() be
+$(	let room,name,obj,adj,cprop,mprop,destr,rndm,sprop,mobile,inside,drc,done
+		=0,0,0,0,0,0,0,0,0,0,0,0,0
+	and nd,oldnd,twoplace,fixd,objcnt=?,?,false,vec 26,0
+	unless roomflg/\demonsflg/\vocabflg error("Predefined rooms, demons and vocabulary needed")
+	checkflag(@objectflg,"Duplicate objects definition")
+	unless fast writes(tty, "*C*L0")
+	startlinech()
+	until scanch='**' do
+	$(	unless scanner()=S.NAME error("No object name after :s",PNAME of name)
+		name:=checkfind.word(scan.info,S.OBJECT,"Unknown object specified [:s]")	//if use for errors, take PNAME of name
+		if DREC of name=RHMASK error("synonym used for [:s] instead of object name",scan.info)
+		if DREC of name le class error("class name used for [:s] instead of object name",scan.info)
+		room_scanner()
+		if room=S.NUMBER
+		$(	mobile_highvec(MOTIONSIZE)
+			MOTION of mobile_scan.info
+			room_scanner()
+			unless room=S.NUMBER error("instincts demon indicator for mobile object required [:s]", PNAME of name)
+			if scan.info>max.demon.no error("demon no. [:n] too big for [:s]",scan.info,PNAME of name)
+			INSTINCTS of mobile_demons+(DEMONSIZE+DOF)*scan.info
+			room_scanner()
+			unless room=S.NUMBER error("actions demon indicator for mobile object required [:s]", PNAME of name)
+			if scan.info>max.demon.no error("demon no. [:n] too big for [:s]",scan.info,PNAME of name)
+			ACTIONS of mobile_demons+(DEMONSIZE+DOF)*scan.info
+			MOVECOUNT of mobile_0
+			FIGHTS of mobile _ 0
+			SNOOPERS of mobile _ 0
+			room_scanner()
+		$)
+		unless room=S.NAME error("No room name")
+		room:=find.room(scan.info)
+		test room then room, inside_LH of room,0 or
+		$(	let prev=Checkfind.word(scan.info,S.OBJECT,"Object or room name expected for position, found [:s]")
+			inside_(DREC of prev) gr #400000 -> D3 of DREC of prev,0
+			unless inside error("need to have previously defined [:s] in the object section to go inside it", scan.info)
+			unless CONTENTS of inside error(":s isn't a container so can't hold :s",inside,PNAME of name)
+		$)
+		if mobile test room then CURROOM of mobile_room
+		or error("can't have random starts for mobiles [:s]", name)
+		for i=0 to 26 do fixd!i_scan.info!i	//BLT would be better...
+		cprop:=scanner()
+		if seq(scan.info,fixd)/\cprop=S.NAME then twoplace:=1<>cprop:=scanner()
+		if cprop=S.NAME/\inside error("Can't have multi-placed objects inside containers")
+		while cprop=S.NAME do
+		$(	twoplace:=1
+			nd,oldnd:=ROBJT of room,room+4
+			while nd do
+			$(	oldnd:=nd
+				nd:=LINK of nd
+			$)
+			LINK of oldnd:=free.space
+			room:=LH of checkfind.room(scan.info,"Undefined next room [:s]")
+			cprop:=scanner()
+		$)
+		unless cprop=S.NUMBER error("No prop value given")
+		cprop:=scan.info
+		unless scanner()=S.NUMBER error("No maxprop value given")
+		mprop:=scan.info
+		unless scanner()=S.NUMBER error("no scoreprop value given")
+		sprop:=scan.info
+		rndm:=mprop<0
+		destr:=cprop<0
+		mprop,cprop:=abs mprop,abs cprop
+		obj:=highvec(OBJECTSIZE+mprop/2+1)
+		PNAME of obj:=PNAME of name
+		if forward.ref then
+		$(	let linker=@forward.ref
+			until RH from !linker = 0 do
+			test name = D6 of (1!!linker) then
+			$(	let temp=!linker
+				D6 of (1!temp)_obj
+				RH from !linker_RH from !temp
+				free(temp)
+			$) or linker_!linker
+		$)
+		drc_name
+		name:=DREC of name
+		done_name gr #400000-> valof
+		$(	name_D3 of name
+			resultis true
+		$), 0
+		objcnt+_1
+		unless fast write(tty,"*C:n",objcnt)
+		PTYPE of obj,P1 of obj:=(done->PTYPE,D1) of name,(done->P1,D2) of name
+		SCOREPROP of obj:=sprop
+		MOTN of obj_mobile
+		if mobile
+		$(	let mover=highvec(0)
+			LH of mover_obj
+			RH of mover_RH from movers
+			RH from movers_mover
+			mobile_false
+		$)
+		P5 of obj, P4 of obj_mprop, cprop
+		FIXED of obj, RANDM of obj_twoplace, rndm
+		WEIGHT of obj,VALUE of obj:=(done->WEIGHT,D3) of name,(done->VALUE,D4) of name
+		DESTROYED of obj:=destr
+		CONTENTS of obj_0	//for the moment - unnecessary if obj guaranteed initialised 0
+		while scanch='*T' test scanner()=S.NUMBER then DESTROYED of obj_scan.info or
+		$(	let nd=look.up(scan.info)
+			unless nd error("Unknown fixed property [:s] for [:s]*C*L",scan.info,PNAME of obj)
+			switchon PTYPE of nd into
+			$(	case S.BRIGHT:
+					BRIGHT of obj_true
+					endcase
+				case S.NOGET:
+					NOGET of obj_true
+					endcase
+				case S.NOIT:
+					NOIT of obj_true
+					endcase
+				case S.NOSUMMON:
+					NOSUMMON of obj_true
+					endcase
+				case S.CONTAINS:
+				$(	let container=highvec(CONTSIZE)
+					unless scanner()=S.NUMBER Error("No maxweight after container prop for [:s]*C*L",PNAME of obj)
+					MAXWT of container_scan.info
+					WTUSED of container_0
+					!container_0
+					CONTENTS of obj_container
+					endcase
+				$)
+				case S.DISGUISED:
+					unless CONTENTS of obj error("Non-containers cannot be disguised*C*L")
+					DISGUISED of CONTENTS of obj_true
+					endcase
+				case S.OPENED:
+					unless CONTENTS of obj error("Non-containers cannot be opened*C*L")
+					OPENED of CONTENTS of obj_true
+					endcase
+				case S.TRANSPARENT:
+					unless CONTENTS of obj error("Non-containers cannot be transparent*C*L")
+					TRANSPARENT of CONTENTS of obj_true
+				default:	endcase
+			$)
+		$)
+		startlinech()
+		while '0'<=scanch<='9' do
+		$(	scanner()
+			unless 0<=scan.info<=mprop error("Prop description out of range [:s]",PNAME of obj)
+			sprop:=selector 18:18*(scan.info rem 2):scan.info/2+OBJECTSIZE+1
+			sprop of obj:=nextobj
+			transfer.dsk(@nextobj, objput, sprop, obj)
+		$)
+		test inside then
+		$(	let insides=CONTENTS of inside
+			LINK of obj_LINK of insides
+			LINK of insides_obj
+			WTUSED of insides+_WEIGHT of obj
+			WEIGHT of inside+_WEIGHT of obj
+		$) or
+		test twoplace then
+		$(	nd,oldnd:=ROBJT of room,room+4
+			while nd do
+			$(	oldnd:=nd
+				nd:=LINK of nd
+			$)
+			LINK of oldnd:=obj
+		$) or test room then
+		$(	LINK of obj:=ROBJT of room
+			ROBJT of room:=obj
+		$) or unless inside randomise(0, LINK, obj, ROBJT)
+		test done then D3 of DREC of drc_obj or
+		$(	DREC of drc_highvec(DDRSIZE)
+			drc_DREC of drc
+			D1 of drc_D1 of name
+			D2 of drc_D2 of name
+			D3 of drc_obj
+			$(	let sptr=D7 of name
+				while sptr
+				$(	let next=LINK of sptr
+					DREC of LH of sptr_drc
+					free(sptr)
+					sptr_next
+				$)
+			$)
+			free(name)
+		$)
+	twoplace:=false
+	$)
+	if forward.ref then
+	$(	let linker=forward.ref
+		until linker=0 do
+		$(	out("*C*LForward reference not mentioned [:s]*C*L", PNAME of D6 of 1!linker)
+			linker_RH from !linker
+		$)
+		error("unsafe to continue.")
+	$)
+	unless fast writes(tty,"= last object number*C*L")
+$)
+and load.demons() be
+$(	let indx,pt,token=?,?,?
+	unless fast writes(tty,"*C*L0")
+	unless vocabflg error("needs predefined vocabulary")
+	checkflag(@demonsflg, "Duplicate demons dection")
+	unless scanner()=S.NUMBER error("no demons table size given")
+	max.demon.no_scan.info
+	demons_highvec((DEMONSIZE+DOF)*(max.demon.no+1)-1)
+	startlinech()
+	while '0' le scanch le '9'
+	$(	let demonum=?
+		scanner()
+		unless 0 le scan.info le max.demon.no error("invalid demon number")
+		unless fast write(tty, "*C:N",scan.info)
+		indx_((DEMONSIZE+DOF)*scan.info)+demons
+		demonum_scan.info
+		unless scanner(true)=S.NAME error("no demons verb name")
+		token_find.word(scan.info)
+		unless token/\isaction(token) error("not a verb name [:s]", scan.info)
+		D.VERB of indx_token
+		unless scanner()=S.NAME error("no demons object name")
+		token_find.word(scan.info)
+		pt_PTYPE of token
+		unless token/\(pt=S.CLASS\/pt=S.OBJECT\/pt=S.WHICHEVER)
+			error("not class or object for demon object [:s]",scan.info)
+		D.OBJECT of indx_pt=S.WHICHEVER->#777777, token
+		unless scanner()=S.NAME error("no demons instrument name")
+		token_find.word(scan.info)
+		pt_PTYPE of token
+		unless token/\(pt=S.CLASS\/pt=S.OBJECT\/pt=S.WHICHEVER)
+			error("not class or object for demon instrument [:s]",scan.info)
+		D.INSTRUMENT of indx_pt=S.WHICHEVER->#777777, token
+		unless scanner()=S.NUMBER error("no demons time number")
+		D.TIME of indx_scan.info
+		D.OFFSET of indx_scanch='-'->valof
+		$(	readno(input, @scan.info)
+			if D.TIME of indx ge scan.info error("demon event time range has smallest number first :n-:n*C*L",
+				D.TIME of indx, scan.info)
+			nextch()
+			resultis scan.info-(D.TIME of indx)+1
+		$), 1
+		D.ATTRIBUTES of indx_0
+		while scanch='*T' test scanner()=S.NAME then
+			(valof switchon PTYPE of look.up(scan.info) into
+			$(
+			case S.ALWAYS:	resultis D.ALWAYS	//could put D.ALWAYS in reserved insetad of S.ALWAYS?
+			case S.GLOBAL:	resultis D.GLOBAL
+			case S.ENABLED:
+				$(	let demon, d1=longmess, demon+DOF
+					unless D.GLOBAL of indx Error("Demon must be global to be enabled")
+					longmess_LINK of demon
+					for i=0 to DEMONSIZE d1!i_indx!i
+					E.TIME of demon+_random(D.OFFSET of indx)
+					!demon_(demonum<<18) bitor gdemons
+					gdemons_demon
+					loop
+				$)
+			default:	Error("Name is not demon attribute [:s]*C*L")
+			$) ) of indx_true
+		or error("Demon attribute expected [:s]*C*L")
+		startlinech() repeatwhile scanch=';'
+	$)
+	unless fast writes(tty," = last demon number*C*L")
+$)
+and load.levels() be
+$(	let dunmen,dunwomen=false,false
+	checkflag(@levelsflg,"Duplicate levels section")
+	for i=0 to 1 do
+	$(	let t=scanner()
+		t_look.up(scan.info)
+		unless t error("Unknown keyword [:s] in levels section",scan.info)
+		switchon PTYPE of t into
+		$(	case S.MALE:
+				checkflag(@dunmen,"Duplicate male section")
+				readlevels(male)
+				endcase
+			case S.FEMALE:
+				checkflag(@dunwomen,"Duplicate female section")
+				readlevels(female)
+				endcase
+			default:	error("Unknown level flag [:s]",scan.info)
+		$)
+	$)
+$)
+and readlevels(vector) be for i=0 to MAX.LEVEL do
+$(	unless scanner()=S.NAME error("Name expected in levels section")
+	$(	let node=find.word(scan.info, S.LEVEL, true)
+		vector!i_PNAME of node
+		DREC of node_i
+	$)
+$)
+and load.text() be
+$(	unless fast writes(tty, "*C*L0")
+	checkflag(@textflg,"Duplicate text section")
+	unless scanner()=S.NUMBER error("No text table size given")
+	max.message.no:=scan.info
+	text:=highvec(scan.info/36+1)
+	txtvec_highvec(scan.info/2)
+	startlinech()
+	while '0'<=scanch<='9' do
+	$(	scanner()
+		unless 0<=scan.info<=max.message.no error("Invalid text number")
+		unless fast write(tty,"*C:n   ",scan.info)
+		(selector 1:scan.info rem 36:scan.info/36) of text_valof
+		$(	let olds, ch=scanch, nextch()
+			if ch='?' startlinech()<>resultis true
+			putback(input,ch)
+			scanch_olds
+			(scan.info rem 2 -> LH, RH) from txtvec!(scan.info/2)_nexttext
+			transfer.dsk(@nexttext, textput)
+			resultis false
+		$)
+	$)
+	unless fast writes(tty," = last text number*C*L")
+$)
+and seq(s1,s2)=valof
+$(	for i=0 to (LENGTH of s1)/5 do if s1!i\=s2!i resultis false
+	resultis true
+$)
+and randomise(tst, sel1, dest, sel2) be
+$(	let res, ptr, lst=?, 0, RH from roomlist
+	if tst return
+	unless numbargs()=4 sel2_0
+	res_highvec(4)
+	test lst then
+	$(	res!4_0
+		while lst
+		$(	let t=LINK of lst
+			ptr_highvec(0)
+			LINK of ptr_res!4
+			res!4_ptr
+			LH of ptr_LH of lst
+			free(lst)
+			lst_t
+		$)
+		LH of (res+4)_LH from roomlist
+	$) or res!4_randoms!4
+	1!res_sel1
+	2!res_dest
+	3!res_sel2
+	LINK of res_randoms
+	randoms_res
+$)
+and startlinech(print) be
+$(	unless numbargs() print_false
+	until scanch='*L' do
+	$(	nextch()
+		if print writech(tty,scanch)
+	$)
+	nextch()
+$)
+and init.room(room,name) be
+$(	!room:=name
+	for i=1 to roomsize do i!room:=0
+	DOOR!room:=-1
+$)
+and highvec(n)=valof
+$(	let chunk=free.space
+	getcore(n+1)
+	free.space+:n+1
+	resultis chunk
+$)
+and getcore(size) be
+$(	let t=free.space+size
+	if t>>9 gr endloc unless valof
+	$[	$hrlz	1,	t
+		$core	1,	0
+		$jrst		fail
+		$move	1,	t
+		$lsh	1,	-9
+		$movem	1,	endloc
+		$seto	1,	0
+		$trna
+fail:		$setz	1,	0
+	$] Error("Out of high segment freestore - page :8", endloc)
+$)
+and read.name() be
+$(	let n,linev=0,vec 127
+	while 'a'<=(scanch bitor #40)<='z'\/'0'<=scanch<='9'\/scanch='.'\/scanch='$' do
+	$(	n+:1
+		unless n>127 linev!n:= 'A'<=scanch<='Z'->scanch+#40,scanch
+		nextch()
+	$)
+	!linev:=n>127->127,n
+	scan.info:=packstring(linev,name.string)
+$)
+and read.number() be
+$(	putback(input,scanch)
+	readno(input,@scan.info)
+	nextch()
+$)
+and copy(s)=valof
+$(	let size=(LENGTH of s)/5 and new=highvec(size)
+	for i=0 to size do new!i:=s!i
+	resultis new
+$)
+and initialise() be
+$(	let node,n=?,0
+	$[	$rescan
+		$inchrs		node
+		$setzm		node
+		$setz	1,	0
+		$setuwp	1,	0
+		$halt
+		$movei	1,	HUNG
+		$movem	1,	napct
+		$hrrei	1,	ESSEX
+		$movem	1,	ESXWD
+	$]
+	input_tty
+	test node then
+	$(	nextch() repeatuntil scanch='-' \/ '*L' le scanch le '*P' \/ '*E' le scanch le '*$'
+		unless scanch='-' filename_$6 "mud"<>break
+		filename_0
+		nextch()
+		while 'a' le scanch le 'z' \/ 'A' le scanch le 'Z' do
+			filename_(filename<<6) bitor ((scanch bitand #137)-' ')<>nextch()
+		unless filename filename_$6 "mud" <> break
+		until filename>>30 do filename<<_6
+	$) repeatwhile false or filename_$6"mud"
+	while scanch='/'
+	$(	scanch_nextch() bitand \#40
+		switchon scanch into
+		$(
+		case 'C':
+			comput_true
+			endcase
+		case 'F':
+			fast_true
+			endcase
+		case 'M':
+			mapput_true
+			endcase
+		case 'O':
+			objput_true
+			endcase
+		case 'R':
+			roomput_true
+			endcase
+		case 'T':
+			textput_true
+		case 'G':
+			cmndput_true
+		default 0 ... #137:
+			endcase
+		$)
+		nextch()
+	$)
+	$[	$clrbfi	$]
+	input:=findfile($6"all",filename,$6"txt")
+	unless roomput roomput_createfile($6"all",filename,$6".rm",0,0,0,1)
+	unless textput textput_createfile($6"all",filename,$6".tm",0,0,0,1)
+	unless mapput
+	$(	mapput_createfile($6"all",filename,$6".mm",0,0,0,1)
+		for i=0 to 4 do writech(mapput,'*0')
+	$)
+	unless objput
+	$(	objput_createfile($6"all",filename,$6".om",0,0,0,1)
+		for i=0 to 4 do writech(objput,'*0')
+	$)
+	unless comput comput_createfile($6"all",filename,$6".cm",0,0,0,1)
+	unless cmndput
+	$(	cmndput_createfile($6"all",filename,$6".gm",0,0,#14)
+		writech(cmndput,0)
+	$)
+	output:=tty
+	nextch()
+	S.ROOMS!procs:=load.rooms
+	S.VOCAB!procs:=load.vocab
+	S.TRAVEL!procs:=load.travel
+	S.OBJECT!procs:=load.objects
+	S.LEVELS!procs:=load.levels
+	S.DEMONS!procs:=load.demons
+	S.MAP!procs:=load.maps
+	S.HOURS!procs_load.hours
+	S.COMBAT!procs_load.combat
+	S.PERSONA!procs_load.persona
+	S.TEXT!procs:=load.text
+	until reserved!n=-1 do
+	$(	node:=look.up(reserved!n,reserved!(n+1))
+		P1 of node:=reserved!(n+2)
+		INFO of node:=reserved!(n+3)
+		n+:4
+	$)
+	dictionary,n:=highvec(HASHSIZE),0
+	out("initialisation used :n",free.space-startloc)
+$)
+and find.room(name,creating)=valof
+$(	let node,hash=?,?
+	if name=list resultis name
+	if numbargs()<2 creating:=false
+	name:=sixbit(name)
+	hash:=(name>>1) rem HASHSIZE
+	node:=index!hash
+	while node do test name=RNAME of node then
+	$(	if creating error("Duplicate room :6", name)
+		resultis node
+	$)
+	or node:=LINK of node
+	unless creating resultis false
+	node:=highvec(1)
+	LINK of node,RNAME of node:=index!hash,name
+	index!hash:=node
+	resultis node
+$)
+and find.word(word,type,cont)=valof
+$(	let dec,hash=false,(!word>>1) rem HASHSIZE and node=dictionary!hash
+	switchon numbargs() into
+	$(	case 1:
+			type:=0
+		case 2:
+			cont:=0
+	$)
+	if cont test cont=-1 then dec:=true or node:=LINK of cont
+	while node do
+	$(	if seq(word,PNAME of node)/\(PTYPE of node=type\/type=0) resultis node
+		node:=LINK of node
+	$)
+	if dec then
+	$(	node:=highvec(NODESIZE)
+		LINK of node:=dictionary!hash
+		dictionary!hash:=node
+		PNAME of node,PTYPE of node:=copy(word),type
+	$)
+	resultis node
+$)
+and look.up(word,type)=valof
+$(	let hash=(!word>>1) rem HASHSIZE and node=res!hash
+	if numbargs()<2 type:=false
+	while node do
+	$(	if seq(word,PNAME of node) then
+		$(	if type error("duplicate reserved word")
+			resultis node
+		$)
+		node:=LINK of node
+	$)
+	unless type resultis false
+	node:=newvec(2)
+	PTYPE of node,LINK of node:=type,res!hash
+	PNAME of node,res!hash:=word,node
+	resultis node
+$)
+and appenddr(node,dr)=valof
+$(	let nd,oldnd=DREC of node,?
+	unless nd DREC of node:=dr<>resultis dr
+	while nd do
+	$(	oldnd:=nd
+		nd:=LINK of nd
+	$)
+	LINK of oldnd:=dr
+	resultis dr
+$)
+and transfer.dsk(next, stream, sptr, obj, crlf) be
+$(	let lettercount, olds,lineonly,nocrlf=
+		0, scanch,numbargs()=5,lineonly/\crlf=0
+	if numbargs() ge 4
+	$(	let ch=nextch()
+		if ch='?'
+		$(	sptr of obj_#777777
+			startlinech()
+			return
+		$)
+		if ch='%'
+		$(	let prev=?
+			nextch()
+			unless scanner()=S.NAME error("Name required after %")
+			test numbargs()=5 then
+			$(	prev_checkfind.room(scan.info, "unknown room after % [:s]")
+				sptr of obj_sptr of (LH of prev)
+			$) or
+			$(	prev_checkfind.word(scan.info, S.OBJECT, "unknown object after % [:s]")
+				sptr of obj_sptr of (D3 of (DREC of prev))
+			$)
+			startlinech()
+			return
+		$)
+		putback(input, ch)
+		scanch_olds
+	$)
+$(	let count, rcount, ocount, b,wrap=0, ?, ?, vec TTYWIDTH*50,true
+	while scanch='*T'
+	$(	nextch()
+		if scanch='**' unless count
+		$(	nextch()
+			wrap_false
+		$)
+		until scanch='*C'
+		$(	if scanch='*T' if wrap
+			$(	outs("*C*L")
+				for i=0 to count outch(b!i)
+				error("*C*LTab found in text.")
+			$)
+			b!count_scanch
+			count+_1
+			nextch()
+		$)
+		unless nocrlf test wrap then
+		$(	b!count_'*S'
+			count+_1
+		$) or
+		$(	b!count, b!(count+1)_'*C', '*L'
+			count+_2
+		$)
+		nextch()
+		nextch()
+		if lineonly break
+	$)
+	test wrap then
+	$(	for i=count to count+TTYWIDTH b!i_0
+		rcount_-1
+		ocount_0
+	$) or rcount, ocount_count-1, 0
+	$(	if wrap
+		$(	rcount+_TTYWIDTH
+			until rcount ls ocount | b!rcount='*S' | (b!rcount ne 0 /\ nocrlf) rcount-_1
+			if rcount ls ocount
+			$(	unless b!ocount break
+				rcount+_TTYWIDTH
+			$)
+		$)
+		for i=ocount to rcount
+		$(	if \stream then writech(stream, (b!i))
+			lettercount+_1
+			unless lettercount rem 5 then !next+_1
+		$)
+		unless wrap break
+		unless nocrlf
+		$(	if \stream writech(stream,'*C')		//I know this is horrible, but I'm in a BIG hurry!
+			lettercount+_1
+			unless lettercount rem 5 then !next+_1
+			if \stream writech(stream, '*L')
+			lettercount+_1
+			unless lettercount rem 5 then !next+_1
+		$)
+		ocount_rcount+1
+	$) repeat
+	if \stream
+	$(	writech(stream, '*0')
+		for i=2 to 5-(lettercount rem 5) writech(stream, '*P')
+	$)
+	!next+_1
+$)
+$)
+and transfer.service(select)=valof
+$(	let room=?
+	nextch()
+	unless scanner()=S.NAME error("Name required after %")
+	room:=checkfind.room(scan.info,"Room name required after %")
+	room:=LH of room
+	unless room error("Predefined room required after %")
+	startlinech()
+	resultis select of room
+$)
+and scanner(numasstring)=valof
+$(	switchon Numbargs()->scanch='*T'->'*T', 'A', scanch into
+	$(	case '*E':
+			resultis S.EOF
+		case '*T':
+			while scanch='*T' do nextch()
+			loop
+		case '[':
+			$(	let count, lst=0, 0
+				nextch()
+				until scanch=']'
+				$(	let elmt=newvec(0)
+					unless scanner()=S.NAME error("direction expected in list")
+					count+_1
+					RH of elmt_lst
+					lst_elmt
+					LH of elmt_1<<DREC of checkfind.word(scan.info, S.MOTION, "word not a motion [:s]")
+				$)
+				nextch()
+				LH from lst_count
+				count_newvec(1)
+				1!count_lst
+				LH of count_free.space
+				RH of count_randirs
+				randirs_count
+				scan.info_count
+				resultis S.RAND
+			$)
+		case '(':
+		case '<':
+			$(	let count=0
+				roomlist_0
+				nextch()
+				until scanch='>' \/ scanch=')'
+				$(	let new, lst=scanner(), newvec(0)
+					unless new=S.NAME error("name expected in list")
+					new_LH of checkfind.room(scan.info, "list element not a room [:s]")
+					count+_1
+					LINK of lst_roomlist
+					roomlist_lst
+					LH of lst_new
+				$)
+				LH from roomlist_count
+				scan.info_list
+				nextch()
+				resultis S.NAME
+			$)
+		case '$':
+		case 'A' ... 'Z':
+		case 'a' ... 'z':
+			read.name()
+			resultis S.NAME
+		case '-':
+		case '+':
+		case '0' ... '9':
+			read.number()
+			resultis S.NUMBER
+		case ';':
+			startlinech(nextch()=';')
+			loop
+		case '**':
+			nextch()
+			read.name()
+			resultis PTYPE of look.up(scan.info)
+		case '.':
+			read.name()
+			resultis S.DOTNAME
+	$)
+	nextch()
+$)	repeat
+and nextch() be
+$(	readch(input, @scanch)
+	if scanch='@'
+	$(	if getput error("nested .get files disallowed")
+		readch(input,@scanch)
+		read.name()
+		getput_input
+		input_findfile($6"all",scan.info,$6"get")
+		readch(input,@scanch)
+	$)
+	if scanch='*E'/\getput
+	$(	close(input)
+		input_getput
+		getput_0
+		startlinech()
+	$)
+	return
+$)
+and finalise() be
+$(	for i=0 to HASHSIZE	//Write the commands to disc
+	$(	let node,nodecopy,thisrec,nextrec=dictionary!i,?,?,?
+		while node
+		$(	if isaction(node)
+			$(	nodecopy_node
+				if SYN of nodecopy nodecopy of_ DREC
+				test SAVED of nodecopy then DREC of node_DREC of nodecopy or
+				$(	thisrec_DREC of nodecopy
+					DREC of node,DREC of nodecopy_nextcmnd,nextcmnd
+					while thisrec
+					$(	nextcmnd+_DRSIZE+1
+						nextrec_LINK of thisrec
+						if nextrec LINK of thisrec_nextcmnd
+						if \cmndput for j=0 to DRSIZE writech(cmndput,thisrec!j)
+						free(thisrec)
+						thisrec_nextrec
+					$)
+				$)	SAVED of nodecopy_true
+			$)
+			node of_ LINK
+		$)
+	$)
+motvec_highvec(mtion-1)-1
+	for i=1 to mtion do motvec!i_mvec!i
+	output:=createfile("dsk","mud","dmp",0,Label(what),#14)
+	for i=@roomflg to @textflg unless !i error("Section missing*C*L")
+	for i=startloc to free.space-1 outch(!i)
+	close(output)
+	close(input)
+	if \roomput close(roomput)
+	if \textput close(textput)
+	if \objput close(objput)
+	if \mapput close(mapput)
+	if \comput close(comput)
+	if \cmndput close(cmndput)
+	output:=tty
+	out("*C*L:n class:s, :n object:s and :n motion word:s defined",
+		class, class=1->"", "es",
+		object, object=1->"", "s",
+		mtion, mtion=1->"", "s")
+	out("*C*LTotal space used :n",free.space-startloc)
+	run("all","mud",0,0,1)
+what:	write(tty, "*C*LCan't create mud.dmp*C*L")
+$)
+and error(fmt,a,b,c) be
+$(	writes(tty,"*C*L")
+	write(tty,fmt,a,b,c)
+	$[	L1:	$exit	1,	0
+			$jrst		L1
+	$]
+$)
+and checkflag(lvf, err) =valof
+$(	if !lvf error(err)
+	!lvf_true
+$)
+and checklook.up(word,type,err) =valof
+$(	let wrd=look.up(word)
+	unless wrd /\(PTYPE of wrd=type) error(err,word)
+	resultis wrd
+$)
+and checkfind.word(word,type,err)=valof
+$(	let wrd=find.word(word)
+	unless wrd error(err, word)		//Huh? So where's the type come in?
+	resultis wrd
+$)
+and checkfind.room(name,err)= valof
+$(	let wrd=find.room(name)
+	unless wrd error(err,name)
+	resultis wrd
+$)
+and random(n)=valof		//gives random no. between 0 and n-1
+$[	$mstime	1,	0
+	$timer	2,	0
+	$add	1,	2
+	$runtim	2,	0
+	$sub	1,	2
+	$tlz	1,	#400000
+	$idiv	1,	n
+	$move	1,	2
+$]
+$[
+BCPL.:	$JRST	ENDRIPPLE	// Jump past initial stuff when next here
+	$TRN	BCPL		// Here initially, also loading MBOOTS
+	$RESET
+	$JRST	#430010		// Start ripple through
+ENDRIPPLE:
+	$MOVE	ZERCAL
+	$MOVEI	ONE,	1
+	$HRRZ	P,	JBFF	// INITIAL VALUE OF P
+	$MOVEI	AC,	#7777(P)
+	$CAML	AC,	JBREL
+	$CORE	AC,	0	// TRY FOR 2K INITIAL CORE (MINIMUM)
+	$JFCL			// IGNORE ERROR RETURN
+	$(	SL := JBREL
+		FL := #430000
+		$[	$MOVEM	P, STACKBASE $]
+		START()
+		FINISH
+	$)
+	$EXIT	// JUST IN CASE!
+ZERCAL:	$JRST	ZERO
+$]

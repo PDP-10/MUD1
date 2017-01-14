@@ -1,0 +1,22 @@
+home	hide
+	Wizards' room.
+	This is a room reserved exclusively for wizards. Its ornate oaken
+	panelling and antique furniture make it the perfect place for its
+	honoured users to relax in the style to which they are justly
+	entitled. To find exits type exits.
+store	hide	hideaway
+	Wizards' storeroom.
+	The immensity of this room is enough to fill any mortal with awe and
+	insignificance, but you are naturally unimpressed. This is the room
+	used by wizards as a store for things to be dumped at random out on
+	the poor unsuspecting adventurers to add a bit of spice to the game.
+limbo	light	hideaway	nolook	silent
+	Limbo.
+	Everything around you is a glowing white, and there are no walls you
+	can focus on. You feel as if you are floating on air. You are.
+xmasbx	light	death	hide	hideaway	sanctuary
+	Christmas box.
+	This room is for the benefit only of those wizards and witches who
+	want to make Christmas a nice time of year. Use no other season, please!
+	The command to make it snow instead of rain is WINTER. Oh, and don't
+	forget the mistletoe and the ivy! Merry Christmas!

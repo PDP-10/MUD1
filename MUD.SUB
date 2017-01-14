@@ -1,0 +1,19 @@
+mud.sub		;This file!
+mud.mic		;A mic file to compile it
+mud.box		;Improvements/things to do/bugs to be found
+dungen.get	;Main getfile
+mudlib.get	;Another getfile
+dbase.bcl	;Database loader
+mud0.bcl	;Database interpreter statics
+mud1.bcl	;Start, Check.stuff, parsing things
+mud2.bcl	;demon stuff and Move
+mud3.bcl	;general support routines
+mud4.bcl	;communication parts
+mud5.bcl	;Special and Action
+mud6.bcl	;Drop, Get and description components
+mud7.bcl	;Special's supporting routines
+mud8.bcl	;Interact
+mudlib.bcl	;Library routines and various other annoying bits and pieces
+mboots.mac	;The start address stuff for initialisation
+power.bcl	;For producing specified <name>.MUD files! Frig, Start & Dot combined
+dbadat.mac	;High segment skeleton of database

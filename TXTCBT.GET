@@ -1,0 +1,260 @@
+*combat	9			;1
+	sneering
+	looking
+	staring
+	snarling
+	glaring
+	coming
+	scowling
+	grimacing
+	rushing
+	12			;2
+	fiercely
+	ferociously
+	aggressively
+	ominously
+	purposefully
+	angrily
+	madly
+	hatefully
+	menacingly
+	threateningly
+	venomously
+	furiously
+	13			;3
+	strike home at
+	take aim at
+	hit
+	strike
+	beat
+	catch
+	smite
+	bash
+	thrash
+	wallop
+	strike at
+	hit out at
+	strike out at
+	16			;4
+	crushing
+	weighty
+	glancing
+	vicious
+	violent
+	hefty
+	mighty
+	powerful
+	tremendous
+	forceful
+	severe
+	furious
+	punishing
+	savage
+	fierce
+	stunning
+	13			;5
+	blow
+	blow
+	swing
+	thump
+	whack
+	punch
+	lunge
+	thrust
+	clout
+	slash
+	backhand
+	forehand
+	cross
+	10			;6
+	beat
+	evade
+	elude
+	dodge
+	side-step
+	avoid
+	duck
+	shrug off
+	take
+	parry
+	14			;7
+	terrible
+	clumsy
+	dreadful
+	weak
+	hasty
+	wild
+	limp
+	feeble
+	puny
+	tame
+	poor
+	bungled
+	pathetic
+	mis-timed
+	10			;8
+	affray
+	contest
+	battle
+	melee
+	engagement
+	action
+	tussle
+	carnage
+	slaughter
+	fight
+	2			;9
+	from
+	by
+	14			;10
+	easily matched by
+	way off
+	no problem for
+	a mile off
+	nowhere near
+	easily dodged by
+	avoided with ease by
+	parried effortlessly by
+	side-stepped by
+	a yard off
+	blocked by
+	too weak to hurt
+	too feeble to worry
+	hardly noticed by
+	13			;11
+	worried
+	grazed
+	stricken
+	stunned
+	dazed
+	jolted
+	hurt
+	numbed
+	wounded
+	troubled
+	bruised
+	jarred
+	winded
+	14			;12
+	power
+	energy
+	vigour
+	viciousness
+	speed
+	furiosity
+	savageness
+	fierceness
+	violence
+	weight
+	strength
+	might
+	force
+	momentum
+	2			;13
+	feel
+	sense
+	9			;14
+	strength
+	life-blood
+	energy
+	final breath
+	life force
+	last seconds
+	soul
+	final moments
+	time
+	6			;15
+	ebbing away
+	leaving you
+	departing
+	slipping away
+	draining away
+	slipping
+	7			;16
+	see
+	spot
+	notice
+	sense
+	perceive
+	discern
+	can see
+	13			;17
+	However
+	But
+	With renewed vigour
+	But courageously
+	Gritting your teeth
+	With a vast effort
+	Groggily
+	Summoning strength
+	Dazedly
+	Indomitably
+	Yet
+	Yet courageously
+	With tremendous willpower
+	8			;18
+	pull through
+	pull together
+	recover
+	compose
+	revitalise
+	carry on
+	bear up
+	concentrate
+	11			;19
+	charge back
+	launch yourself
+	stagger forward
+	wade
+	head back
+	hurl yourself
+	throw yourself
+	start
+	advance
+	press forward
+	hurtle
+	7			;20
+	retaliatory
+	retributive
+	counter
+	follow-up
+	follow-through
+	next
+	return
+	9			;21
+	sideways
+	reeling
+	staggering
+	flying
+	to the floor
+	sprawling
+	backwards
+	to the ground
+	spinning
+	5			;22
+	simply
+	easily
+	effortlessly
+	comfortably
+	narrowly
+	8			;23
+	absorbed
+	dodged
+	avoided
+	parried
+	ducked
+	side-stepped
+	shrugged off
+	taken
+	11			;24
+	took the life of
+	did away with
+	slayed
+	killed
+	was the end of
+	finished off
+	polished off
+	murdered
+	killed
+	was enough to kill
+	disposed of

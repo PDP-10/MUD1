@@ -1,0 +1,465 @@
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+ 
+	This software is furnished on the understanding that
+it may be used and/or copied only with the inclusion of this
+notice.	 No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+ 
+get "mudlib"
+get "dungen"
+ 
+let start() be
+$(	input,output_tty,tty			//Initialise things.
+	mainloop_label(l1)			//Ditto.
+	initialise()				//More of above.
+	$( l1:	at_false
+		justforced_false
+		check.stuff()			//Game in full swing, check
+		parse.command()			//various things and says
+		instate()
+		execute.command()		//anything try and understand
+	$)	repeat				//it. Again and again.
+$)
+and check.stuff() be
+$(	let present,change,bit,nm=?,?,?,?
+	while magic
+	$(	$[	$setzm		JBINT	$]
+		outz(strtab!8)
+		Outs("Everything in the game has been reset to its original starting state!*C*L")
+		stop.fighting()
+		$[	$clrbfi	$]
+		quit()
+	$)
+	ran()					//Bump random (ha!) number generator.
+	jar(@deldr)
+	check.gone()
+	active!player.no_valof
+	$[	$mstime	1,	0	$]
+	unjar(@deldr)
+	unless maint
+	test lastmoments then
+	$(	lastmoments+_1
+		if lastmoments ge TIMEOUT*60 test timeok(low2) then
+		$(	out("*C*L:6 will not be closing after all - carry on playing...*C*L", MUD6)
+			lastmoments_0
+		$) or
+		$(	out("*C*L:6 is now closed!*C*L", MUD6)
+			stop.fighting()		//ought to have a proc for these 2 - happen together often
+			quit()
+		$)
+	$) or unless timeok()
+	$(	out("*C*L:6 will be closing shortly - you have about :N minutes left!*C*L", MUD6, TIMEOUT)
+		lastmoments_1
+	$)
+	present_WHO!room			//See who is in room.
+	unless who.copy=present then		//If changed since last time report on it.
+	$(	change_present neqv who.copy	//Get changes.
+		unless ASLEEP of profile if visible() for i=0 to 35 do unless i=player.no then
+		$(	bit_1<<i		//See who it was and tell everyone!
+			if bit bitand change then unless invisible(i)
+			$(	nm_player.names!i
+				if nm out(":p has just :s.*C*L",nm,
+				(WIZARD of LH from player.names!i)=1->(bit bitand present -> "appeared with a crash of thunder", "disappeared in a puff of smoke"),
+				(bit bitand present -> "arrived", "left"))
+			$)
+		$)				//If can't find name then someone "died".
+		who.copy_present		//Keep copy up to date.
+	$)					//Continue as nothing had happened
+	if queue!player.no interact()		//If received message process it (them).
+	if pain STAMINA of profile-_pain<>pain_0
+	if chcnt>0 test can.wake() then wake.up()<>return or error("You can't wake yourself up yet!")
+	if ASLEEP of profile /\ can.wake() /\ new.stamina() ge STAMINAMAX of profile
+	$(	outs("You are too alert to sleep any more! ")
+		wake.up()
+	$)
+	test somethingarrived then somethingarrived_false or unless lineflg
+	unless random(player+1) if melted do
+	$(	let tracer=movers
+		while tracer do
+		$(	let obj, mobile = LH of tracer, MOTN of obj
+			if (CURROOM of mobile)/\(FIGHTS of mobile=0)/\(DESTROYED of obj ge 0)/\(P4 of obj=0) then
+			$(	MOVECOUNT of mobile+_1
+				if MOVECOUNT of mobile gr MOTION of mobile then moveobject(obj)<>MOVECOUNT of mobile_0
+			$)
+			tracer of_RH
+		$)
+	$)
+	if ~autowho
+	$(	autowho-_1
+		unless autowho
+		$(	autowho_autoint
+			unless ASLEEP of profile
+			$(	Outz($az"*C*LAuto-who:*C*L")
+				Special(SF.WHO)
+			$)
+		$)
+	$)
+	if events handledemons(@events)
+	if gdemons/\random(player+1)=0 handledemons(@gdemons)
+	if player unless random(player+1)
+	$(	jar(@deldr)
+		for i=0 to 35 unless i=player.no if player.names!i
+		$(	let act=active!i
+			if act ls 0 loop
+			if (((valof
+			$[	$mstime	1,	0	$])-act+WHOLEDAY) rem WHOLEDAY gr DELAY)\/
+			(valof
+			$(	let jb=jobnos!i
+				$[	$setz	1,	0
+					$move	2,	jb
+					$trmno.	2,	0
+					$seto	1,	0
+				$]
+			$)) then exorcise(i)
+		$)
+		unjar(@deldr)
+	$)
+	unless prompted \/ pretend
+	$(	unless snooping ge 0 \/ snobj
+		$(	outz($az"*S*C*L")
+			ccnt_0
+			if INVIS of profile writech(tty,'(')
+			if WIZARD of profile writes(tty,"----")
+			writech(tty,conversing->'"',(BZK/\BERSERK of profile) -> '>', '**')
+			if INVIS of profile writech(tty,')')
+			unless valof
+			$[	$setz	1,	0
+				$skpinc
+				$seto	1,	0
+			$] do
+			$[	$movei	1,	2
+			$hrli	1,	2
+				$movei	2,	#2
+				$move	3,	ttyno
+retry:				$trmop.	1,	0
+				$jrst		okthen
+				$movei	4,	1
+				$hiber	4,	0
+				$trn
+				$jrst		retry
+okthen:
+			$] <> forcetty($az "*^R")
+		$)
+		prompted_true
+	$)
+	lineflg_hibernate()			//Sleep for a sec. or until line ready.
+	if ctcflg quit()
+	if lineflg read.line()			//Read the line if there.
+$)	repeat					//Otherwise do it again.
+and parse.command() be
+$(	let token=?
+	switchon scanner() into			//See what was typed.
+	$(	case S.MOTION ... S.LEVEL:
+			verb_scan.info		//Remember verb.
+			token_nvscanner()	//Next token.
+			if token=S.CONT return	    //Only said verb.
+			if token=S.WITH\/token=S.AT token_nvscanner()	//ignore superfluous WITHs
+			if token=S.MOTION nvscanner()
+						//Frig participles to verbs!
+			try.it(@objct,token)	//Remember object.
+			unless token=S.WITH\/token=S.AT token_nvscanner()	//Anything more?
+			if token=S.AT at_true
+			unless token=S.WITH\/token=S.AT\/token=S.CONT
+			$(	let what=scan.info
+				token_nvscanner()
+				test S.IT le token le S.THEM then try.it(@objct,token) or
+				test token=S.CONT\/token=S.WITH\/token=S.AT then scan.info_what<>try.it(@objct,S.OBJECT)
+				or try.it(@instrmnt,token)<>endcase
+			$)
+			if token=S.CONT instrmnt_0<>return  //No.
+			if token=S.AT at_true
+			token_nvscanner()
+			try.it(@instrmnt,token)
+			endcase
+		CASE S.SPECIAL:
+			verb_scan.info
+			nvscanner()				//take off the s.cont
+			return
+		case S.UNCONVERSE:
+			verb_0
+			return
+		case S.AT:
+			at_true
+		case S.WITH:
+			token_nvscanner()
+			if token=S.CONT error("The first word I understood was a preposition, so it should be*C*L*
+				*followed by an object, but I don't recognise it.")       //Must be followed by something.
+			try.it(@instrmnt,token)	//Remember it.
+			if scanner()=S.CONT test verb then return or
+				error("I got the first word as WITH-like and I think I got an instrument, but*C*LI can't find an action.")
+						//May have specified a verb.
+			verb_scan.info		//Store verb.
+			token_nvscanner()	//Next token.
+			if token=S.CONT return	    //Finished so return.
+			if token=S.MOTION token_nvscanner()
+						//Frig participles.
+			try.it(@objct,token)	//Store object.
+			endcase
+		case S.CONT:
+			if chcnt>0 endcase     //Allow stuff like 'and then'.
+			return			//Or return.
+		case S.PLAYER:
+			objct_scan.info		//remember player number
+			while valof switchon scanch into
+			$(
+			case '*S':
+			case '*T':
+			case ',':
+			case '.':
+			case ':':
+			case '-':
+				resultis true
+			default '*0' ... '*D':
+				resultis false
+			$) scanch_getch()
+			if dumb error("You can't speak to :U, you're dumb.",player.names!(P1 of objct))	//can find out hidden people this way
+			interact(I.TELL)
+			jump(mainloop)
+		default:
+			objct_scan.info	//Might be an 'object'
+			unless verb error("You'll have to try something else, I don't understand the first word*C*L(which should be an action).")	//If not said verb report error.
+	$)
+	unless scanner()=S.CONT error("I think I can guess what some of that meant, try saying it again a*C*Ldifferent way.")	    //Phrase must end with a conjunction.
+	if at swap(@objct, @instrmnt)
+	unless objct objct_fake.node("that")
+$)
+and execute.command() be if verb then switchon PTYPE of verb into
+$(	case S.SPECIAL:				//A special verb.
+		special(P1 of verb)		//quoted or shouted
+		endcase
+	case S.LEVEL:
+		special(SF.DBUG)
+		endcase
+	case S.MOTION:				//Execute a direction.
+		objct_verb
+		objname_verbname
+		verb_tverb
+		verbname_PNAME of verb
+	case S.ACTION: case S.FASTATN:		//An action verb.
+		action()
+$)
+and try.it(lvword,token) be switchon token into
+$(	case S.OBJECT:
+		setit(scan.info)		//inefficient
+	default:
+		!lvword_scan.info
+		endcase
+	case S.PLAYER:
+	$(	let nam,prof=player.names!(P1 of scan.info),LH from nam
+		unless hidden(P1 of scan.info)
+		$(	((SEX of prof)->her, him)_nam
+			them_nam
+		$)
+		!lvword_scan.info
+		endcase
+	$)
+	case S.HIM:
+		unless him error("I don't know to whom ':s' refers.",PNAME of scan.info)
+		pronoun(him,lvword)
+		endcase
+	case S.HER:
+		unless her error("I don't know to whom ':s' refers.",PNAME of scan.info)
+		pronoun(her,lvword)
+		endcase
+	case S.THEM:
+		unless them error("I don't know to whom ':s' refers.",PNAME of scan.info)
+		pronoun(them,lvword)
+		endcase
+	case S.ME:
+		pronoun(me, lvword)
+		endcase
+	case S.THERE:
+		unless WIZARD of profile error()
+		unless there error("I don't know where you mean by 'there'.")
+		$(	let s=selector 7:29:bcplrm
+			and b=selector 6:30:1
+			and c=0
+			$[	$move	1,	there
+come:				$ldb	2,	b
+				$jumpe	2,	gone
+				$aos		c
+				$addi	2,	'*S'
+				$idpb	2,	s
+				$lsh	1,	6
+				$jrst		come
+gone:
+			$]
+			LENGTH of bcplrm_c
+		$)
+		!lvword_fake.node(bcplrm)		//hope only have 1 room per sentence!
+		endcase
+	case S.IT:
+		unless it error("I don't know what you mean by 'it'.")
+	case S.WITH:
+		!lvword_find.word(it)
+		endcase
+$)
+and setit(nd) be unless NOIT of nd it_PNAME of nd
+and pronoun(pn,lvword) be
+$(	let word=find.player(pn)
+	!lvword_fake.node(pn)
+	if \word unless hidden(word)
+	$(	PTYPE of fake_S.PLAYER
+		P1 of fake_word
+		them_PNAME of LH from player.names!word
+	$)
+$)
+and nvscanner()=valof
+$(	let token=scanner()
+	while token=S.ACTION \/ token=S.FASTATN do token_scanner()
+	resultis token
+$)
+and scanner()=valof
+$(	let word=?
+	switchon scanch into
+	$(	case 'A' ... 'Z':
+		case 'a' ... 'z':
+		case '0' ... '9':
+			if conversing
+			$(	get.text()
+				resultis S.SPECIAL
+			$)
+			word_read.name()
+			scan.info_find.word(word)
+			if scan.info then
+			$(	if PTYPE of scan.info=S.NOISE then loop
+				if PTYPE of scan.info=S.SPECIAL
+				$(	get.text()
+					switchon FIRSTCH of mbuffer into
+					$(
+					case ',':
+					case '.':
+					case ':':
+					case '-':
+						FIRSTCH of mbuffer_'*0'
+					default '*0' ... '*D':
+					$)
+					P1 of scan.info_SF.SHOUT
+				$)
+				resultis PTYPE of scan.info
+			$)
+			scan.info_fake.node(word)
+			word_find.player(word)
+			if word\=-1 then
+			$(	if hidden(word) resultis false
+				PTYPE of scan.info_S.PLAYER
+				P1 of scan.info_word
+				resultis S.PLAYER
+			$)
+			resultis false
+		case ',':
+		case '.':
+		case ':':
+		case '-':
+			if conversing
+			$(	get.text()
+				resultis S.SPECIAL
+			$)
+			scanch_getch()
+			resultis S.CONT
+		case '*"':
+			scanch_getch()
+			get.text()
+			resultis S.SPECIAL
+		case ';':
+			chcnt_0
+			verb_0
+		case '*L' ... '*P':
+		case '*$':
+		case '*^G':
+		case '*E':
+			scanch_-1
+			resultis S.CONT
+		case ')':
+			conversing_true
+			endcase
+		case '(':
+			conversing_false
+			endcase
+		case '**':
+		case '>':
+			if conversing
+			$(	conversing_false
+				out("*C*LLeaving converse mode.*C*L")
+				resultis S.UNCONVERSE
+			$)
+		default '*0' ... '*D':
+	$)
+	scanch_getch()
+$)	repeat
+and read.name()=valof
+$(	let linev,n=vec 127,0
+	while 'a'<=scanch<='z'\/'0'<=scanch<='9'\/'A'<=scanch<='Z' do	//use a case?
+	$(	n+:1
+		unless n>127 n!linev_'A'<=scanch<='Z'->scanch+#40,scanch
+		scanch_getch()
+	$)
+	!linev_n>127->127,n
+	resultis packstring(linev,name.string)
+$)
+and find.word(word,type,cont)=valof
+$(	let node=dictionary!((!word>>1) rem HASHSIZE)
+	switchon numbargs() into
+	$(	case 1:
+			type_0
+		case 2:
+			cont_0
+	$)
+	if cont then node_LINK of cont
+	while node do test seq(word,PNAME of node)/\(type=0\/PTYPE of node=type)/\
+		(PTYPE of node ne S.OBJECT \/ DREC of node ge #400000) then resultis node
+		or node of_LINK
+	resultis false
+$)
+and find.room(name)=valof
+$(	let node=?
+	name_sixbit(name)
+	node_index!((name>>1) rem HASHSIZE)
+	while node do test name=RNAME of node then resultis node
+		or node of_LINK
+	resultis false
+$)
+and fake.node(wd)=valof
+$(	let t=fake.string
+	fake.string_name.string
+	name.string_t
+	PNAME of fake_wd
+	P1 of fake_0
+	PTYPE of fake_0
+	resultis fake
+$)
+and find.player(name)=valof
+$(	/*
+      This procedure searches down the list of player names, and returns the player
+      number if found, otherwise -1.
+      */
+      for i=0 to 35 do if player.names!i if seq(name,player.names!i) resultis i
+      resultis -1			       //otherwise
+$)
+and get.text() be
+$(	read.message(mbuffer)
+	scan.info_fake.node(mbuffer)
+	PTYPE of scan.info_S.SPECIAL
+	P1 of scan.info_SF.QOTE
+	unless deaf\/us(PNAME of profile) if censor("richard") \/ censor(" roy")
+		out("*C*LIn the distance you hear a deep rumble of thunder.*C*L")
+$)
+and censor(password)=valof
+$(	let pw, txt=vec 127, vec 127
+	unpackstring(password, pw)
+	unpackstring(mbuffer,txt)
+	for i=1 to !pw pw!i bitor_#40
+	for i=1 to !txt txt!i bitor_#40
+	for i=1 to !txt-!pw+1 do if valof
+	$(	for j=1 to !pw
+		unless pw!j=txt!(i+j-1) resultis false
+		resultis true
+	$) resultis true
+	resultis false
+$)

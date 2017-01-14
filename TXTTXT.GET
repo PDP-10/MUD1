@@ -1,0 +1,285 @@
+1	?
+2	?
+3	Not during a fight!
+4	Nothing happens.
+5	?
+6	?
+7	?
+8	Don't be silly, it takes years to invent something REALLY useful.
+9	That's a very adventurous thing to say. Some people will try anything if
+	they're especially desperate...
+11	Work it out yourself, where's the fun in asking me if you get stuck?
+12	I'm afraid nothing happens. Well now what are you going to do?
+13	Oh that's quite all right, no need to apologise.
+14	It's very polite of you to say please, but I can't help. Well, I
+	won't...
+16	*You hear a sudden
+	BBBBBB   AAAAA  NN   NN  GGGGG
+	BBBBBBB AAAAAAA NNN  NN GGGGGGG
+	BB   BB AA   AA NNN  NN GG   GG
+	BB   BB AA   AA NNNN NN GG
+	BBBBBB  AAAAAAA NNNN NN GG GGGG
+	BBBBBBB AAAAAAA NN NNNN GG GGGG
+	BB   BB AA   AA NN NNNN GG   GG
+	BB   BB AA   AA NN  NNN GG   GG
+	BBBBBBB AA   AA NN  NNN GGGGGGG
+	BBBBBB  AA   AA NN   NN  GGGGG
+	in the distance.
+17	*BBBBBB   BBBBB  NN   NN  GGGGG
+	BBBBBBB AAAAAAA NNN  NN GGGGGGG
+	BB   BB AA   AA NNN  NN GG   GG
+	BB   BB AA   AA NNNN NN GG
+	BBBBBB  AAAAAAA NNNN NN GG GGGG
+	BBBBBBB AAAAAAA NN NNNN GG GGGG
+	BB   BB AA   AA NN NNNN GG   GG
+	BB   BB AA   AA NN  NNN GG   GG
+	BBBBBBB AA   AA NN  NNN GGGGGGG
+	BBBBBB  AA   AA NN   NN  GGGGG
+18	Light it from a lit torch, you want to burn yourself or something?!
+	Remember the firework code...
+19	You can't do that, you're not a high enough level.
+20	You're already invisible!
+21	You're already visible!
+22	You've just become invisible!
+23	You've just become visible!
+24	That spell only works on people, I'm afraid.
+25	You can't look, you're blind, aren't you?
+26	You NEED to wish when you're dumb, like you are! The only thing is, you
+	can't speak the words...
+27	You can't make the necessary hand movements to execute the spell
+	in such a small room as this.
+28	You are cured of all your disablements!
+29	The spell won't work if you're dumb yourself.
+30	The spell won't work if you're crippled yourself.
+31	The spell won't work if you're blind yourself.
+32	The spell won't work if you're deaf yourself.
+33	If you weren't a wiz you'd have just been struck dumb!
+34	You have been struck dumb magically!
+35	The spell doesn't work, and you are struck dumb yourself!
+36	If you weren't a wiz you'd have just been crippled!
+37	You have been crippled magically!
+38	The spell doesn't work, and you are crippled yourself!
+39	If you weren't a wiz you'd have just gone blind!
+40	You have gone blind magically!
+41	The spell doesn't work, and you go blind yourself!
+42	If you weren't a wiz you'd have just gone deaf!
+43	You have gone deaf magically!
+44	The spell doesn't work, and you go deaf yourself!
+45	There's not enough in the swamp for me to oblige.
+46	You need to retaliate with a weapon.
+47	You're not fighting anyone to retaliate against!
+48	There is a sudden burning sensation in your chest, which grows
+	sharply in intensity and spreads to your throat. Coughing and
+	choking, you fall to your knees as it worsens, and you feel wracking
+	pains all through your body. Your eyesight grows blurred, and you
+	start to froth at the mouth. At once, your eyes roll upwards, your
+	tongue flops out, and you keel over backwards, dead...
+49	In an attempt to keep the game uncorrupted, you have been killed.
+67	This firestone GLOWS! You can't light other stuff from it!
+68	The firestone glows, and you can't stop it...
+88	You swing your mighty axe, and the next moment the portal is but
+	matchwood, and the doorway passable. Your axe breaks too, however,
+	due to the force of the chop. Delinquent vandal, I don't know...
+90	Use an axe if you want to break down a door. You don't expect them
+	to be made out of balsa, do you?
+100	The door creaks slowly open.
+101	The door swings shut.
+109	Your brand is now lit.
+110	Your brand is now doused.
+115	Ok, hope you're hungry!
+131	The stick is now alight.
+132	Nice try, but the sticks here are too thick for an old boy-scout
+	trick like that...
+139	Ugh! It is foul! Hastily you stop drinking, but too late. Everything
+	swims about you and you feel giddy. You fall unconcious to the floor.
+158	Drinking stuff in this land rarely has any effect. Now is no exception.
+171	ZZZzzz...
+177	This is a MAGIC fire so you can't extinguish it! How do you think it
+	keeps burning all the time?
+183	The door is already open.
+184	The door is locked shut, and needs keys to open it.
+185	The door is already unlocked.
+186	The key grates in the lock and unlocks the door.
+187	The door is already closed.
+188	The key grates in the lock and locks the door shut.
+189	The door is already locked.
+242	You have to be holding something alight to ignite something.
+245	You can examine 'til your heart's content, you won't find anything
+	special. Heavens, if I let folk examine things they'd spend the whole
+	game doing it!
+307	The torch isn't lit so you can't light anything from it...
+308	The torch isn't lit so you can't melt anything with it...
+328	You give them a great big sloppy kiss.
+344	Think of something else sesaME...
+365	You take a great draught, and a power swells through your body. The
+	liquid has a taste quite unlike any you have tasted before, and you
+	feel fully invigorated. Then, quite by surprise, the empty bottle
+	vanishes!
+370	You don't find anything.
+381	Far too difficult, I'm afraid, there are too many branches about. You
+	have to give up.
+382	And very regal you look too! Shame you don't get any points for it,
+	though..!
+391	You have to be carrying a lit brand if you want to light anything.
+431	The cat tries to get out of your way but you graunch its head in.
+432	It's dead for heaven's sake! They only have nine lives you know...
+433	The cat isn't hungry. It's been living off enchanted sugar mice for
+	the past hundred and fifty years...
+436	This is an enchanted forest. Hence, virtually every tree resists your
+	chops as if you'd been using an axe of wet paper. There might be a few
+	which you CAN chop down though, if you can find them...
+443	Your hand gets cacked up with red goo from the cat's corpse...
+444	The cat mioaws.
+473	Oh my god, that's disgusting! I can't let you do that in THIS Land!
+486	What?
+488	The usually complacent cat suddenly becomes a spitting, biting,
+	clawing killer!
+504	?
+505	If you want to lock it, try using a key.
+519	How the hell do you expect a dead cat to eat anything?!
+540	You know what happens to people who do that, don't you..?
+548	I already told you what it said!
+552	You give them an enormous big hug!
+558	Light it with what? If you want to burn it with a torch, say so!
+559	Unlock the door with what? If you want to unlock the door with keys,
+	why not say so? Just to please me?
+560	Mere curiosity won't kill THIS cat, I'm afraid!
+573	The clear, coloured liquid becomes cloudy when the medicine is added. Soon
+	you have added all the medicine and the container disintigrates. You
+	are now left with the potion only. Is it safe to drink..?
+574	You take a gulp, but nothing seems to happen. The level of liquid in the
+	vial doesn't seem to lower.
+575	You drink them both, and nothing happens. Maybe you should have mixed
+	them first?
+577	OK, the mobiles are immobile.
+578	The mobiles are mobile.
+588	With what do you want to light the torch? Say things in full,
+	bedlamite!
+590	The force isn't with you...
+596	You can't dig here; wait until some tunnel or something collapses if
+	you REALLY want to get your hands dirty.
+637	It's still alive! Kill it first, you moron - don't you know
+	ANYTHING about eating cats?
+638	MMmm, yum-yum! That tasted good!
+640	One doesn't cook cats, one eats them raw. I thought EVERYONE knew
+	that...
+650	Your spell doesn't work, but the power of the magic involved makes you
+	fall asleep yourself instead!
+654	3.14159, or thereabouts.
+696	Limbo is nowhere, so there is nowhere to go when you leave the game.
+714	Hammering things may be fun, but apart from that there's no effect.
+724	It comes up heads.
+725	It comes up tails.
+739	Yes?
+755	Your spell doesn't work.
+756	Your spell worked!
+762	OK, I've flushed out the last object you typed and all your pronouns.
+764	That's let the cat out of the bag!
+765	You start feeling queasy all of a sudden...
+771	The flame catches hold, and burns the container to ashes, along
+	with everything inside it, at quite some considerable speed (magic?).
+	Well that was clever, wasn't it?
+778	The syntax is FEED <creature> WITH <food> .
+780	You reach into the fire but its magical flames are too hot, and you
+	are forced to withdraw hastily before you are burned!
+781	The magical flame consumes anything put in it.
+782	The flames flicker around, and you can't see anything in them.
+792	There's not enough room to swing a cat here.
+793	There's enough room, and the cat swings quite well.
+809	It doesn't make much difference with the sack, opened or closed.
+	Nothing will fall out anyway, and it's airtight.
+810	It's already open, why don't you read the description?
+811	The bag creaks open slowly.
+812	The bag is now closed.
+813	It's already closed.
+814	Not when you're berserk!
+816	The bag is closed.
+823	Yale, union, lf.
+826	There's not enough room down the toilet.
+828	The basin is fixed down so you can't get it.
+829	Better to be safe than sorry!
+830	Not that old, "smash the cistern" joke again...
+831	The toilet flushes.
+833	*Levels of experience in MUD & VALLEY:
+	Level	Points		Male		Female
+	1	0		Novice		Novice
+	2	400		Warrior		Warrior
+	3	800		Hero		Heroine
+	4	1600		Champion	Champion
+	5	3200		Superhero	Superheroine
+	6	6400		Enchanter	Enchantress
+	7	12800		Sorcerer	Sorceress
+	8	25600		Necromancer	Necromancess
+	9	51200		Legend		Legend
+	10	102400		Wizard		Witch
+834	I suppose you must have a reason for being sick, but there's no
+	advantage in it. Still, it'd be a dull world if we were all the same,
+	eh?
+836	You put it in, but it's too heavy to be carried off by the current so
+	you take it out again.
+845	You have to be a hero or heroine before you are experienced enough to
+	wield an axe.
+846	You can guarantee that some bright spark is going to type that just to
+	show how clever it is to swear at a dumb program.
+849	Don't forget it's wizard locked...
+862	That was refreshing!
+871	A second or so later, as you wipe the vomit from your chin, you feel
+	much better.
+873	You can't eat that!
+874	By 'consume' I don't know whether you mean eat or drink. Since people
+	try some weird things in The Land, I'd appreciate your saying which
+	you meant to do explicitly, please.
+879	I'm afraid you don't seem to be able to at the moment!
+882	Your spell works, but the power of the magic you have invoked causes you
+	to fall into a deep slumber...
+888	You have to say what it is you're writing in, followed by a comma, then
+	the message you wish to write.
+889	OK, you're in a superseded version now.
+907	Your stomach turns over and you feel quite giddy. You are feeling
+	very unwell, in fact.
+914	You feel much better for the medicine, but it makes you feel EVER so
+	tired...>YAWN<...
+955	Clouds are beginning to gather in the sky.
+956	It has started to rain.
+957	The skies clear, and it stops raining.
+958	OK, it's winter...
+959	It has started to snow.
+960	The skies clear, and it stops snowing.
+968	Your spell doesn't work. All of a sudden, you feel drowsy...ZZZ...zzz...
+969	If you want to eat it you'll have to pick it up first.
+970	The snake bites its fangs into your leg! You feel the poison flood
+	through your body...
+971	As you reach to pick it up, the viper sinks its fangs into your arm!
+	You withdraw it, sucking at the wound, but it seems too late to stop
+	the poison infusion taking effect...
+974	It's summer!
+975	Cooked snake? Pick it up first then...
+976	It ignores you. It's a full adder...
+973	The viper suddenly bites deep into your foot with its fangs! You
+	manage to shake it off, but the poison is now in your blood...
+979	Fighting is forbidden.
+980	Fighting is allowed.
+981	The cat is male, and it'll be buggered if it'll let you do THAT!
+982	Well you chopped it up. Fun, eh?
+1500	You're not in a clear enough space to let off a rocket, pick somewhere
+	out in the open more.
+1501	It skeets up into the sky, leaving a blood-red trail behind it. You
+	watch, breathless...
+1502	*High up in the sky you see an enormous red
+	~~~~~~~ ~~       ~~~~~   ~~~~~  ~~   ~~
+	~~~~~~~ ~~      ~~~~~~~ ~~~~~~~ ~~   ~~
+	~~      ~~      ~~   ~~ ~~   ~~ ~~   ~~
+	~~      ~~      ~~   ~~ ~~      ~~   ~~
+	~~~~    ~~      ~~~~~~~ ~~~~~~  ~~~~~~~
+	~~~~    ~~      ~~~~~~~  ~~~~~~ ~~~~~~~
+	~~      ~~      ~~   ~~      ~~ ~~   ~~
+	~~      ~~      ~~   ~~ ~~   ~~ ~~   ~~
+	~~      ~~~~~~~ ~~   ~~ ~~~~~~~ ~~   ~~
+	~~      ~~~~~~~ ~~   ~~  ~~~~~  ~~   ~~.
+1503	Your sparkler starts to sparkle!
+1504	It's already lit! It's sparkling away quite happily!
+1505	It's a magic sparkler, it won't go out...
+1506	You hear a pin drop.
+1507	In the distance you hear a pin drop.
+1508	Type QUIT to quit, some dozy people keep hitting Q by accident.
+1509	>>>>>SPARE<<<<<

@@ -1,0 +1,475 @@
+	visible	none	none	ifinvis	null	0	21
+	visible	none	none	unlesswiz	null	19	0
+	visible	.vis	none	none	null	null	23	0
+	rubbish	none	none	unlesswiz	null	19	0
+	rubbish	.ignore	none	none	null	null	0	0
+	invisible	none	none	ifinvis	null	1	20
+	invisible	none	none	unlesswiz	null	19	0
+	invisible	.invis	none	none	null	null	22	0
+	shelve	.shelve	none	none	null	null	0	0
+	unshelve	.unshelve	none	none	null	null	0	0
+	mix	medication	liquid	destroyinc	second	573	0
+	mix	liquid	medication	incdestroy	second	573	0
+	climb	forest	none	null	null	381	0
+	invent	none	none	null	null	8	0
+	i	.inven	none	none	null	null	0	0
+	level	none	none	null	null	833	0
+	taste	none	none	null	null	869	0
+	wear	headdress	none	null	null	382	0
+	thanks	none	none	null	null	822	0
+	keywords	none	none	null	null	823	0
+	sorry	none	none	null	null	13	0
+	hammer	none	none	null	null	714	0
+	god	none	none	null	null	739	0
+	help	none	1	null	null	1	0
+	help	.assist	none	none	null	null	0	0
+	h	none	none	null	null	1	0
+	refuse	.refuse	none	none	null	null	0	0
+	command	none	none	ifwiz	null	6	0
+	command	none	none	null	null	5	0
+	explain	none	none	null	null	2	0
+	xyzzy	none	none	null	null	9	0
+	hours	.hours	none	none	null	null	0	0
+	newhours	.newhours	none	none	null	null	0	0
+	go	.go	none	none	null	null	0	0
+	sget	.sget	none	none	ifwiz	null	0	0
+	sgo	.sgo	none	none	null	null	0	0
+	pi	none	none	null	null	654	0
+	pu	none	none	unlesswiz	null	486	0
+	pu	.remove	anything	container	null	null	0	0
+	pu	.remove	anything	flame	null	null	0	0
+	pu	.get	none	none	null	null	0	0
+	letgo	none	none	unlesswiz	null	486	0
+	letgo	.drop	none	none	null	null	0	0
+	swear	none	none	ifin	null	limbo	4
+	swear	none	none	iffighting	null	3	0
+	swear	none	none	dead	null	49	0
+	kiss	person	none	emotion	null	50	328
+	stroke	familiar	none	ifprop	null	9	443
+	stroke	familiar	none	null	null	444	0
+	stroke	person	none	emotion	null	25	552
+	wake	.wake	none	none	null	null	0	0
+	piss	none	none	ifin	null	limbo	4
+	piss	none	none	iffighting	null	3	0
+	piss	none	none	dead	null	49	0
+	rape	.blind	person	none	ifself	null	540	0
+	rape	familiar	none	testsex	null	473	981
+	rape	none	none	ifin	null	limbo	4
+	rape	none	none	iffighting	null	3	0
+	rape	none	none	dead	null	49	0
+	masturbate	.blind	none	none	null	null	540	0
+	unlock	access	none	ifprop	null	0	185
+	unlock	access	none	ifprop	null	1	185
+	unlock	access	yale	set	null	1	186
+	unlock	access	none	ifhave	key	559	0	;only works for one set of keys
+	unlock	access	none	null	null	184	0
+	lock	access	none	ifprop	null	2	189
+	lock	access	yale	set	null	2	188
+	lock	access	none	null	null	505	0
+	back	.back	none	none	null	null	0	0
+	light	torch	none	unlesswiz	null	588	0
+	light	torch	none	dec	null	131	4
+	fell	access	tool	destroydestroy	second	88	0
+	fell	access	none	null	null	90	0
+	feed	serpent	none	null	null	976	0
+	feed	familiar	none	null	null	433	0
+	feed	none	none	null	null	778	0
+	dig	none	none	null	null	596	0
+	drink	none	water	null	null	862	0
+	drink	none	none	null	null	158	0
+	eat	victuals	none	ifprop	null	1	985
+	eat	victuals	none	destroy	null	115	0
+	eat	none	none	null	null	873	0
+	kill	knob	none	null	null	45	0
+	kill	access	tool	destroydestroy	second	88	0
+	kill	access	none	null	null	90	0
+	kill	something	tool	hurt	null	20	0	-4
+	kill	.kill	serpent	none	enable	null	1	970	-4
+	kill	.kill	none	none	null	null	0	0	-4
+	proof	.proof	none	none	null	null	0	0
+	move	.go	none	none	null	null	0	0
+	debug	.debug	none	none	null	null	0	0
+	demo	.demo	none	none	null	null	0	0
+	laugh	.laugh	none	none	null	null	0	0
+	freeze	none	none	unlesswiz	null	4	0
+	freeze	.freeze	none	none	null	null	577	0
+	melt	none	none	unlesswiz	null	4	0
+	melt	.unfreeze	none	none	null	null	578	0
+	mobile	.mobile	none	none	null	null	0	0
+	haste	.haste	none	none	null	null	0	0
+	stamina	.stamina	none	none	null	null	0	0
+	att	.attach	none	none	null	null	0	0
+	det	.detach	none	none	null	null	0	0
+	humble	.humble	none	none	null	null	0	0
+	tell	.tell	none	none	null	null	0	0
+	get	bowl	none	null	null	828	0
+	get	serpent	none	null	null	971	0	-1
+	get	.get	none	none	null	null	0	0
+	say	.say	none	none	null	null	0	0
+	who	.who	none	none	null	null	0	0
+	awho	.autowho	none	none	null	null	0	0
+	qwho	.quickwho	none	none	null	null	0	0
+	set	.set	none	none	null	null	0	0
+	purge	.purge	none	none	null	null	0	0
+	save	.save	none	none	null	null	0	0
+	quit	.quit	none	none	null	null	0	0
+	q	none	none	null	null	1508	0
+	score	.score	none	none	null	null	0	0
+	bye	.bye	none	none	null	null	0	0
+	bug	.bug	none	none	null	null	0	0
+	log	.log	none	none	null	null	0	0
+	ctrap	.ctrap	none	none	null	null	0	0
+	follow	.follow	none	none	null	null	0	0
+	lose	.lose	none	none	null	null	0	0
+	begone	.begone	none	none	null	null	849	0
+	peace	none	none	unlesswiz	null	4	0
+	peace	.peace	none	none	null	null	979	0	979
+	spectacular	.spectacular	none	none	null	null	0	0
+	war	none	none	unlesswiz	null	4	0
+	war	.war	none	none	null	null	980	0	980
+	l	.look	none	none	null	null	0	0
+	map	.map	none	none	null	null	0	0
+	brief	.brief	none	none	null	null	0	0
+	verbose	.verbose	none	none	null	null	0	0
+	p	.p	none	none	null	null	0	0
+	exits	.exits	none	none	null	null	0	0
+	pronouns	.pronouns	none	none	null	null	0	0
+	unsnoop	.unsnoop	none	none	null	null	0	0
+	direct	.direct	none	none	null	null	0	0
+	exorcise	.exorcise	none	none	null	null	0	0
+	open	access	none	ifprop	null	0	183
+	open	access	2	set	null	0	100
+	open	access	yale	set	null	0	100
+	open	access	none	ifprop	null	2	184
+	open	access	none	set	null	0	100
+	close	access	yale	set	null	2	188
+	close	access	none	ifprop	null	1	187
+	close	access	none	set	null	1	101
+	spells	none	none	null	null	7	0
+	flush	lavatory	none	iflevel	null	2	831
+	flush	lavatory	none	exp	null	1	831
+	flush	none	none	flush	null	762	0
+	sleep	.sleep	none	none	unlessobjplayer	null	171	0
+	sleep	.sleep	none	none	ifwiz	null	171	0
+	sleep	none	none	unlessrlevel	null	6	650	-50
+	sleep	.sleep	none	none	null	null	756	0
+	wish	.flush	none	none	ifdumb	null	1	26
+	wish	.flush	none	none	unlessplaying	null	10	882	-50
+	wish	.sleep	none	none	sendlevel	null	10	882
+	crash	.crash	none	none	null	null	0	0
+	change	.change	none	none	ifwiz	null	0	0
+	change	none	none	ifsmall	null	27	0
+	change	.flush	none	none	unlessrlevel	null	10	968	-50
+	change	.change	none	none	null	null	756	0
+	enchant	.enchant	none	none	flush	null	0	0
+	police	.police	none	none	flush	null	0	0
+	unveil	.unveil	none	none	null	null	0	0
+	resurrect	.resurrect	none	none	null	null	0	0
+	reset	none	none	unlesswiz	null	486	0
+	reset	.reset	none	none	null	null	889	0
+	keep	.keep	none	none	null	null	0	0
+	unkeep	.unkeep	none	none	null	null	0	0
+	putin	.insert	none	none	null	null	0	0
+	takeout	.remove	none	none	null	null	0	0
+	fod	.fod	none	none	null	null	0	0
+	sick	none	none	ifdisenable	null	1	834
+	sick	none	none	ifdisenable	null	3	871
+	sick	none	none	ifdisenable	null	16	871
+	sick	none	none	null	null	834	0
+	fix	.insert	torch	container	unlessprop	null	0	0
+	fix	torch	container	destroydestroy	second	771	0
+	fix	.insert	anything	flame	null	null	781	0
+	fix	.insert	none	none	null	null	0	0
+	search	none	none	null	null	370	0
+	how	none	none	null	null	11	0
+	please	none	none	null	null	14	0
+	consume	none	none	null	null	874	0
+	winter	none	none	ifwiz	null	958	0	-33
+	summer	none	none	ifwiz	null	974	0	-41
+	flee	none	none	ifberserk	null	814	0
+	flee	.flee	none	none	null	null	0	0
+	drop	.drop	none	none	null	null	0	0
+	locations	.rooms	none	none	null	null	0	0
+	summon	none	none	null	null	4	0
+	make	none	none	null	null	4	0
+	where	none	none	null	null	4	0
+	wizards	none	none	iflevel	null	10	504
+	berserk	.berserk	none	none	null	null	0	0
+	weigh	.weigh	none	none	null	null	0	0
+	value	.value	none	none	null	null	0	0
+	converse	.converse	none	none	null	null	0	0
+	write	none	none	flush	null	888	0
+	read	forum	none	null	null	548	0
+	password	.password	none	none	null	null	0	0
+	retaliate	tool	none	retal	null	10	0
+	retaliate	none	none	iffighting	null	46	0
+	retaliate	none	none	null	null	47	0
+	when	.time	none	none	null	null	0	0
+	diagnose	.diagnose	none	none	ifwiz	null	0	0
+	deafen	person	none	ifdeaf	null	1	32
+	deafen	.deafen	person	none	unlessrlevel	null	4	44
+	deafen	person	none	noifr	null	0	0
+	deafen	person	none	ssendemon	null	52	756	-56
+	deafen	none	none	null	null	24	0
+	blind	person	none	ifblind	null	1	31
+	blind	.blind	person	none	unlessrlevel	null	4	41
+	blind	person	none	noifr	null	0	0
+	blind	person	none	ssendemon	null	53	756	-56
+	blind	none	none	null	null	24	0
+	paralyse	person	none	ifparalysed	null	1	30
+	paralyse	.paralyse	person	none	unlessrlevel	null	4	38
+	paralyse	person	none	noifr	null	0	0
+	paralyse	person	none	ssendemon	null	54	756	-56
+	paralyse	none	none	null	null	24	0
+	dumb	person	none	ifdumb	null	1	29
+	dumb	.dumb	person	none	unlessrlevel	null	4	35
+	dumb	person	none	noifr	null	0	0
+	dumb	person	none	ssendemon	null	55	756	-56
+	dumb	none	none	null	null	24	0
+	cure	person	none	unlessrlevel	null	8	755
+	cure	person	none	noifr	null	0	0
+	cure	person	none	ssendemon	null	57	756	-56
+	cure	none	none	null	null	24	0
+	examine	none	none	null	null	245	0
+;;vocabulary action synonyms
+syn	info	explain
+	diag	diagnose
+	cripple	paralyse
+	deaf	deafen
+	daytime	when
+	da	when
+	persona	purge
+	personas	purge
+	personae	purge
+	delete	purge
+	dump	save
+	levels	level
+	apologies	sorry
+	oops	sorry
+	apologise	sorry
+	ta	thanks
+	thank	thanks
+	attatch	att
+	attach	att
+	assist	help
+	instruction	command
+	commands	command
+	instructions	command
+	information	explain
+	syntax	command
+	shut	close
+	raise	open
+	lower	close
+	lift	open
+	retreat	back
+	logout	bye
+	plugh	xyzzy
+	ignite	light
+	burn	light
+	cremate	light
+	extinguish	douse
+	quench	douse
+	chop	fell
+	cut	fell
+	flip	toss
+	roast	cook
+	bake	cook
+	thaw	melt
+	unfreeze	melt
+	ptrans	go
+	propel	drop
+	grasp	get
+	ingest	eat
+	expel	swear
+	mtrans	score
+	speak	tell
+	sen	tell
+	attend	l
+	mbuild	log
+	atrans	drop
+	vomit	sick
+	spew	sick
+	puke	sick
+	pronoun	pronouns
+	pn	pronouns
+	pns	pronouns
+	ex	exorcise
+	inventory	i
+	hrs	hours
+	times	hours
+	k	kill
+	ki	kill
+	skin	kill
+	smash	kill
+	break	kill
+	upturn	kill
+	strangle	kill
+	tip	kill
+	empty	kill
+	swat	kill
+	press	kill
+	depress	kill
+	push	kill
+	attack	kill
+	exterminate	kill
+	sacrifice	kill
+	slay	kill
+	flog	kill
+	hit	kill
+	fight	kill
+	strike	kill
+	frig	enchant
+	b	back
+	restore	resurrect
+	res	resurrect
+	supercede	reset
+	chill	freeze
+	mobiles	mobile
+	rest	sleep
+	nap	sleep
+	kip	sleep
+	doze	sleep
+	speed	haste
+	sp	haste
+	hasten	haste
+	directory	direct
+	dir	direct
+	force	make
+	chase	follow
+	pursue	follow
+	track	follow
+	unbrief	brief
+	unverbose	verbose
+	banish	begone
+	chant	say
+	recite	say
+	snopp	snoop
+	unsnopp	unsnoop
+	watch	snoop
+	nsnoop	unsnoop
+	unwatch	unsnoop
+	unwatch	unsnoop
+	observe	snoop
+	dot	fod
+	bung	fix
+	insert	fix
+	hang	fix
+	put	fix
+	manipulate	fix
+	wizad	wizard
+	wicth	witch
+	wiard	wizard
+	wiazrd	wizard
+	wiz	wizard
+	wi	with
+	locs	locations
+	loc	locations
+	shit	piss
+	urinate	piss
+	wee	piss
+	cunt	swear
+	arse	swear
+	anus	swear
+	fuck	rape
+	fucking	swear
+	bugger	swear
+	bloody	swear
+	penis	swear
+	vagina	swear
+	prick	swear
+	fanny	swear
+	masterbate	masturbate
+	wank	masturbate
+	g	get
+	remove	get
+	steal	get
+	give	drop
+	tether	fix
+	sh	shout
+	bellow	shout
+	yell	shout
+	call	summon
+	goto	go
+	supergo	sgo
+	superget	sget
+	sg	sget
+	slide	move
+	moveto	go
+	sc	score
+	experience	score
+	status	score
+	points	score
+	pts	score
+	diary	log
+	script	log
+	look	l
+	describe	l
+	desc	l
+	pour	drop
+	spill	drop
+	splash	drop
+	throw	drop
+	dr	drop
+	cast	drop
+	run	flee
+	f	flee
+	fl	flee
+	ask	tell
+	whisper	tell
+	take	get
+	carry	get
+	catch	get
+	screw	rape
+	bang	rape
+	pause	quit
+	qq	quit
+	qu	quit
+	players	who
+	autowho	awho
+	aw	awho
+	quickwho	qwho
+	qw	qwho
+	wq	qwho
+	wa	awho
+	pretend	p
+	whom	who
+	player	who
+	suggestion	bug
+	suggest	bug
+	complaint	bug
+	complain	bug
+	question	bug
+	typo	bug
+	moan	bug
+	report	bug
+	idea	bug
+	query	bug
+	memo	bug
+	message	tell
+	feature	bug
+	devour	eat
+	pinch	steal
+	pickup	pu
+	lg	letgo
+	putdown	letgo
+	pd	letgo
+	donate	drop
+	gi	drop
+	st	steal
+	fling	drop
+	pw	password
+	newpassword	password
+	witches	wizards
+	sta	stamina
+	snog	kiss
+	ret	retaliate
+	pat	stroke
+	rub	stroke
+	hug	stroke
+	pet	stroke
+	cuddle	stroke
+	dep	visible
+	vis	visible
+	indep	invisible
+	invis	invisible
+	undemo	demo
