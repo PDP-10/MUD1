@@ -1,0 +1,136 @@
+.noerror
+.if ($A#"") .goto 'A
+!To compile load and save MUD in its entirety say .do mud m.
+!If the database file DBADAT and also MBOOTS in .rel form
+!then say .do mud b. To just compile MUD.BCL say .do mud r. To merely load
+!MUD say .do mud r2. To compile bits of mud DO MUD <n> for MUD<n>.BCL
+!To compile load and save DBASE say .do mud dm if the database file DBADAT
+!is not already compiled, .do mud db if it is.
+!To compile and load POWER, .do MUD p
+!To produce documentation say .do mud doc.
+!To delete MUD.MAS and make a new one say .do MUD new.
+!To tidy up the area then logout .do MUD tidy.
+!To reassemble and load a MUD with smaller freevec .do MUD s
+!To do M and DB options together, .do MUD all
+.mic exit
+P::
+.r sys:bcpl
+*power/o
+*!power/g
+ssa power
+.mic exit
+ALL::
+M::
+.r macro
+*dbadat=dbadat
+*mboots=mboots
+*^Z
+B::
+.r bcpl
+*mud0/o
+*mud1
+*mud2
+*mud3
+*mud4
+*mud5
+*mud6
+*mud7
+*mud8
+*mudlib
+*^Z
+R2::
+.r link
+*mud0,mud1,mud2,mud3.mud4.mud5.mud6.mud7.mud8.mudlib,mboots/counter/set:.high.:5
+01501
+*dbadat/o
+.ssa
+.if ($A="all") .goto DB
+.mic exit
+DM::
+. r macro
+*dbadat=dbadat
+*C
+DB::
+.r bcpl
+*dbase/o
+DL::
+.r link
+*/set:.high.430000
+*dbase,lib:bcplib/search/set:.high.:501501,dbadat/g
+.nsa
+.mic exit
+R::
+.r bcpl
+*mud0/o
+*mud1/o
+*mud2/o
+*mud3/o
+*mud4/o
+*mud5/o
+*mud6/0
+*mud7/o
+*mud8/o
+*^Z
+.backto R2
+0::
+1::
+2::
+3::
+4::
+5::
+6::
+7::
+8::
+.r bcpl
+*mud'A/o
+*^Z
+.backto R2
+DOC::
+.r form
+*muddle/p1
+*muddle/camera
+.mic exit
+DEL::
+NEW::
+MAS::
+.r setsrc
+*c dsk,*
+*^Z
+.r ed
+*del mud.mas
+*q
+.r subfil-mud.sub
+.pro mud.mas<477>
+.mic exit
+ML::
+.r bcpl
+*mudlib/o
+*^Z
+.backto R2
+S::
+.r macro
+*dbadat=dbadat
+*^Z
+.r link
+*mud0,mud1,mud2,mud3,mud4,mud5,mud6,mud7,mud8,mudlib,mboots/counter/set:.high.:5
+01501
+*dbadat/g
+.ssa
+.r link
+*/set:.high.:430000
+*dbase,lib:bcplib/search/set:.high.501501,dbadat/g
+.nsa
+.mic exit
+TIDY::
+.r subfil-mud.sub/d
+.del *.rel
+.del mud.dmp
+.if ($B="") .goto logout
+.cop 'B_mud.mas
+.cop 'B_mud.txt
+.cop 'B_dbase.exe
+.cop 'B_mud.?pm
+LOGOUT::
+.del dbase.exe
+.if ($C="") .r logout
+.mic exit
