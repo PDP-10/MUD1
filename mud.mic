@@ -40,9 +40,9 @@ B::
 *^Z
 R2::
 .r link
-*mud0,mud1,mud2,mud3.mud4.mud5.mud6.mud7.mud8.mudlib,mboots/counter/set:.high.:5
+*mud0,mud1,mud2,mud3,mud4,mud5,mud6,mud7,mud8,mudlib,mboots/counter/set:.high.:5
 01501
-*dbadat/o
+*dbadat/g
 .ssa
 .if ($A="all") .goto DB
 .mic exit
@@ -55,9 +55,10 @@ DB::
 *dbase/o
 DL::
 .r link
-*/set:.high.430000
+*/set:.high.:430000
 *dbase,sys:bcplib/search/set:.high.:501501,dbadat/g
-.nsa
+!replaced NSA with SAVE for 7.04 monitor
+.save
 .mic exit
 R::
 .r bcpl
