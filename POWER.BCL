@@ -1,0 +1,507 @@
+/*
+COPYRIGHT (C) 1980 BY
+ROY TRUBSHAW & RICHARD BARTLE,
+ESSEX UNIVERSITY, COLCHESTER. CO4 3SQ.
+
+        THIS SOFTWARE IS FURNISHED ON THE UNDERSTANDING THAT
+IT MAY BE USED AND OR COPIED ONLY WITH THE INCLUSION OF THIS
+NOTICE.  NO TITLE OR OWNERSHIP OF THIS SOFTWARE IS HEREBY
+TRANSFERRED. THE INFORMATION IN THIS SOFTWARE IS SUBJECT TO
+CHANGE WITHOUT NOTICE. NO RESPONSIBILITY IS ASSUMED FOR THE
+USE OR RELIABILITY OF THIS SOFTWARE.
+*/
+
+GET "BCL:ACS"
+GET "BCL:SCB"
+GET "BCL:IOLIB"
+GET "DUNGEN"
+GET "BCL:RFSLIB"
+
+$LDTEXT "/RUNAME:POWER"
+
+EXTERNAL "."
+$(      FN
+$)
+
+MANIFEST
+$(      TREESIZE        =       RECLENGTH+2
+        RIGHT           =       RH \ TREESIZE-1
+        LEFT            =       LH \ TREESIZE-1
+        CHAIN           =       RH \ TREESIZE
+$)
+
+STATIC
+$(      CBL             =       VEC 1
+        DMPBUF          =       VEC BUFFERS
+        PERPUT          =       ?
+        REC             =       ?
+        GENDER          =       0
+        ME              =       0
+        CH              =       ?
+        NAME            =       VEC 1
+        ROOM            =       0
+        TREE            =       0
+$)
+
+LET START() BE
+$(      LET BCNT=1
+        OUTPUT:=TTY
+        OUTS("THE POWER PROGRAM!*C*L")
+        INPUT:=TTY
+        $(      OUTS("FRIG, START, LEAGUE, TRANSFER, ENUMERATE OR DOT? ")
+                SWITCHON VALOF
+                $[      $CLRBFI
+                        $INCHRW         1
+                        $TRZ    1,      #40
+                $] INTO
+                $(
+                CASE 'S':       OUTS("TART*C*L")
+                                STRAT()
+                                FINISH
+
+
+
+
+
+
+                CASE 'D':       OUTS("OT*C*L")
+                                DOT()
+                                FINISH
+                CASE 'F':       OUTS("RIG*C*L")
+                                BREAK
+                CASE 'L':       OUTS("EAGUE*C*L")
+                                LEAGUE()
+                                FINISH
+                CASE 'T':       OUTS("RANSFER*C*L")
+                                TRANSFER()
+                                FINISH
+                CASE 'E':       OUTS("NUMERATE*C*L")
+                                ENUMERATE()
+                                FINISH
+                DEFAULT 0 ... #137:
+                        OUTS("*C*LEH?*C*L")
+                $)
+        $) REPEAT
+        SETUP()
+        READNAME(NAME)
+        IF !NAME =!"RICHARD" OUTS("*C*LYOU'RE SO NAIVE...*C*L")<>FINISH
+        $(      INUUO(PERPUT,CBL)
+                REC_DMPBUF
+                UNTIL PN OF REC=0\/
+                        (NAMESAME(NAME,REC+1)/\VALOF
+                $(      OUT("*C*LDO YOU MEAN :S OF [**,:8]? ",NAME, PN OF REC)
+                        $[      
+BACK:                           $CLRBFI
+                                $INCHRW         1
+                                $IORI   1,      '*S'
+                                $CAIN   1,      'Y'
+                                $JRST           YES
+                                $CAIN   1,      'N'
+                                $JRST           NO
+                                $OUTSTR         $AZ "*C*LEH? YES OR NO? "
+                                $JRST           BACK
+YES:                            $OUTSTR         $AZ "ES*C*L"
+                                $JRST           FRONT
+NO:                             $OUTSTR         $AZ "O*C*L"
+                                $SETZ   1,      0
+FRONT:                          $CLRBFI
+                        $]
+                $) ) REC+_RECLENGTH
+                IF PN OF REC
+                $(      LET SC, SX=SCRE OF REC, WRD1 OF REC BITAND 1
+                        OUTS("CURRENT CHARACTER PROFILE IS:*C*L")
+                        OUT("NAME*T*T:S*C*LSCORE*T*T:N*T:S*C*LSTRENGTH*T:N*C*L",REC+1,SC,LEV(SC,SX),STRN OF REC)
+                        OUT("DEXTERITY*T:N*C*LSTAMINA*T*T:N*T(MAX*T:N)*C*LGAMES PLAYED*T:N*C*LSEX*T*T:SMALE*C*L",
+                        DXTY OF REC,STNA OF REC,STMX OF REC,GAMES OF REC, SX -> "FE", "")
+                        DUMPERSONA()
+                        BREAK
+                $)
+                IF REC=DMPBUF+LASTREC TEST REC!1 THEN
+                $(      BCNT+_2
+                        LOOP
+                $) OR
+                $(      REC!1_TRUE
+                        USETO(PERPUT,BCNT)
+                        OUTUUO(PERPUT,CBL)
+                        $[      $MOVE   AC,     DMPBUF
+
+
+
+
+
+
+                                $HRLI   B,      0(AC)
+                                $HRRI   B,      1(AC)
+                                $SETZM          0(AC)
+                                $ADDI   AC,     BUFFERS
+                                $BLT    B,      0(AC)
+                        $]
+                        BCNT+_2
+                        REC_DMPBUF
+                $)
+                OUT("NO CURRENT PERSONA! I'LL MAKE ONE FOR YOU, :S*C*L",NAME)
+                GAMES OF REC_1
+                WRD1 OF REC_!NAME
+                WRD2 OF REC_1!NAME
+                WIZD OF REC_FALSE
+                DUMPERSONA()
+                BREAK
+        $) REPEAT
+        USETO(PERPUT,BCNT)
+        OUTUUO(PERPUT,CBL)
+        CLOSE(PERPUT)
+        DEQ(SC.CHANNEL^PERPUT)
+$)
+AND DUMPERSONA() BE
+$(      OUTS("PREPARE TO FULFILL YOUR WILDEST DREAMS!*C*L")
+        OUTS("STRENGTH  ?");    STRN OF REC_GETNO(STRN)
+        OUTS("STAMINA (MAX)     ?");    STNA OF REC_GETNO(STNA);        STMX OF REC_STNA OF REC
+        OUTS("DEXTERITY ?");    DXTY OF REC_GETNO(DXTY)
+        OUTS("SCORE             ?");    SCRE OF REC_GETNO(SCRE)
+        OUTS("SEX               ?")
+        $[      $CLRBFI
+                $INCHRW  CH
+        $]
+        GENDER_(WRD1 OF REC) BITAND 1
+        TEST CH='M'\/CH='M' THEN OUTS("ALE*C*L")<>GENDER_0
+        OR IF CH= 'F'\/CH='F' THEN OUTS("EMALE*C*L")<>
+                GENDER_1
+        OUTS("PN                ?");    PN OF REC_GETNO(PN,TRUE)
+        UNLESS PN OF REC PN OF REC_VALOF $[     $GETPPN 1,      0       $]
+        WRD1 OF REC_((WRD1 OF REC) BITAND ^1) BITOR GENDER
+        LSTM OF REC_VALOF
+        $[      $HRRI   AC,     #11
+                $HRLI   AC,     #53
+                $GETTAB AC,     0
+                $TRN
+        $]
+$)
+AND GETNO(SEL,OCTAL)=VALOF
+$(      LET CH=VALOF
+        $[      $CLRBFI
+                $INCHRW 1
+        $]
+        UNLESS NUMBARGS()=2 OCTAL_FALSE
+        UNLESS '0' LE CH LE '9'
+        $(      $[      $CLRBFI $]
+                RESULTIS SEL OF REC
+        $)
+        PUTBACK(INPUT,  CH)
+        CH_(OCTAL->INOCT,INNO)()
+        $(      LET STK=SC.PUTSTACK^INPUT
+                SC.PUTSTACK^INPUT, SC.READER^INPUT _ !STK, STK!2
+
+
+
+
+
+
+                FREEVEC(STK)
+        $)
+        RESULTIS CH
+$)
+AND INOCT(NOPB)=VALOF
+$(      LET RES=0 AND CH=?
+        CH_INCH() REPEATUNTIL '0' LE CH LE '7'
+        WHILE '0' LE CH LE '7' DO
+        $(      RES_(RES<<3)-'0'+CH
+                CH_INCH()
+        $)
+        UNLESS NUMBARGS() PUTBACK(INPUT,CH)
+        RESULTIS RES
+$)
+AND READNAME(NM) BE
+$(      LET N,CH,LINEV=0,?,VEC NAMELENGTH
+        WRITE(TTY,"NAME: ")
+        READCH(INPUT,@CH)
+        WHILE 'A'<=(CH BITOR #40)<='Z' DO
+        $(      N+:1
+                UNLESS N>NAMELENGTH LINEV!N:='A'<=CH<='Z'->CH+#40,CH
+                READCH(INPUT,@CH)
+        $)
+        !LINEV:=N>NAMELENGTH->NAMELENGTH,N
+        PACKSTRING(LINEV,NM)
+        UNTIL CH='*L' DO READCH(INPUT,@CH)
+$)      REPEATUNTIL LENGTH OF NM
+AND DOT() BE
+$(      LET STFL,NO,CH=0,?,?
+        WRITES(TTY,"PLEASE ENTER THE JOB NUMBER OF THE ABOUT TO BE DOTTED JOB*C*L(0 FOR ALL OF THEM)*C*L")
+        WRITES(TTY,"**")
+        NO_RDNO(TTY)
+        $(      LET RES=?
+                WRITES(TTY,"DOTTED NICELY OR HORRIBLY N/H? ")
+                $[      $CLRBFI
+                        $INCHRW  CH
+                $]
+                STFL_0
+                IF CH='H' \/ CH='H' THEN STFL_'H'<>WRITES(TTY,"ORRIBLY*C*L")
+                IF CH='N' \/ CH='N' THEN STFL_'N'<>WRITES(TTY,"ICELY*C*L")
+                UNLESS STFL WRITES(TTY,"*BINVALID CHARACTER*C*L")<>LOOP
+                TEST NO THEN RES_DISPOSE(STFL, NO)
+                OR FOR I=1 TO 200 IF DISPOSE(STFL, I) RES_TRUE
+                UNLESS RES WRITES(TTY, "*C*L?POWIDW - IT DIDN'T WORK SO STOP PISSING AROUND.*C*L")
+                FINISH  
+        $) REPEAT
+$)
+AND DISPOSE(STFL, NO) BE
+$[      $SETO 1,0
+        $PJOB 3,0
+        $HRRZ 2,STFL
+        $ADD  2,3
+        $HRL  2,NO
+        $CALLI 2,#175
+        $SETZ 1,0
+$]
+AND NAMESAME(NAM1,NAM2)=
+(!NAM1>>1)=(!NAM2>>1)/\((LENGTH OF NAM1<=4)\/(1!NAM1>>1)=(1!NAM2>>1))
+AND STRAT() BE
+$(      LET RESP=?
+
+
+
+
+
+
+        $(      WRITES(TTY, "*C*LMUD OR VALLEY? ")
+                $[      $INCHRW         1
+                        $TRZ    1,      ' '
+                        $MOVEM  1,      RESP
+                $]
+        $) REPEATUNTIL RESP='V' \ RESP='M'
+        WRITES(TTY, RESP='V'->"ALLEY*C*L", "UD*C*L")
+        RESP_RESP='V'->$6"VALLEY", $6 "MUD"
+        OUTPUT_CREATETMP(RESP)
+        READNAME(NAME)
+        WRITES(TTY, "*C*LROOM: ")
+        $[ $CLRBFI      $]
+        FOR I=0 TO 5 DO
+        $(      LET LETTER = BYTE 6:30-6*I
+                AND NEXT = VALOF $[ $INCHRW    1 $]
+                IF 'A' LE NEXT LE 'Z' NEXT-_'A'-'A'
+                IF NEXT = '*C' BREAK
+                LETTER FROM ROOM _ NEXT-' '
+        $)
+        $[ $CLRBFI      $]
+        OUT(":S*^C:N*$:N*$:N",  NAME,
+                                VALOF $[ $MSTIME 1, 0 $],
+                                VALOF $[ $MSTIME 1, 0 $],
+                                ROOM)
+        CLOSE(OUTPUT)
+        RUN($6 "DSK", RESP, $6 "EXE", 0)
+$)
+
+AND SETUP() BE
+$(      !CBL_(-BUFFERS<<18)BITOR(DMPBUF-1)
+        1!CBL_0
+        IF FALSE
+        $(
+DOGONEIT:       PERPUT_CREATEFILE($6"DSK",$6"MUD",$6".PM",0,0,#17,1)
+                ENQ(SC.CHANNEL^PERPUT)
+                USETO(PERPUT,2)
+                OUTUUO(PERPUT,CBL)
+                CLOSE(PERPUT)
+                DEQ(SC.CHANNEL^PERPUT)
+        $)
+        PERPUT_UPDATEFILE($6"DSK",$6"MUD",".PM",0,LABEL(DOGONEIT),#17,1)
+        ENQ(SC.CHANNEL^PERPUT)
+        USETI(PERPUT,1)
+$)
+
+AND LEV(PTS, FEM)=VALOF
+$(      LET SC=EXP.STEP
+        FOR I=0 TO 9
+        $(      IF SC GE PTS RESULTIS I
+                SC+_SC
+        $)
+        RESULTIS 9
+$)!(FEM!(TABLE
+                (TABLE  "NOVICE",
+                        "WARRIOR",
+                        "HERO",
+                        "CHAMPION",
+                        "SUPERHERO",
+                        "ENCHANTER",
+                        "SORCERER",
+
+
+
+
+
+
+                        "NECROMANCER",
+                        "LEGEND",
+                        "WIZARD"
+                ),
+                (TABLE  "NOVICE",
+                        "WARRIOR",
+                        "HEROINE",
+                        "CHAMPION",
+                        "SUPERHEROINE",
+                        "ENCHANTRESS",
+                        "SORCERESS",
+                        "NECROMANCESS",
+                        "LEGEND",
+                        "WITCH"
+                )
+        )
+)
+
+AND ENQ(CHAN) BE
+$(      LET ADDR=VEC 4
+        !ADDR_#1000005
+        1!ADDR_142857
+        2!ADDR_CHAN
+        3!ADDR_$AZ"MUD"+(-1<<18)
+        4!ADDR_0
+        OUT("*C*LENQ. ERROR CODE :8*C*L", VALOF
+        $[      $MOVE   1,      ADDR
+                $ENQ.   1,      0
+                $TRNA
+                $(      RETURN  $)
+        $])
+$)
+
+AND DEQ(CHAN) BE
+$(      LET ADDR=VEC 1
+        !ADDR_#1000005
+        1!ADDR_142857
+        OUT("*C*LDEQ.ERROR CODE :8*C*L", VALOF
+        $[      $MOVE   1,      ADDR
+                $HRLI   1,      1
+                $DEQ.   1,      0
+                $TRNA
+                $(      RETURN  $)
+        $])
+$)
+AND TRANSFER() BE
+$(      LET PEEP, BCNT=?, 1
+        OUTS("WHERE FROM? (0 FOR EVERYWHERE) ")
+        PEEP_INOCT(TRUE)
+        SETUP()
+        $(      INUUO(PERPUT, CBL)
+                REC_DMPBUF
+                WHILE PN OF REC
+                $(      IF PN OF REC=PEEP \ PEEP=0
+                        $(      OUT(":S: [**,:8] -> ", REC+1, PN OF REC)
+                                PN OF REC_GETNO(PN, TRUE)
+                        $)
+                        REC+_RECLENGTH
+                $)
+                USETO(PERPUT, BCNT)
+
+
+
+
+
+
+                OUTUUO(PERPUT, CBL)
+                UNLESS REC=DMPBUF+LASTREC & REC!1 BREAK
+                BCNT+_2
+        $) REPEAT
+        CLOSE(PERPUT)
+        DEQ(SC.CHANNEL^PERPUT)
+$)
+
+AND LEAGUE() BE
+$(      SETUP()
+        $(      INUUO(PERPUT,CBL)
+                REC_DMPBUF
+                WHILE PN OF REC
+                $(      TREE_INSERT(SCRE OF REC, TREE)
+                        REC+_RECLENGTH
+                $)
+                UNLESS REC=DMPBUF+LASTREC & REC!1 THEN BREAK
+        $) REPEAT
+        CLOSE(PERPUT)
+        DEQ(SC.CHANNEL^PERPUT)
+        OUTREE(TREE)
+        WHILE ME
+        $(      LET P=LH OF ME
+                OUT("RICHARD*T*T[**,:8]:C*T34359738369*T999*TWIZARD*C*L",P, P LS #1000->'*T','*0')
+                ME OF_RH
+        $)
+$)
+AND ENUMERATE() BE
+$(      LET NOW=VALOF
+        $[      $HRLI   1,      #53
+                $HRRI   1,      #11
+                $GETTAB 1,      0
+                $TRN
+                $HLRZ   1,      1
+        $]
+        SETUP()
+        OUTPUT_CREATEFILE($6"DSK",$6"POWER",$6"ENM", 0, LABEL(RATS))
+        OUTS("ENUMERATION OF PERSONAS AS OF ")
+        OUTTIME()
+        OUTS(" ON ")
+        OUTDATE()
+        OUTS("::*C*L*L")
+        $(      INUUO(PERPUT,CBL)
+                REC_DMPBUF
+                WHILE PN OF REC
+                $(      LET T, SX, WZ=NOW-(LH FROM LSTM OF REC), (WRD1 OF REC) BITAND 1, WIZD OF REC
+                        OUT("NAME:*T*T:S*C*LPPN:*T*T[**,:8]*C*LSCORE:*T*T:N*C*LSTRENGTH:*T:N*C*LDEXTERITY:*T:N*C*LSTAMINA:*T:N*TMAX 
+:N*C*L",
+                                REC+1,PN OF REC,SCRE OF REC,STRN OF REC,DXTY OF REC,STNA OF REC,STMX OF REC)
+                                OUT("LAST GAME:*T:N DAY:S AGO*C*LGAMES:*T*T:N*C*LSEX:*T*T:SMALE*C*L",
+                                        T,T=1->"","S",GAMES OF REC,SX->"FE","")
+                                IF WZ BITAND 1 OUT("MODE:*T*TWI:S*C*L", SX->"TCH","ZARD")
+                                IF WZ BITAND 4 OUTS("MODE:*T*TBERSERK*C*L")
+                                OUTS("*C*L*L")
+                        REC+_RECLENGTH
+                $)
+                UNLESS REC=DMPBUF+LASTREC & REC!1 THEN BREAK
+        $) REPEAT
+        CLOSE(PERPUT)
+        DEQ(SC.CHANNEL^PERPUT)
+
+
+
+
+
+
+        CLOSE(OUTPUT)
+        WRITES(TTY,"*C*LENUMERATED IN DSK:POWER.ENM*C*L")
+        IF FALSE
+RATS:           WRITES(TTY,"*C*LCAN'T CREATE DSK:POWER.ENM*C*L")
+$)
+
+AND INSERT(SC, TREE)=VALOF
+$(      IF TREE TEST SC LS SCRE OF TREE THEN
+        $(      LEFT OF TREE_INSERT(SC, LEFT OF TREE)
+                RESULTIS TREE
+        $) OR IF SC GR SCRE OF TREE THEN
+        $(      RIGHT OF TREE_INSERT(SC, RIGHT OF TREE)
+                RESULTIS TREE
+        $)
+        SC_NEWVEC(TREESIZE)
+        FOR I=0 TO RECLENGTH SC!I_REC!I
+        SC!(RH FROM RIGHT)_0
+        IF TREE
+        $(      CHAIN OF SC_CHAIN OF TREE
+                CHAIN OF TREE_SC
+                RESULTIS TREE
+        $)
+        CHAIN OF SC_0
+        RESULTIS SC
+$)
+
+AND OUTREE(TREE) BE IF TREE
+$(      LET L, R, N, P=LEFT OF TREE, RIGHT OF TREE, TREE+1, PN OF TREE
+        OUTREE(L)
+        TEST !N=!"RICHARD" THEN
+        $(      LET M=NEWVEC(0)
+                LH OF M_P
+                RH OF M_ME
+                ME_M
+        $) OR
+        OUT(":S:C*T[**,:8]:C*T:N*T:N:S:S*C*L",N, LENGTH OF N GE 8 -> '*0', '*T', P, P LS #1000->'*T','*0', SCRE OF TREE, GAMES OF TR
+EE,
+                (WIZD OF TREE BITAND 4)-> "*TBERSERK", "",(WIZD OF TREE BITAND 1)->WRD1 OF TREE BITAND 1->"*TWITCH","*TWIZARD", "")
+        OUTREE(CHAIN OF TREE)
+        OUTREE(R)
+$)
+
+$[      FN:     $EXIT   1,      0
+                $JRST           FN
+$]
