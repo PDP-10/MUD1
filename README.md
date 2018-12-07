@@ -5,11 +5,17 @@ This branch is the 1986 source for MUD including both BCPL, MACRO-10, and game s
 on TOPS-10 with Monitor 7.04 you must do the following:
 
 Create a PPN and directory of [2011,2776] (Richard Bartle's own PPN at Essex)
+
 Place all source files from the branch in to the PPN directory
+
 login in to PPN [2011,2776]
+
 Type: DO MUD M
+
 Type: DO MUD DM
+
 Type: RU DBASE
+
 Type: RU MUD
 
 Providing you have enough memory (tested on a simh KS10 with 1MW and a RP06 drive), it should just work. Use Richard has your
