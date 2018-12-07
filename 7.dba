@@ -1,0 +1,19 @@
+	There are 6 spells available, SUMMON, FORCE, WHERE, CHANGE, SLEEP and
+WISH. Anyone may attempt to cast any number of them, with the chance of success
+based on some percentage times their level of experience (novice=1 to
+witch/wizard=10). If success is indicated, the victim, if any, has a chance to
+resist based on the same calculation. If this works, then you will be told and
+the effects will occur; otherwise you'll get a failure message, possibly hinting
+at what magical item would let you do it every time. Furthermore, the power of
+the magic might put you to sleep.
+
+SUMMON <name>		4%	Make <name> drop all and teleport to you.
+FORCE <name> , <command>	4%	Make <name> do the <command> .
+WHERE <item>		6%	Give an accurate description of where the
+				<item> is, and who's carrying it.
+WHERE <name>		6%	As above but tells you where the player is
+CHANGE <name>		10%	Makes <name>'s sex change...
+SLEEP <name>		6%	Puts <name> to sleep.
+WISH , <message>	100%	Request <message> of the Powers That Be.
+
+NB: Legends and above can WHERE with 100% chance.
