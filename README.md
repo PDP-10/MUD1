@@ -4,7 +4,7 @@ Essex MUD1 by Trubshaw and Bartle
 This branch is the 1986 source for MUD including both BCPL, MACRO-10, and game source files. To compile and create a working MUD
 on TOPS-10 with Monitor 7.04 and a working BCPL compiler in [1,4] you must do the following:
 
-Create a PPN and directory of [2011,2776] (Richard Bartle's own PPN at Essex)
+Create a PPN and directory of [2011,2776] (Richard Bartle's own PPN at Essex). THe PPN must have ISPF and ENQ/DEQ for MUD to work.
 
 Place all source files from the branch in to the PPN directory
 
