@@ -27,3 +27,5 @@ a file that does not currently exist. Still, you can create personas and play th
 Key differences in game between mud84 (tape) and mud86 (Stamford) version are that fireworks are a thing and I think various events like
 death are handled differntly so you dont need multiple dead rooms. Hence this mud86 has 420 rooms compared to 435 rooms in mud84 on
 the tape in the zip branch.
+
+Full build instructions including how to set up a PDP10 with TOPS-10 using SIMH is at https://www.quentin.org.uk/tag/pdp10/
