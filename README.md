@@ -18,7 +18,7 @@ Type: RU DBASE
 
 Type: RU MUD
 
-Providing you have enough memory (tested on a simh KS10 with 1MW and a RP06 drive), it should just work. Use Richard has your
+Providing you have enough memory (tested on a simh KS10 with 1MW and a RP06 drive), it should just work. Use Richard as your
 persona to gain Arch-Wiz powers.
 
 There is still some further understanding needed as this mud86 source handles WIZ MODE differently to the mud84 tape and looks for
