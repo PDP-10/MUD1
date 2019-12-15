@@ -1,160 +1,1107 @@
-;COPYRIGHT (C) 1980 BY
-;ROY TRUBSHAW, RICHARD BARTLE & BRIAN MALLETT,
-;ESSEX UNIVERSITY, COLCHESTER. CO4 3SQ.
+;Copyright (C) 1980 by
+;Roy Trubshaw, Richard Bartle & Brian Mallett,
+;Essex University, Colchester. CO4 3SQ.
 ;
-;       THIS SOFTWARE IS FURNISHED ON THE UNDERSTANDING THAT
-;IT MAY BE USED AND OR COPIED ONLY WITH THE INCLUSION OF THIS
-;NOTICE.  NO TITLE OR OWNERSHIP OF THIS SOFTWARE IS HEREBY
-;TRANSFERRED. THE INFORMATION IN THIS SOFTWARE IS SUBJECT TO
-;CHANGE WITHOUT NOTICE. NO RESPONSIBILITY IS ASSUMED FOR THE
-;USE OR RELIABILITY OF THIS SOFTWARE.
+;	This software is furnished on the understanding that
+;it may be used and or copied only with the inclusion of this
+;notice.  No title or ownership of this software is hereby
+;transferred. The information in this software is subject to
+;change without notice. No responsibility is assumed for the
+;use or reliability of this software.
  
-        TITLE   BCPL
-        TWOSEG  400K
+	TITLE	BCPL
+	TWOSEG	400K
  
-        SEARCH UUOSYM
+	SEARCH UUOSYM
+
+	CODE1==617022
+	CODE2==13731
+	CODE3==26262
  
-        JRST    .BCPL.##        ; CATCH FALL THROUGH
-..BCPL::TDZA    1,      1
-        SETO    1,      0       ; SET UP CCL VALUE
-        MOVEM   1,      %CCL##  ;STORE IT.
-        MOVEM   0,      %CALLNM##       ;SAVE NAME OF THIS GAME...
-        CAIN    .SGPPN, 75      ;FRIG FOR 7.001 MONITOR - GET 75 INSTEAD OF PPN
-        MOVE    .SGPPN, 77      ;REAL PPN IS IN 77 (PART OF LOOKUP BLOCK)
-        MOVEM   .SGPPN, MAINTA##        ;SAVE AS MAINTAINER'S PPN
-        MOVEM   .SGPPN, PATHPP  ;SAVE FOR ASSIGNING MUD:
-        CAIN    .SGDEV, 75      ;SAME PALAVER FOR DEVICE NOW
-        MOVE    .SGDEV, 75      ;DEVICE IS 1ST ENTRY IN LOOKUP BLOCK
-        SKIPN           .SGDEV  ;DID HE GIVE A DISC?
-        MOVEI   .SGDEV, 'DSK'   ;NO SO ASSUME DSK...
-        MOVEM   .SGDEV, DISC    ;STOW AWAY...
-        MOVEM   .SGDEV, PATHDV  ;...AGAIN.
-        CAME    .SGDEV, [       SIXBIT  /DSK/   ]
-        CAMN    .SGDEV, [       SIXBIT  /ALL/   ]
-        JRST            PAST
-        CAMN    .SGDEV, [       SIXBIT  /LIB/   ]
-        JRST            PAST
-        MOVEI   2,      4
-LOP:    MOVE    1,      [       XWD     3,      LOC]
-        JOBSTR  1,
-        JRST            PAST
-        MOVE    1,      LOC
-        JUMPE   1,      OVER
-        CAMN    1,      ADDR+1
-        JRST            PAST
-        MOVEM   1,      ADDR(2)
-        ADDI    2,      3
-        JRST            LOP
-OVER:   SOS             2
-        HRLI    1,      @2
-        HRRI    1,      ADDR
-        STRUUO  1,
-        TRN
-PAST:   HRRI    1,      PATHBK
-        HRLI    1,      12
-        PATH.   1,
-        TRN
-        RESET
-        SETZ    1,
-        SETUWP  1,
-        HALT
-
-
-
-
-
-
-        SKIPE           74
-        JRST    [       OUTSTR  [       ASCIZ   /
-IF YOU THINK I'LL LET YOU DDT ME YOU'VE ANOTHER THINK COMING, SQUIRE...
-/                               ]
-                        JRST    @.
-                        EXIT
-                ]
-        MOVEI 1,VEC
-        PIINI.  1,0
-        TRN
-        MOVEI 1,SWINT
-        MOVEM 1,VEC+4
-        MOVE 1,[ PS.FON+PS.FAC+ARGS]
-        PISYS.  1,0
-        TRN
-        MOVEI   1,      2
-        HRLI    1,      3
-        MOVEI   2,      2036
-        SETO    3,
-        TRMNO.  3,
-        TRN
-        SETZ    4,
-        TRMOP.  1,
-        TRN
-        MOVEI   2,      2003
-        TRMOP.  1,
-        TRN
-        MOVEI   2,      2005
-        SETO    4,
-        TRMOP.  1,
-        TRN
-        JRST            400010  ;START RIPPLE THROUGH
-SWINT:  DMOVEM  1,      SUMADD
-        MOVEM   3,      SUMADD+2                ;WHAT'S WRONG WITH PUSHING ON STACK?
-        HRRZ 1,STATUS   ;PASSED VALUE
-        HLRZ 2,STATUS   ;JOB NUMBER
-        HLL  3,STATUS
-        HRRI 3,2        ;TABLE 2 GETS PPN FOR JOB
-        GETTAB  3,
-        JRST WALLY
-        CAME 3,MAINTA## ;MAKE SURE MAINTAINER DID IT
-        JRST WALLY
-        SUB  1,2
-        CAIN 1,"N"
-        JRST NICE
-        CAIN 1,"H"
-        JRST HORRIB
-WALLY:  DMOVE   1,      SUMADD
-        MOVE    3,      SUMADD+2
-        DEBRK.
-        HALT
-HORRIB: OUTSTR [ASCIZ /
-SOMETHING MAGICAL HAS HAPPENED NASTILY...
+	JRST	.BCPL.##	; CATCH FALL THROUGH
+..BCPL::TDZA	1,	1
+	SETO	1,	0	; SET UP CCL VALUE
+	MOVEM	1,	%CCL##	;Store it.
+	MOVEM	0,	%CALLNM##	;Save name of this game...
+	CAIN	.SGPPN,	75	;Frig for 7.001 monitor - get 75 instead of ppn
+	MOVE	.SGPPN,	77	;Real ppn is in 77 (part of lookup block)
+	MOVEM	.SGPPN,	MAINTA##	;Save as maintainer's ppn
+	MOVEM	.SGPPN,	PATHPP	;Save for assigning MUD:
+	CAIN	.SGDEV,	75	;Same palaver for device now
+	MOVE	.SGDEV,	75	;Device is 1st entry in lookup block
+	SKIPN		.SGDEV	;Did he give a disc?
+	MOVEI	.SGDEV,	'DSK'	;No so assume dsk...
+	MOVEM	.SGDEV,	DISC	;stow away...
+	MOVEM	.SGDEV,	PATHDV	;...again.
+	came	.sgdev,	[	sixbit	/dsk/	]
+	camn	.sgdev,	[	sixbit	/all/	]
+	jrst		past
+	camn	.sgdev,	[	sixbit	/lib/	]
+	jrst		past
+	movei	2,	4
+lop:	move	1,	[	xwd	3,	loc]
+	jobstr	1,
+	jrst		past
+	move	1,	loc
+	jumpe	1,	over
+	camn	1,	addr+1
+	jrst		past
+	movem	1,	addr(2)
+	addi	2,	3
+	jrst		lop
+over:	sos		2
+	hrli	1,	@2
+	hrri	1,	addr
+	struuo	1,
+	trn
+past:	hrri	1,	pathbk
+	hrli	1,	12
+	path.	1,
+	trn
+	RESET
+	setz	1,
+	setuwp	1,
+	halt
+	SKIPE		74
+	JRST	[	OUTSTR	[	ASCIZ	/
+If you think I'll let you DDT me you've another think coming, squire...
+/				]
+			JRST	@.
+			EXIT
+		]
+	movei	1,	imrtrp
+	movem	1,	.jbapr
+	movei	1,	ap.pov+ap.ilm+ap.nxm+ap.par
+	aprenb	1,	0
+	moveI 1,vec
+	piini.	1,0
+	trn
+	movei 1,swint
+	movem 1,vec+4
+	movei 1,imrtrp
+	movem 1,vec+10
+	move 1,[ ps.fon+ps.fac+args]
+	pisys.	1,0
+	trn
+	move 1,[ ps.fon+ps.fac+args1]
+	pisys.  1,0
+	trn
+	skipn		esxwd##
+	jrst		ripple
+	movei	1,	2
+	hrli	1,	3
+	movei	2,	2036
+	seto	3,
+	trmno.	3,
+	trn
+	setz	4,
+	trmop.	1,
+	trn
+	movei	2,	2003
+	trmop.	1,
+	trn
+ripple:	JRST		400010	;Start ripple through
+swint:	movem	1,	sumadd
+	hrrz	1,	status
+	cain	1,	code1
+	jrst		cone
+	caie	1,	code2
+	cain	1,	code3
+	jrst		ctwo
+wally:	setzm		half
+okok:	move	1,	sumadd
+	debrk.
+	halt
+cone:	setom		half
+	jrst		okok
+ctwo:	skipn		half
+	jrst		wally
+	caie	1,	code2
+	jrst		nice
+	skipe		maint##
+	jrst		[	outstr	[asciz	/
+Someone has just tried to do something magical to you nastily.
+/					]
+				jrst wally
+			]
+	outstr [asciz /
+Someone has done something magical to you, nastily...
 / ]
-        EXIT
-        HALT
-NICE:   OUTSTR [ASCIZ /
-SOMETHING MAGICAL HAS HAPPENED NICELY...
+	exit
+	halt
+nice:	outstr [asciz /
+Someone has done something magical to you, nicely...
 /]
-        SETOM   CTCFLG##
+	setom	ctcflg##
+	jrst	wally
 
-
-
-
-
-
-        JRST    WALLY
+imrtrp:	movei	1,	imrext
+	movem	1,	.jbapr
+	outstr	[asciz	/
+Something amazingly magical has happened!
+/]
+	skipe		magic##
+	jrst		imrext
+	setom		magic##
+	jsp	14,	@resetgame##
+	subi	16,	2
+imrext:	exit	1,
  
-RELOC
+reloc
  
-SUMADD: BLOCK 3
-VEC:    BLOCK 4
-NEW:    0
-OLD:    0
-FLAGS:  0
-STATUS: 0
+sumadd:	block 1
+half:	0
+vec:	block 4
+new:	0
+old:	0
+flags:	0
+status:	0
+new1:	0
+old1:	0
+flags1:	0
+stats1:	0
  
-ARGS:   .PCJBI
-        XWD 4,0
-        XWD 2,0
+args: 	.pcjbi
+	xwd 4,0
+	xwd 2,0
+args1:	.pciuu
+	xwd 10,0
+	xwd 2,0
  
-PATHBK: -5
-        0
-        SIXBIT /MUD/
-        0
-PATHDV: EXP 0, 0, 0
-PATHPP: EXP 0, 0, 0, 0
-ADDR:   .FSSRC
-DISC::  BLOCK 1
-        0
-        0
-        BLOCK   ^D21                    ;SHOULD BE ENOUGH FOR MOST SEARCHLISTS...
-LOC:    EXP -1,0,0
-        END     ..BCPL
+pathbk:	-5
+	0
+	sixbit /MUD/
+	0
+pathdv:	exp 0, 0, 0
+pathpp:	exp 0, 0, 0, 0
+addr:	.fssrc
+disc::	block 1
+	0
+	0
+	block	^d21			;should be enough for most searchlists...
+loc:	exp -1,0,0
+	END	..BCPL
+
+
+
+
+\\\\\
+SUBFILE: POWER.BCL @11:29 13-NOV-1986 <477> (3816)   
+/*
+Copyright (C) 1980 by
+Roy Trubshaw & Richard Bartle,
+Essex University, Colchester. CO4 3SQ.
+
+	This software is furnished on the understanding that
+it may be used and or copied only with the inclusion of this
+notice.  No title or ownership of this software is hereby
+transferred. The information in this software is subject to
+change without notice. No responsibility is assumed for the
+use or reliability of this software.
+*/
+
+get "bcl:acs"
+get "bcl:scb"
+get "bcl:iolib"
+get "dungen"
+get "bcl:rfslib"
+
+$LDTEXT "/RUNAME:power"
+
+external "."
+$(	fn
+$)
+
+manifest
+$(	TREESIZE	=	RECLENGTH+2
+	RIGHT		=	RH | TREESIZE-1
+	LEFT		=	LH | TREESIZE-1
+	CHAIN		=	RH | TREESIZE
+	PPPN		=	#2011002011//MPPN
+$)
+
+static
+$(	lastblock	=	0
+	cbl		=	vec 1
+	dmpbuf		=	vec BUFFERS
+	cbll		=	vec 1
+	perputt		=	?
+	dmpbuff		=	vec BUFFERS
+	bcntt		=	1
+	nextrec		=	?
+	game		=	$6"mud"
+	rock		=	$6"rock"
+	blud		=	$6"blud"
+	perput		=	?
+	rec		=	?
+	gender		=       0
+	me		=	0
+	ch		=	?
+	name		=       vec 1
+	room		=	0
+	tree		=	0
+$)
+
+let start() be
+$(	let bcnt=1
+	output:=tty
+	outs("The power program!*C*L")
+	$[	$rescan
+zonk:		$inchrs		1
+		$jrst		plonk
+		$caie	1,	'-'
+		$jrst		zonk
+cronk:		$inchrs		1
+		$jrst		plonk
+		$trz	1,	#40
+		$caie	1,	'M'
+		$cain	1,	'V'
+		$jrst		wonk
+		$caie	1,	'B'	//spot the hacks...
+		$cain	1,	'R'
+		$trna
+		$jrst		cronk
+		$move	2,	rock
+		$cain	1,	'B'
+		$move	2,	blud
+		$movem	2,	game
+wonk:		$inchrs		1
+		$trna
+		$jrst		wonk
+plonk:	$]
+	input:=tty
+	Readname(name, "Password: ")
+	test !name=!"bushbaby" then outs("*C*LThat'll do...*C*L") or
+	$(	Outs("*C*LEek! Go away!*C*L")
+		finish
+	$)
+	$(	Outs("Frig, Start, League, Transfer, Enumerate, Password, Dot, Reveal, Mud, Kill*C*Lor One-off? ")
+		switchon valof
+		$[	$clrbfi
+			$inchrw		1
+			$trz	1,	#40
+		$] into
+		$(
+		case 'R':	outs("eveal*C*L")
+				reveal()
+				finish
+		case 'M':	outs("ud*C*L")
+				run($6"dsk", $6"mud", $6"exe", PPPN)
+		case 'S':	outs("tart*C*L")
+				strat()
+				finish
+		case 'D':	outs("ot*C*L")
+				dot()
+				finish
+		case 'F':	outs("rig*C*L")
+				break
+		case 'L':	outs("eague*C*L")
+				league()
+				finish
+		case 'T':	outs("ransfer*C*L")
+				Transfer()
+				finish
+		case 'E':	outs("numerate*C*L")
+				Enumerate()
+				finish
+		case 'P':	outs("assword*C*L")
+				password()
+				finish
+		case 'K':	outs("ill*C*L")
+				kill()
+				finish
+		case 'O':	outs("ne-off*C*L")
+				oneoff()
+				finish
+		default 0 ... #137:
+			Outs("*C*LEh?*C*L")
+		$)
+	$) repeat
+	setup()
+	readname(name, "Name: ")
+	if !name =!"richard" Outs("*C*LYou're so naive...*C*L")<>finish
+	searchrec(name)
+	if rec then rec_rec rem 128+dmpbuf
+	test rec then
+	$(	let sc, sx=SCRE of rec, WRD1 of rec bitand 1
+		outs("Current character profile is:*C*L")
+		out("Name*T*T:s:s*C*Lscore*T*T:n*T:s*C*Lstrength*T:n*C*L",rec+2,WIZD of rec bitand WIZMASK -> "*TWIZ","",sc,lev(sc,sx),STRN of rec)
+		out("dexterity*T:n*C*Lstamina*T*T:n*T(max*T:n)*C*Lgames played*T:n*C*Lsex*T*T:smale*C*Lp/w*T:8*C*L",
+		dxty of rec,stna of rec,stmx of rec,games of rec, sx -> "fe", "",PSWD of rec)
+		dumpersona(true)
+		save.block()
+	$) or
+	$(	out("No current persona! I'll make one for you, :s.*C*L",name)
+		addrec(name)
+		rec_rec rem 128+dmpbuf
+		games of rec_1
+		WRD1 of rec_!name
+		WRD2 of rec_LENGTH of name>4 -> 1!name,0
+		WIZD of rec_false
+		dumpersona()
+		save.block()
+	$)
+	Close(perput)
+	deq(sc.channel^perput)
+$)
+and dumpersona(pw) be
+$(	unless numbargs() pw_false
+	if pw pw_ESSEX
+	if pw pw_appendfile($6"dsk",$6"prolog",$6"prl", MPPN,label(oops))
+	if pw
+	$(	write(pw,"POWERing :S*C*LStr.*TDex.*TSta.*TScore*TSex*TP/w*C*L",name)
+		write(pw,":N*T:N*T:N*T:N*T:S*T:8*C*L",STRN of rec,DXTY of rec,
+			STMX of rec,SCRE of rec,((WRD1 of rec) bitand 1)->"f","m",PSWD of rec)
+	$)
+	outs("Prepare to fulfill your wildest dreams!*C*L")
+	outs("Strength	?");	STRN of rec_getno(STRN)
+	outs("Stamina (max)	?");	STNA of rec_getno(STMX);	STMX of rec_STNA of rec
+	outs("Dexterity	?");	DXTY of rec_getno(DXTY)
+	outs("Score		?");	SCRE of rec_getno(SCRE)
+	outs("Sex		?")
+	$[      $CLRBFI
+		$INCHRW	 ch
+	$]
+	Gender_(WRD1 of rec) bitand 1
+	TEST ch='M'\/ch='m' THEN OUTS("ale*C*L")<>gender_0
+	OR if ch= 'F'\/ch='f' THEN OUTS("emale*C*L")<>
+		gender_1
+	outs("Pn		?");	PN of rec_Getno(PN,true)
+	unless PN of rec PN of rec_valof $[	$getppn	1,	0	$]
+	WRD1 of rec_((WRD1 of rec) bitand ~1) bitor gender
+	LSTM of rec_valof
+	$[	$hrri	ac,	#11
+		$hrli	ac,	#53
+		$gettab ac,     0
+		$trn
+	$]
+	if pw /\ (PSWD of rec ne 0)
+	$(	outs("Zero p/w	?")
+		if valof
+		$[	$clrbfi
+			$inchrw		1
+			$trz	1,	#40
+			$caie	1,	'Y'
+			$jrst		render
+			$outstr		$az"es*C*L"
+			$trna
+render:			$setz	1,	0
+			$clrbfi
+		$] then PSWD of rec_0
+	$)
+	if pw
+	$(	write(pw,":N*T:N*T:N*T:N*T:S*T:8*C*L",STRN of rec,DXTY of rec,
+			STMX of rec,SCRE of rec,((WRD1 of rec) bitand 1)->"f","m",PSWD of rec)
+		close(pw)
+	$)
+	return
+oops:	Outs("*C*LI can't log this frig, so I won't do it, sorry.*C*L")
+$)
+and load.block(stream,block) be
+$(	if block=lastblock return
+	useti(perput,block)
+	inuuo(stream,cbl)
+	lastblock_block
+$)
+and save.block(block) be
+$(	let blk=numbargs()->block,lastblock
+	useto(perput,blk)
+	outuuo(perput,cbl)
+$)
+and searchrec(nam) = valof
+$(	let pnt,lrec,str=?,0,vec 1
+	!str_!nam
+	1!str_LENGTH of nam>4 -> 1!nam, 0
+	load.block(perput,1)
+	lrec_hashval(str)
+	rec_dmpbuf!lrec
+	while rec
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		pnt_(rec rem WDSPERBUF)+dmpbuf
+		if namesame(str,2+pnt) break
+		lrec_rec
+		rec_POINTR of pnt
+	$)
+	resultis lrec
+$)
+and saverec(nam) = valof
+$(	searchrec(nam)
+	unless rec addrec(nam)
+	if rec		//In case addrec hasn't added them.
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		dumpersona(rec rem WDSPERBUF+dmpbuf)
+		save.block()
+	$)
+	resultis rec	//return a value to indicate whether you've been saved.
+$)
+and deleterec(nam) be
+$(	let olrec,odel,lrec=?,?,searchrec(nam)
+	and pnt=rec rem WDSPERBUF+dmpbuf
+	unless rec return	//Can't find record
+						//Ok, this may look a little long-winded
+	load.block(perput,rec/WDSPERBUF+1)	//but it's worth it not to corrupt the persona file in case of a crash
+	WRD1 of pnt_0
+	WRD2 of pnt_0		//Zero names for purges etc.
+	GAMES of pnt_0		//Yawn thinks we need this, too! (WE DO! - Yawn xx)
+	olrec_!pnt
+	save.block()
+
+	load.block(perput,lrec/WDSPERBUF+1)
+	dmpbuf!(lrec rem WDSPERBUF)_olrec	//Old pointer to rec now points to old pointer of rec.
+	save.block()
+	
+	load.block(perput,1)	//Get the deleted record pointer
+	odel_DEL of dmpbuf
+	save.block()
+
+	load.block(perput,rec/WDSPERBUF+1)	//And plonk it in the record to be deleted
+	!pnt_odel		//Does anyone read all these comments?
+	save.block()
+
+	load.block(perput,1)	//Finally update the deleted record pointer to point to the newly deleted record!
+	DEL of dmpbuf_rec
+	save.block()
+$)
+and addrec(nam) be
+$(	let hashcont,olrec,str=?,?,vec 1
+	!str_!nam
+	1!str_LENGTH of nam>4 -> 1!nam,0
+	load.block(perput,1)
+	rec_DEL of dmpbuf
+	test rec then
+	$(	load.block(perput,rec/WDSPERBUF+1)
+		olrec_POINTR of (rec rem WDSPERBUF+dmpbuf)
+		save.block()
+	$) or
+	$(	rec_FLEN of dmpbuf
+		unless rec			//No persona file exists.
+		$(	rec_2*WDSPERBUF
+			FLEN of dmpbuf_rec	//Create hash table
+		$)
+		olrec_0				//No deleted records
+		FLEN of dmpbuf+_RECLENGTH
+		save.block()
+	$)
+	load.block(perput,1)
+	DEL of dmpbuf_olrec
+	hashcont_dmpbuf!hashval(str)
+	dmpbuf!hashval(str)_rec
+	save.block()
+
+	load.block(perput,rec/WDSPERBUF+1)
+	POINTR of (dmpbuf+rec rem WDSPERBUF)_hashcont
+	save.block()
+$)
+and hashval(nam) =  ((!nam+1!nam)>>1) rem 253
+and kill() be
+$(	setup()
+	readname(name, "Name: ")
+	if !name =!"richard" Outs("*C*LNot Richard...*C*L")<>finish
+	deleterec(name)
+	test rec then out(":s terminated.",name)
+	or out(":s already dead - you can only kill people once!",name)
+	
+	Close(perput)
+	deq(sc.channel^perput)
+$)
+and getno(sel,octal)=valof
+$(	let ch=valof
+	$[	$clrbfi
+		$inchrw 1
+	$]
+	unless numbargs()=2 octal_false
+	unless '0' le ch le '9'
+	$(	$[	$clrbfi	$]
+		resultis sel of rec
+	$)
+	putback(input,  ch)
+	ch_(octal->inoct,inno)()
+	$(	let stk=SC.PUTSTACK^input
+		SC.PUTSTACK^input, SC.READER^input _ !stk, stk!2
+		freevec(stk)
+	$)
+	resultis ch
+$)
+and inoct(nopb)=valof
+$(	let res=0 and ch=?
+	ch_inch() repeatuntil '0' le ch le '7'
+	while '0' le ch le '7' do
+	$(	res_(res<<3)-'0'+ch
+		ch_inch()
+	$)
+	unless numbargs() putback(input,ch)
+	resultis res
+$)
+and readname(nm, pr) be
+$(      let n,ch,linev=0,?,vec NAMELENGTH
+	write(tty, pr)
+	readch(input,@ch)
+	while 'a'<=(ch bitor #40)<='z' do
+	$(      n+:1
+		unless n>NAMELENGTH linev!n:='A'<=ch<='Z'->ch+#40,ch
+		readch(input,@ch)
+	$)
+	!linev:=n>NAMELENGTH->NAMELENGTH,n
+	packstring(linev,nm)
+	until ch='*L' do readch(input,@ch)
+$)      repeatuntil LENGTH of nm
+and dot() be
+$(   	let stfl,no,ch=0,?,?
+	writes(tty,"Please enter the job number of the about to be dotted job*C*L(0 for all of them)*C*L")
+	writes(tty,"**")
+	no_rdno(tty)
+	$(	let res=?
+		writes(tty,"dotted nicely or horribly N/H? ")
+		$[    	$clrbfi
+			$inchrw  ch
+		$]
+		stfl_0
+		test ch='H' \/ ch='h' then stfl_#13731<>writes(tty,"orribly*C*L") or
+		if ch='N' \/ ch='n' then stfl_#26262<>writes(tty,"icely*C*L")
+		unless stfl writes(tty,"*Binvalid character*C*L")<>loop
+		for i=1 to 200 dispose(#617022,i)
+		test no then res_dispose(stfl, no)
+		or for i=1 to 200 if dispose(stfl, i) res_true
+		unless res Writes(tty, "*C*L?POWIDW - it didn't work so stop pissing around.*C*L")
+		finish	
+	$) repeat
+$)
+and dispose(stfl, no) be
+$[	$hrrz 2,stfl
+	$hrl  2,no
+	$calli 2,#175
+	$setz 1,0			//uh?
+$]
+and namesame(nam1,nam2)=
+(!nam1>>1)=(!nam2>>1)/\((LENGTH of nam1<=4)\/(1!nam1>>1)=(1!nam2>>1))
+and strat() be
+$(	let resp=?
+	$(	writes(tty, "*C*LMud, Valley or Rock? ")
+		$[	$inchrw		1
+			$trz	1,	' '
+			$movem	1,	resp
+		$]
+	$) repeatuntil resp='V' | resp='M' | resp='R'
+	write(tty, ":s*C*L", resp='R'->"ock", resp='V'->"alley", "ud")
+	resp_resp='R' -> $6"rock",resp='V'->$6"valley", $6 "mud"
+	output_createtmp(resp)
+	readname(name, "Name: ")
+	writes(tty, "*C*LRoom: ")
+	$[ $clrbfi      $]
+	for i=0 to 5 do
+	$(	let letter = byte 6:30-6*i
+		and next = valof $[ $inchrw    1 $]
+		if 'a' le next le 'z' next-_'a'-'A'
+		if next = '*C' break
+		letter from room _ next-' '
+	$)
+	$[ $clrbfi      $]
+	out(":s*^C:n*$:n*$:n",	name,
+				valof $[ $mstime 1, 0 $],
+				valof $[ $mstime 1, 0 $],
+				room)
+	close(output)
+	run($6 "dsk", resp, $6 "exe", 0)
+$)
+
+and setup() be
+$(	!cbl_(-BUFFERS<<18)bitor(dmpbuf-1)
+	1!cbl_0
+	if false
+	$(
+dogoneit:	perput_createfile($6"dsk",game,$6".pm",PPPN,0,#17,1)
+		enq(SC.CHANNEL^perput)
+		useto(perput,2)
+		outuuo(perput,cbl)
+		close(perput)
+		deq(sc.channel^perput)
+	$)
+	perput_updatefile($6"dsk",game,".pm",PPPN,label(dogoneit),#17,1)
+	enq(sc.channel^perput)
+	useti(perput,1)
+$)
+and reveal() be
+$(	let ch, f, fil, ext=?, ?, vec 1, vec 1
+	readname(fil, "File part: ")
+	readname(ext, "Extension part: ")
+	f_findfile($6"dsk", fil, ext, 0, label(absent))
+	if false
+absent:	f_findfile($6"dsk", fil, ext, PPPN, label(nowhere))
+	input_f
+	ch_Inch()
+	while ch ne '*E'
+	$(	outch(ch)
+		ch_inch()
+	$)
+	close(f)
+	input_tty
+	return
+nowhere:	out("Sorry, I can't find :S.:S*C*L", fil, ext)
+$)
+
+and password() be
+$(	let num,numrecs,bcnt=?,?,3
+	setup()
+	out("*C*LOctal password: ")
+	num_inoct(true)
+	
+	useti(perput,1)
+	inuuo(perput,cbl)
+	numrecs_(FLEN of dmpbuf-256)/12	//First find the number of records
+
+	useti(perput,bcnt) 	//Load in the first block of records
+	inuuo(perput,cbl)
+
+	rec_dmpbuf
+	for i=1 to numrecs
+	$(	if WRD1 of rec /\ num=PSWD of rec
+			out(":S on :N points*C*L", rec+2, SCRE of rec)
+		if (rec-dmpbuf)>128
+		$(	rec -_ 128
+			bcnt +_ 1
+			useti(perput,bcnt)
+			inuuo(perput,cbl)
+		$)			
+		rec+_RECLENGTH
+	$)
+
+	close(perput)
+	deq(sc.channel^perput)
+$)
+
+and Lev(pts, fem)=valof
+$(	let sc=exp.step
+	for i=0 to 9
+	$(	if sc ge pts resultis i
+		sc+_sc
+	$)
+	resultis 9
+$)!(fem!(table
+		(table	"novice",
+			"warrior",
+			"hero",
+			"champion",
+			"superhero",
+			"enchanter",
+			"sorcerer",
+			"necromancer",
+			"legend",
+			"wizard"
+		),
+		(table	"novice",
+			"warrior",
+			"heroine",
+			"champion",
+			"superheroine",
+			"enchantress",
+			"sorceress",
+			"necromancess",
+			"legend",
+			"witch"
+		)
+	)
+)
+
+and Enq(chan) be
+$(	let addr=vec 4
+	!addr_#1000005
+	1!addr_142857
+	2!addr_chan
+	3!addr_$az"mud"+(-1<<18)
+	4!addr_0
+	Out("*C*LENQ. error code :8*C*L", valof
+	$[	$move	1,	addr
+		$enq.	1,	0
+		$trna
+		$(	return	$)
+	$])
+$)
+
+and Deq(chan) be
+$(	let addr=vec 1
+	!addr_#1000005
+	1!addr_142857
+	Out("*C*LDEQ.error code :8*C*L", valof
+	$[	$move	1,	addr
+		$hrli	1,	1
+		$deq.	1,	0
+		$trna
+		$(	return	$)
+	$])
+$)
+and transfer() be
+$(	let peep, bcnt, numrecs=?, 3, ?
+	outs("where from? (0 for everywhere) ")
+	peep_inoct(true)
+	setup()
+	
+	useti(perput,1)
+	inuuo(perput,cbl)
+	numrecs_(FLEN of dmpbuf-256)/12	//First find the number of records
+
+	useti(perput,bcnt) 	//Load in the first block of records
+	inuuo(perput,cbl)
+
+	rec_dmpbuf
+	for i=1 to numrecs
+	$(	if WRD1 of rec /\ (PN of rec=peep | peep=0)
+		$(	out(":s: [**,:8] -> ", rec+2, PN of rec)
+			PN of rec_Getno(PN, true)
+		$)
+	
+		if (rec-dmpbuf)>128
+		$(	rec -_ 128
+			useto(perput, bcnt)
+			outuuo(perput, cbl)
+			bcnt +_ 1
+			useti(perput,bcnt)
+			inuuo(perput,cbl)
+		$)
+		rec+_RECLENGTH
+	$)
+
+	close(perput)
+	deq(sc.channel^perput)
+$)
+
+and League() be
+$(	let numrecs,bcnt=?,3
+	setup()
+	useti(perput,1)
+	inuuo(perput,cbl)
+	numrecs_(FLEN of dmpbuf-256)/12	//First find the number of records
+
+	useti(perput,bcnt) 	//Load in the first block of records
+	inuuo(perput,cbl)
+
+	rec_dmpbuf
+	for i=1 to numrecs
+	$(	if WRD1 of rec tree_insert(SCRE of rec, tree)
+		if (rec-dmpbuf)>128
+		$(	rec -_ 128
+			bcnt +_ 1
+			useti(perput,bcnt)
+			inuuo(perput,cbl)
+		$)			
+		rec+_RECLENGTH
+	$)
+
+
+	close(perput)
+	deq(sc.channel^perput)
+	outs("Writing to LEAGUE.ENM")
+	output_createfile("dsk","league","enm",0)
+	outree(tree)
+	while me
+	$(	let p=LH of me
+		Out("richard*T*T[**,:8]:c*T34359738369*T9999*Tyes*TWIZARD*C*L",p, p ls #1000->'*T','*0')
+		me of_RH
+	$)
+	close(output)
+$)
+and today()=valof
+$[	$hrli	1,	#53
+	$hrri	1,	#11
+	$gettab	1,	0
+	$trn
+	$hlrz	1,	1
+$]
+and Enumerate() be
+$(	let now,bcnt,numrecs=today(),3,?
+	setup()
+	outs("Writing to POWER.ENM*C*L")
+	output_Createfile($6"dsk",$6"power",$6"enm", 0, Label(rats))
+	outs("Enumeration of personas as of ")
+	outtime()
+	outs(" on ")
+	outdate()
+	outs(":*C*L*L")
+	
+	useti(perput,1)
+	inuuo(perput,cbl)
+	numrecs_(FLEN of dmpbuf-256)/12	//First find the number of records
+
+	useti(perput,bcnt) 	//Load in the first block of records
+	inuuo(perput,cbl)
+
+	rec_dmpbuf
+	for i=1 to numrecs
+	$(	if WRD1 of rec
+		$(	let t, sx, wz=now-(LH from LSTM of rec), (WRD1 of rec) bitand 1, WIZD of rec
+			Out("Name:*T*T:S*C*LPpn:*T*T[**,:8]*C*LScore:*T*T:N*C*LStrength:*T:N*C*LDexterity:*T:N*C*LStamina:*T:N*Tmax :N*C*L",
+				rec+2,PN of rec,SCRE of rec,STRN of rec,DXTY of rec,STNA of rec,STMX of rec)
+				Out("Last game:*T:N day:S ago*C*Lgames:*T*T:N*C*Lsex:*T*T:Smale*C*L",
+					t,t=1->"","s",GAMES of rec,sx->"fe","")
+				if wz bitand WIZMASK Out("Mode:*T*TWI:S*C*L", sx->"TCH","ZARD")
+				if wz bitand 4 Outs("Mode:*T*TBERSERK*C*L")
+				Outs("*C*L*L")
+		$)
+		if (rec-dmpbuf)>128
+		$(	rec -_ 128
+			bcnt +_ 1
+			useti(perput,bcnt)
+			inuuo(perput,cbl)
+		$)			
+		rec+_RECLENGTH
+	$)
+
+	close(perput)
+	deq(sc.channel^perput)
+	close(output)
+	Writes(tty,"*C*LEnumerated in DSK:POWER.ENM*C*L")
+	if false
+rats:		Writes(tty,"*C*LCan't create DSK:POWER.ENM*C*L")
+$)
+
+and insert(sc, tree)=valof
+$(	if tree test sc ls SCRE of tree then
+	$(	LEFT of tree_insert(sc, LEFT of tree)
+		resultis tree
+	$) or if sc gr SCRE of tree then
+	$(	RIGHT of tree_insert(sc, RIGHT of tree)
+		resultis tree
+	$)
+	sc_Newvec(TREESIZE)
+	for i=0 to RECLENGTH sc!i_rec!i
+	sc!(RH from RIGHT)_0
+	if tree
+	$(	CHAIN of sc_CHAIN of tree
+		CHAIN of tree_sc
+		resultis tree
+	$)
+	CHAIN of sc_0
+	resultis sc
+$)
+
+and outree(tree) be if tree
+$(	let l, r, n, p=LEFT of tree, RIGHT of tree, tree+2, PN of tree
+	outree(l)
+	test !n=!"richard" then
+	$(	let m=newvec(0)
+		LH of m_p
+		RH of m_me
+		me_m
+	$) or
+	Out(":s:c*T[**,:8]:c*T:N*T:c:N*T:8:S:S*C*L",
+		n, LENGTH of n ge 8 -> '*0', '*T', p, p ls #1000->'*T','*0', SCRE of tree,SCRE of tree > 9999999 -> '*0','*t', GAMES of tree,
+		PSWD of tree, (WIZD of tree bitand 4)-> "*TBERSERK", "",(WIZD of tree bitand WIZMASK)->WRD1 of tree bitand 1->"*TWITCH","*TWIZARD", "")
+	Outree(CHAIN of tree)
+	outree(r)
+$)
+and Oneoff() be
+$(	let now,newrec,lastrec,recptr,rec2,old.lastrec,hashbuf=
+			today(),0,?,?,0,?,vec 256
+	!cbll_(-BUFFERS<<18)bitor(dmpbuff-1)
+	1!cbll_0
+	clearvec(dmpbuff, BUFFERS)
+	perputt_createfile($6"dsk",game,$6"off",0,0,#17,1)
+	useto(perputt,1)
+	nextrec_dmpbuff
+	setup()
+	$(	inuuo(perput,cbl)
+		rec_dmpbuf
+		while LH of rec
+		$(
+//Do the processing between here...
+
+			let temp,pswrd=newrec,? 	//record list pointer
+			newrec_newvec(RECLENGTH)	//new reclength
+			!newrec_temp
+			for i=0 to 7 do (2+i)!newrec_i!rec	//copy over oldrec
+			for i=8 to RECLENGTH-2 do (2+i)!newrec_0	//and zero the rest
+			pswrd_9!newrec
+			9!newrec_(pswrd rem ((1<<20)-1))*(pswrd rem ((1<<25)-1))
+			if LENGTH of (rec+1)<5 4!newrec_0
+			
+
+//...and here!
+			rec+_8
+		$)
+		unless rec=dmpbuf+2*WDSPERBUF-8 & rec!1 then break
+	$) repeat
+			
+	
+	bcntt_3
+	for hashno=0 to 252
+	$(	let nextrec=newrec
+		out("****************HASH=:N*****************C*L",hashno)
+		lastrec_0
+		while nextrec
+		$(	let recptr=rec2+dmpbuff
+			if hashno=hashval(nextrec+3)
+			$(	out(":s	:n*C*L",nextrec+3,bcntt)
+				1!nextrec_lastrec
+				lastrec_rec2+(bcntt-1)*WDSPERBUF
+				old.lastrec_lastrec
+				for i=0 to 11 i!recptr_(i+1)!nextrec
+				rec2+_12
+				if rec2>128
+				$(	useto(perputt,bcntt)
+					outuuo(perputt,cbll)
+					bcntt+_1
+					rec2 rem_ 128
+					for i=0 to rec2-1 do i!dmpbuff_(i+12-(rec2-1))!nextrec
+				$)
+			$)
+			nextrec_!nextrec
+		$)
+		hashno!hashbuf_lastrec
+	$)
+	useto(perputt,bcntt)		//tidy up.
+	outuuo(perputt,cbll)
+	255!hashbuf_old.lastrec+12
+	254!hashbuf_0
+
+	for hashno=0 to 255 hashno!dmpbuff_hashno!hashbuf
+
+	useto(perputt,1)
+	outuuo(perputt,cbll)		//Output hash table
+		
+	close(perput)
+	deq(sc.channel^perput)
+	close(perputt)
+	Writes(tty,"*C*LOne-offed in the .OFF file*C*L")
+$)
+and clearvec(vect,size) be
+$[	$MOVE	AC,	vect
+	$HRLI	B,	0(AC)
+	$HRRI	B,	1(AC)
+	$SETZM		0(AC)
+	$ADD	AC,	size
+	$BLT	B,	0(AC)
+$]
+and yes(rec, str) =valof
+write(tty, ":s :s", rec+1, str)<>
+$[	$clrbfi
+	$inchrw		1
+	$caie	1,	'y'
+	$cain	1,	'Y'
+	$jrst		ep
+	$cain	1,	'*C'
+	$jrst		yep
+	$clrbfi
+	$outstr		$az"o*C*L"
+	$setz	1,	0
+	$(	return		$)
+yep:	$outchr		'y'
+ep:	$outstr		$az"es*C*L"
+$]
+
+$[	fn:	$exit	1,	0
+		$jrst		fn
+$]
+
+
+
+
+\\\\\
+SUBFILE: DBADAT.MAC @15:11 16-AUG-1986 <477> (786)   
+;Copyright (C) 1980 by
+;Roy Trubshaw, Richard Bartle & Ronan Flood,
+;Essex University, Colchester. CO4 3SQ.
+;
+;	This software is furnished on the understanding that
+;it may be used and or copied only with the inclusion of this
+;notice.  No title or ownership of this software is hereby
+;transferred. The information in this software is subject to
+;change without notice. No responsibility is assumed for the
+;use or reliability of this software.
+ 
+	TITLE	Database for MUD version 3
+	TWOSEG	400K
+	SALL
+	.DIRECTIVE	SFCOND
+	NOSYM
+ 
+	MAXPLY==^D36
+ 
+	IF2	<PRINTX Assembling Database for MUD version 3>
+ 
+	DEFINE	FLIST(SIZE,NUM)<
+	EXP	.+1
+	REPEAT	NUM-1,<
+	EXP	.+SIZE
+	BLOCK	SIZE-1>
+	BLOCK	SIZE>
+ 
+	DEFINE	VEC(SIZE,VALUE<0>)<
+	EXP	.+1
+	IFE	VALUE,	<BLOCK	SIZE>
+	IFN	VALUE,	<REPEAT SIZE,	    <EXP       VALUE>>>
+ 
+STARTL::EXP	.				;Address of start of database.
+INDEX:: EXP	0				;Room index.
+DICTIO::BLOCK	1				;Dictionary hash table.
+STLIST::BLOCK	1				;Pointer to start location list.
+MAX.RO::BLOCK	1				;Max number of rooms.
+MAX.DE::BLOCK	1				;Max number of demons.
+DEMONS::BLOCK	1				;Table of demons
+GDEMON::EXP	0				;List of global demons
+DATE::	BLOCK	1				;DECsystem 10 date of creation.
+RDATE::	EXP	0				;DECsystem 10 date of last reset
+RHOURS::EXP	0				;Accumulated time since last Reset
+RNDMS::	EXP	0				;List of room lists for randomisation
+FTIME::	EXP	0				;First time played this version?
+TIME::	BLOCK	1				;DECsystem 10 time of creation.
+BACKWD::BLOCK	1				;Says if a direction has an opposite
+TVERB::	BLOCK	1				;movement check word
+NAPCT::	0					;number of naps before assume crash
+SUPERS::0					;whether this is superseded by us or not
+DEMO::	0					;is there a demo on?
+RANDIR::0					;random directions in travel table
+CODES::	BLOCK	1				;vdu manipulation codes.
+LOW1::	EXP	0				;overload measure
+LOW2::	EXP	0				;near-overload measure
+TIMES::	EXP .+1					;vector of lists of playing times
+	BLOCK 7
+MOTVEC::	BLOCK	1			;Inverse movement no. to names
+MOVERS::	BLOCK	1			;Objects which are mobile
+MVLOCK::	EXP	-1			;So don't try to move above twice at once
+DELOCK::	EXP	-1			;Global demon lock
+MELTED::	EXP	-1			;Whether objects can move
+PEACE::	EXP	0				;whether can fight or not
+SPECT::	EXP	0				;whether there's a spectacular on
+MALE::	VEC	^D10				;names for males
+						;I bet I forget to alter with MAX.LEVEL...
+FEMALE::	VEC	^D10			;names for females
+MUDNAM::	BLOCK	^D27			;Name of dungeon as BCPL string
+MUD6::	EXP	0				;first 6 letters of above in 6bit
+ESXWD::	BLOCK	1				;memory location for manifest ESSEX constant
+PS6::	BLOCK	1				;first 6 letters of persona file
+MAX.ME::BLOCK	1				;Max number of text messages.
+TEXT::	BLOCK	1				;Table of text messages.
+TXTVEC::	BLOCK	1			;Word count for disc file
+INIDR:: EXP	-1				;Initialisation door.
+DELDR::	EXP	-1				;Delay door for timing out.
+ACTIVE::VEC	MAXPLY,	-1			;To ensure you're still playing
+PLAYER::EXP	-1				;Stack pointer.
+	COUNT==MAXPLY+2 			;2 is the frig factor!
+PLYNUM::VEC	MAXPLY,   <<COUNT=COUNT-1>>
+	PURGE	COUNT
+MQUEUE::VEC	MAXPLY				;Message queue.
+PNAMES::VEC	MAXPLY				;Player names.
+JOBNOS::VEC	MAXPLY				;Player job numbers. Forget locking it...
+KIPS::	VEC	MAXPLY				;Times at which people went to sleep.
+QDOORS::VEC	MAXPLY, -1			;Doors to message queues.
+PDOOR::	EXP	-1				;persona file door
+MDOOR:: EXP	-1				;Door to message freelist.
+NDOOR::	EXP	-1				;Door to name selection
+TABS::	VEC	^D24				;Combat tables
+SHELF::	EXP	0				;Shelf for arch-wiz items
+SHORTM::FLIST	3,	200			;Short message freelist.
+LONGME::FLIST	20,	100			;Long message freelist.
+%RANSE::XWD	1,	-1			;Random number seed.
+MAGIC:: EXP	0				;If non zero u get thrown out.
+NOWIZ::	EXP	0				;true if no wiz's allowed
+LOCKED::EXP	0				;Whether the game is wizard-locked or not
+ENDLOC::EXP	HERE/^D512			;Current page
+FREE.S::EXP	.+1				;Freestore pointer
+	BLOCK	1
+HERE==.
+END
+
+
+
+
+\\\\\
+
