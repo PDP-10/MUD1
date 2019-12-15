@@ -29,3 +29,6 @@ death are handled differntly so you dont need multiple dead rooms. Hence this mu
 the tape in the zip branch.
 
 Full build instructions including how to set up a PDP10 with TOPS-10 using SIMH is at https://www.quentin.org.uk/tag/pdp10/
+
+Do not mix MUD84 sources or binaries (from tape) with these MUD86 sources as they are not compatable and will fail to compile
+or run as expected.
