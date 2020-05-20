@@ -20,5 +20,11 @@ TXTTXT.GET and missing files *.DBA (which can be copied from the MUD tape), POWE
 issues is in the master branch.
 
 MUD.ZIP is the source files only extracted from the MUD.TAP tape and packaged up for easy distribution. They are of no real use
-if you can process either of the files in the two objects described above and were produced to send to Richadr who didnt have a
+if you can process either of the files in the two objects described above and were produced to send to Richadr who didnt have a 
 copy of that MUD version.
+
+
+Released by Richard Bartle exclusively for not for profit use 
+18 May 2020 under GNU General Public Licence version 3
+https://www.gnu.org/licenses/gpl-3.0.html
+
