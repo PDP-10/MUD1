@@ -461,7 +461,8 @@ $(	let snd,bit,block,damage,pp,pn,inv,inf=?,?,?,?,?,?,?,?
 					send(snd,block,K.YSFM,block!2)
 				$)
 				loop
-			case K.INCI:	   case K.IFYO:
+			case K.INCI:	   
+			case K.IFYO:
 				out(FUNC of block=K.INCI->"*C*L:p isn't carrying the :s*C*L","*C*L:p discovers your attempt to steal the :s!*C*L",
 				pn,PNAME of (RH from block!2))
 				endcase
