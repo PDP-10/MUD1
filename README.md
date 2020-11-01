@@ -23,6 +23,8 @@ MUD.ZIP is the source files only extracted from the MUD.TAP tape and packaged up
 if you can process either of the files in the two objects described above and were produced to send to Richadr who didnt have a 
 copy of that MUD version.
 
+MUD86.TAP is a simh tape file for a DEC-10 TOPS10 system with executabes and source for the 1986 version of Essex MUD.
+
 
 Released by Richard Bartle exclusively for not for profit use 
 18 May 2020 under GNU General Public Licence version 3
