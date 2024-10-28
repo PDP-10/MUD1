@@ -29,6 +29,4 @@ Full build instructions including how to set up a PDP10 with TOPS-10 using SIMH 
 
 Do not mix MUD84 sources or binaries (from tape) with these MUD86 sources as they are not compatable and will fail to compile or run as expected.
 
-I have discussed with Richard Bartle the licence for this code which he has said on 18 May 2020 can be used under GNU General Public Licence version 3 https://www.gnu.org/licenses/gpl-3.0.html "with a not-for-profit caveat. This means you can do pretty well what you want with it except make money, and if you give it to other people they have to follow the same restrictions."
-
-https://www.gnu.org/licenses/gpl-3.0.html
+I have discussed with Richard Bartle the licence for this code which he has said on 18 May 2020 can be used for a not-for-profit purpose. This means you can do pretty well what you want with it except make money, and if you give it to other people they have to follow the same restrictions."

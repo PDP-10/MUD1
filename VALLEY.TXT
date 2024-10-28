@@ -8,6 +8,8 @@
 ;transferred. The information in this software is subject to
 ;change without notice. No responsibility is assumed for the
 ;use or reliability of this software.
+;
+;Released by Richard Bartle exclusively for not for profit use 
 *name valley
 *persona	mud
 @txtcbt
